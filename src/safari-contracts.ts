@@ -27,6 +27,13 @@ export type SafariStatus = {
   distance: number;
   animalLoaded: boolean;
   jeepLoaded: boolean;
+  driving: boolean;
+  canEnterJeep: boolean;
+  canExitJeep: boolean;
+  speedKph: number;
+  jeepDistance: number;
+  destinationDistance: number;
+  destinationBearing: number;
 };
 
 export type SafariWorldOptions = {
@@ -38,7 +45,11 @@ export type SafariWorldOptions = {
 };
 
 export interface SafariWorld {
-  setStop(id: string): void;
+  setStop(id: string, keepPosition?: boolean): void;
+  enterJeep(): boolean;
+  exitJeep(): boolean;
+  returnToJeep(): void;
+  setBrake(pressed: boolean): void;
   guideToAnimal(): void;
   setActive(active: boolean): void;
   setPhotoMode(active: boolean): void;

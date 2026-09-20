@@ -18,6 +18,15 @@ import {
   loadSafariModel,
   type SafariModel,
 } from "./safari-model";
+import {
+  findVehicleExit,
+  SAFARI_BOUNDS,
+  stepVehicle,
+  stopVehicle,
+  vehicleDestination,
+  VEHICLE_ENTRY_RANGE,
+  type VehicleState,
+} from "./vehicle";
 
 type Direction = "forward" | "backward" | "left" | "right";
 type Obstacle = { x: number; z: number; radius: number };
@@ -412,7 +421,7 @@ export function createSafariWorld(
   canvas.setAttribute("role", "img");
   canvas.setAttribute(
     "aria-label",
-    "Soph's safari. Use W A S D or arrow keys to walk. Drag to look around.",
+    "Soph's safari. Use W A S D or arrow keys to walk or drive. Hold Space to brake the jeep. Drag to look around.",
   );
   container.append(canvas);
   const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 320);
@@ -450,6 +459,15 @@ export function createSafariWorld(
   let disposed = false;
   let active = false;
   let photoMode = false;
+  let driving = false;
+  let braking = false;
+  const vehicle: VehicleState = {
+    x: 0,
+    z: 0,
+    heading: -0.12,
+    speed: 0,
+    steering: 0,
+  };
   let contextLost = false;
   let stop = options.stops[0];
   let views = safariViewpoints(stop);
@@ -472,6 +490,11 @@ export function createSafariWorld(
   const desiredCamera = new THREE.Vector3();
   const cameraTarget = new THREE.Vector3();
   const raycaster = new THREE.Raycaster();
+  const chaseAnchor = new THREE.Vector3();
+  const chaseDirection = new THREE.Vector3();
+  const chaseRayOrigin = new THREE.Vector3();
+  const chaseSide = new THREE.Vector3();
+  const chaseHits: THREE.Intersection[] = [];
   const fallbackBounds = () =>
     new THREE.Box3(
       new THREE.Vector3(
@@ -493,13 +516,58 @@ export function createSafariWorld(
   };
   const safeRadius = () =>
     Math.max(2.4, (animals.get(stop.id)?.size.x ?? stop.height * 1.4) * 0.45);
+  function vehicleObstacles() {
+    return [
+      ...landscape.obstacles,
+      ...options.stops.map((animal) => {
+        const size = animals.get(animal.id)?.size;
+        return {
+          x: animal.position[0],
+          z: animal.position[2],
+          radius: Math.max(
+            2.4,
+            size
+              ? Math.hypot(size.x, size.z) / 2 + 0.7
+              : animal.height * 1.3 + 0.7,
+          ),
+        };
+      }),
+    ];
+  }
+  function interactionAllowed() {
+    return (
+      !disposed && active && !photoMode && !contextLost && !document.hidden
+    );
+  }
+  function jeepDistance() {
+    return Math.hypot(
+      explorer.root.position.x - vehicle.x,
+      explorer.root.position.z - vehicle.z,
+    );
+  }
+  function diagnosticState() {
+    canvas.dataset.travelMode = driving ? "driving" : "walking";
+    canvas.dataset.vehicleX = String(vehicle.x);
+    canvas.dataset.vehicleZ = String(vehicle.z);
+    canvas.dataset.vehicleHeading = String(vehicle.heading);
+    canvas.dataset.vehicleSpeed = String(vehicle.speed);
+    canvas.dataset.explorerX = String(explorer.root.position.x);
+    canvas.dataset.explorerZ = String(explorer.root.position.z);
+  }
+  function syncVehicle() {
+    jeep.position.set(vehicle.x, 0, vehicle.z);
+    jeep.rotation.y = vehicle.heading;
+    if (driving) explorer.root.position.copy(jeep.position);
+  }
   function updateStatus() {
     if (disposed) return;
+    diagnosticState();
     const distance = explorer.root.position.distanceTo(
       new THREE.Vector3(...stop.position),
     );
     const animalLoaded = animals.has(stop.id);
     let photoReady =
+      !driving &&
       animalLoaded &&
       distance >= safeRadius() + 0.4 &&
       distance <= views.photoRange;
@@ -519,10 +587,23 @@ export function createSafariWorld(
         : "loading";
     const status: SafariStatus = {
       distance,
-      nearby: animalLoaded && distance <= views.encounterRange,
+      nearby: !driving && animalLoaded && distance <= views.encounterRange,
       photoReady,
       animalLoaded,
       jeepLoaded: Boolean(jeepModel),
+      driving,
+      canEnterJeep:
+        interactionAllowed() &&
+        !driving &&
+        jeepDistance() <= VEHICLE_ENTRY_RANGE,
+      canExitJeep:
+        interactionAllowed() &&
+        driving &&
+        findVehicleExit(vehicle, vehicleObstacles()) !== null,
+      speedKph: vehicle.speed * 3.6,
+      jeepDistance: jeepDistance(),
+      destinationDistance: vehicleDestination(vehicle, views.arrival).distance,
+      destinationBearing: vehicleDestination(vehicle, views.arrival).bearing,
     };
     settings.onStatus(status);
     return status;
@@ -534,6 +615,57 @@ export function createSafariWorld(
         currentBounds(),
         explorer.root.position.clone().add(new THREE.Vector3(0, 1.65, 0)),
       );
+      return;
+    }
+    if (driving) {
+      const distance = camera.aspect < 0.8 ? 14 : 11;
+      const orbit = vehicle.heading + yaw;
+      desiredCamera.set(
+        vehicle.x - Math.cos(orbit) * distance,
+        3.1 + Math.sin(pitch) * distance,
+        vehicle.z + Math.sin(orbit) * distance,
+      );
+      camera.position.lerp(
+        desiredCamera,
+        snap || settings.reducedMotion ? 1 : 0.15,
+      );
+      // Check the smoothed position too: an unobstructed destination can still
+      // leave the easing camera inside a canopy for several frames. Side and
+      // roof rays protect the jeep's silhouette as well as the centre line.
+      chaseAnchor.set(vehicle.x, 1.6, vehicle.z);
+      chaseDirection.copy(camera.position).sub(chaseAnchor);
+      const fullRange = chaseDirection.length();
+      chaseDirection.normalize();
+      chaseSide.crossVectors(chaseDirection, UP).normalize();
+      let clearRange = fullRange;
+      raycaster.far = fullRange;
+      for (let sample = 0; sample < 4; sample++) {
+        chaseRayOrigin.copy(chaseAnchor);
+        if (sample === 1) chaseRayOrigin.addScaledVector(chaseSide, 1.1);
+        if (sample === 2) chaseRayOrigin.addScaledVector(chaseSide, -1.1);
+        if (sample === 3) chaseRayOrigin.y += 0.9;
+        raycaster.set(chaseRayOrigin, chaseDirection);
+        chaseHits.length = 0;
+        raycaster.intersectObjects(landscape.treeMeshes, false, chaseHits);
+        if (chaseHits.length)
+          clearRange = Math.min(clearRange, chaseHits[0].distance - 0.7);
+      }
+      const chaseRange = Math.max(4.2, clearRange);
+      if (chaseRange < fullRange)
+        camera.position
+          .copy(chaseAnchor)
+          .addScaledVector(chaseDirection, chaseRange);
+      // Closer views look at the vehicle itself, keeping its roof and body in
+      // frame rather than continuing to aim four metres down the road.
+      const openView = THREE.MathUtils.clamp((chaseRange - 4.2) / 6, 0, 1);
+      cameraTarget.set(
+        vehicle.x + Math.cos(vehicle.heading) * 4 * openView,
+        1.5 - 0.25 * openView,
+        vehicle.z - Math.sin(vehicle.heading) * 4 * openView,
+      );
+      camera.fov = 68 - 16 * openView;
+      camera.lookAt(cameraTarget);
+      camera.updateProjectionMatrix();
       return;
     }
     const distance = camera.aspect < 0.8 ? 12 : 9;
@@ -562,34 +694,52 @@ export function createSafariWorld(
       movement[key as Direction] = false;
     });
     dragging = false;
+    braking = false;
     previousTime = performance.now();
   }
-  function selectStop(id: string) {
+  function pauseTravel() {
+    clearMovement();
+    stopVehicle(vehicle);
+    guide = null;
+    diagnosticState();
+  }
+  function selectStop(id: string, keepPosition = false) {
     const next = options.stops.find((entry) => entry.id === id);
     if (!next || disposed) return;
     stop = next;
     views = safariViewpoints(stop);
-    clearMovement();
     guide = null;
-    photoMode = false;
-    yaw = 0;
-    pitch = 0.3;
-    explorer.root.position.copy(views.arrival);
-    explorer.root.rotation.y = 0;
-    explorer.root.visible = active;
-    jeep.position.copy(views.jeep);
-    jeep.rotation.y = -0.12;
-    sun.position.set(stop.position[0] - 26, 37, stop.position[2] + 20);
-    sun.target.position.set(...stop.position);
+    if (!keepPosition) {
+      pauseTravel();
+      driving = false;
+      photoMode = false;
+      yaw = 0;
+      pitch = 0.3;
+      explorer.root.position.copy(views.arrival);
+      explorer.root.rotation.y = 0;
+      explorer.root.visible = active;
+      vehicle.x = views.jeep.x;
+      vehicle.z = views.jeep.z;
+      vehicle.heading = -0.12;
+      syncVehicle();
+    }
     canvas.dataset.stopId = stop.id;
-    updateCamera(true);
+    updateCamera(!keepPosition);
     updateStatus();
     if (failedAnimals.has(stop.id))
       settings.onError(`${stop.name} could not load. Refresh to try again.`);
   }
   function resolveCollisions(position: GroundPosition) {
-    position.x = THREE.MathUtils.clamp(position.x, -100, 100);
-    position.z = THREE.MathUtils.clamp(position.z, -110, 85);
+    position.x = THREE.MathUtils.clamp(
+      position.x,
+      SAFARI_BOUNDS.minX,
+      SAFARI_BOUNDS.maxX,
+    );
+    position.z = THREE.MathUtils.clamp(
+      position.z,
+      SAFARI_BOUNDS.minZ,
+      SAFARI_BOUNDS.maxZ,
+    );
     const obstacles = [
       ...landscape.obstacles,
       { x: jeep.position.x, z: jeep.position.z, radius: 2.7 },
@@ -620,6 +770,10 @@ export function createSafariWorld(
     movement[direction] = pressed;
     if (pressed) guide = null;
   }
+  function setBrake(pressed: boolean) {
+    if (disposed || (pressed && (!interactionAllowed() || !driving))) return;
+    braking = pressed;
+  }
   const keys: Record<string, Direction> = {
     KeyW: "forward",
     ArrowUp: "forward",
@@ -632,6 +786,7 @@ export function createSafariWorld(
   };
   const onKeyDown = (event: KeyboardEvent) => {
     if (
+      event.defaultPrevented ||
       !active ||
       photoMode ||
       event.altKey ||
@@ -644,11 +799,17 @@ export function createSafariWorld(
       return;
     if (keys[event.code]) {
       event.preventDefault();
+      if (event.repeat && !movement[keys[event.code]]) return;
       setMovement(keys[event.code], true);
+    } else if (event.code === "Space" && driving) {
+      event.preventDefault();
+      if (event.repeat && !braking) return;
+      setBrake(true);
     }
   };
   const onKeyUp = (event: KeyboardEvent) => {
     if (keys[event.code]) setMovement(keys[event.code], false);
+    if (event.code === "Space") setBrake(false);
   };
   const onPointerDown = (event: PointerEvent) => {
     if (!active || photoMode) return;
@@ -660,6 +821,7 @@ export function createSafariWorld(
   const onPointerMove = (event: PointerEvent) => {
     if (!dragging || !active || photoMode) return;
     yaw -= (event.clientX - pointerX) * 0.006;
+    if (driving) yaw = THREE.MathUtils.clamp(yaw, -1.1, 1.1);
     pitch = THREE.MathUtils.clamp(
       pitch + (event.clientY - pointerY) * 0.003,
       0.12,
@@ -672,17 +834,18 @@ export function createSafariWorld(
     dragging = false;
   };
   const onVisibility = () => {
-    clearMovement();
+    pauseTravel();
+    updateStatus();
   };
   const onBlur = () => {
-    clearMovement();
-    guide = null;
+    pauseTravel();
+    updateStatus();
   };
   const onContextLost = (event: Event) => {
     event.preventDefault();
     contextLost = true;
-    clearMovement();
-    guide = null;
+    pauseTravel();
+    updateStatus();
     settings.onError(
       "The 3D safari paused. Refresh to return; your saved discoveries are safe.",
     );
@@ -777,7 +940,19 @@ export function createSafariWorld(
       oldZ = explorer.root.position.z;
     velocity.set(0, 0, 0);
     if (active && !photoMode) {
-      if (guide) {
+      if (driving) {
+        stepVehicle(
+          vehicle,
+          {
+            throttle: Number(movement.forward) - Number(movement.backward),
+            steer: Number(movement.left) - Number(movement.right),
+            brake: braking,
+          },
+          seconds,
+          vehicleObstacles(),
+        );
+        syncVehicle();
+      } else if (guide) {
         velocity
           .copy(guide)
           .sub(explorer.root.position)
@@ -803,17 +978,25 @@ export function createSafariWorld(
           resolveCollisions,
         );
       }
-      if (velocity.lengthSq() > 0)
+      if (!driving && velocity.lengthSq() > 0)
         explorer.root.rotation.y = Math.atan2(-velocity.x, -velocity.z);
     }
     explorer.animate(
       seconds,
-      Math.hypot(
-        explorer.root.position.x - oldX,
-        explorer.root.position.z - oldZ,
-      ) > 0.00001,
+      !driving &&
+        Math.hypot(
+          explorer.root.position.x - oldX,
+          explorer.root.position.z - oldZ,
+        ) > 0.00001,
       settings.reducedMotion,
     );
+    sun.position.set(
+      explorer.root.position.x - 26,
+      37,
+      explorer.root.position.z + 20,
+    );
+    sun.target.position.copy(explorer.root.position);
+    diagnosticState();
     updateCamera();
     renderer.render(scene, camera);
     if (time - statusTime > 150) {
@@ -824,8 +1007,57 @@ export function createSafariWorld(
   frame = requestAnimationFrame(animate);
   return {
     setStop: selectStop,
+    enterJeep() {
+      if (
+        !interactionAllowed() ||
+        driving ||
+        jeepDistance() > VEHICLE_ENTRY_RANGE
+      )
+        return false;
+      pauseTravel();
+      driving = true;
+      explorer.root.visible = false;
+      syncVehicle();
+      yaw = 0;
+      pitch = 0.28;
+      updateCamera(true);
+      updateStatus();
+      return true;
+    },
+    exitJeep() {
+      if (!interactionAllowed() || !driving) return false;
+      const exit = findVehicleExit(vehicle, vehicleObstacles());
+      if (!exit) return false;
+      pauseTravel();
+      driving = false;
+      explorer.root.position.set(exit.x, 0, exit.z);
+      explorer.root.rotation.y = vehicle.heading - Math.PI / 2;
+      explorer.root.visible = active;
+      yaw = vehicle.heading - Math.PI / 2;
+      pitch = 0.3;
+      updateCamera(true);
+      updateStatus();
+      return true;
+    },
+    returnToJeep() {
+      if (!interactionAllowed() || driving) return;
+      const exit = findVehicleExit(vehicle, vehicleObstacles());
+      if (!exit) {
+        settings.onError(
+          "There is not enough clear space beside the jeep. Try walking to its other side.",
+        );
+        return;
+      }
+      pauseTravel();
+      explorer.root.position.set(exit.x, 0, exit.z);
+      explorer.root.rotation.y = vehicle.heading - Math.PI / 2;
+      yaw = vehicle.heading - Math.PI / 2;
+      updateCamera(true);
+      updateStatus();
+    },
+    setBrake,
     guideToAnimal() {
-      if (disposed) return;
+      if (disposed || driving) return;
       clearMovement();
       yaw = 0;
       pitch = 0.3;
@@ -849,18 +1081,18 @@ export function createSafariWorld(
       if (disposed) return;
       if (active !== value) previousTime = performance.now();
       active = value;
-      explorer.root.visible = value && !photoMode;
+      explorer.root.visible = value && !photoMode && !driving;
       if (!value) {
-        clearMovement();
-        guide = null;
+        pauseTravel();
       }
+      updateStatus();
     },
     setPhotoMode(value) {
-      if (disposed) return;
+      if (disposed || photoMode === value || (value && driving)) return;
       photoMode = value;
       clearMovement();
       guide = null;
-      explorer.root.visible = active && !photoMode;
+      explorer.root.visible = active && !photoMode && !driving;
       updateCamera(true);
       updateStatus();
     },
@@ -877,7 +1109,13 @@ export function createSafariWorld(
       resize();
     },
     capture() {
-      if (disposed || !photoMode || contextLost || !updateStatus()?.photoReady)
+      if (
+        disposed ||
+        driving ||
+        !photoMode ||
+        contextLost ||
+        !updateStatus()?.photoReady
+      )
         return null;
       const size = renderer.getSize(new THREE.Vector2());
       const ratio = renderer.getPixelRatio();

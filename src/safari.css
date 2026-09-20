@@ -418,6 +418,104 @@ p {
 .world-notice button {
   margin-top: 8px;
 }
+.vehicle-card {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  width: 292px;
+  padding: 16px;
+  background: #fffbeff5;
+  border: 1px solid #ffffef;
+  border-radius: 18px;
+  box-shadow: 0 8px 30px #263f3322;
+}
+.vehicle-card [id$="-vehicle"] {
+  display: grid;
+  gap: 10px;
+}
+.vehicle-card button {
+  width: 100%;
+}
+#vehicle-feedback:not(:empty) {
+  margin-top: 10px;
+}
+.drive-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.speed {
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.drive-destination {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+#drive-compass {
+  flex: 0 0 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  font-size: 32px;
+  line-height: 1;
+  background: #e8ecd7;
+  border-radius: 50%;
+}
+#drive-controls {
+  position: absolute;
+  inset: auto 24px 70px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  pointer-events: none;
+}
+.drive-steering,
+.drive-pedals {
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+#drive-controls button {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 2px;
+  min-width: 64px;
+  min-height: 70px;
+  padding: 7px 12px;
+  background: #fffbeff0;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#drive-controls button span {
+  font-size: 25px;
+  line-height: 1;
+}
+#drive-controls button.held {
+  background: var(--green);
+  color: white;
+}
+#drive-controls #brake-jeep {
+  background: #f3deba;
+  border-color: #866638;
+}
+#drive-controls #brake-jeep.held {
+  background: #775024;
+  color: white;
+}
+body[data-driving="true"] .scene-keyboard {
+  right: 24px;
+  bottom: 16px;
+}
+.world-notice {
+  top: 245px;
+}
 .sr-only {
   position: absolute;
   width: 1px;
@@ -584,6 +682,37 @@ details p {
   }
 }
 @media (max-width: 700px) {
+  .vehicle-card {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: auto;
+    margin: 12px 14px 20px;
+    padding: 14px;
+    border-radius: 14px;
+  }
+  body[data-driving="true"] .scene-area {
+    height: 48svh;
+    min-height: 330px;
+    max-height: 520px;
+  }
+  body[data-driving="true"] .vehicle-card {
+    margin-bottom: 12px;
+  }
+  #drive-controls {
+    inset: auto 10px 15px;
+    gap: 8px;
+  }
+  .drive-steering,
+  .drive-pedals {
+    gap: 5px;
+  }
+  #drive-controls button {
+    min-width: 48px;
+    min-height: 64px;
+    padding: 6px;
+    font-size: 16px;
+  }
   .safari-header {
     height: auto;
     min-height: 117px;
@@ -628,7 +757,7 @@ details p {
     font-size: 14px;
   }
   #scene-hint {
-    font-size: 12px;
+    font-size: 14px;
   }
   .story-panel {
     position: relative;
@@ -709,6 +838,60 @@ details p {
   }
   .clue-pills {
     gap: 6px;
+  }
+}
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 1000px) {
+  body[data-driving="true"] .safari-header {
+    height: 64px;
+    min-height: 64px;
+    padding: 8px 12px;
+    flex-wrap: nowrap;
+  }
+  body[data-driving="true"] .brand-sub,
+  body[data-driving="true"] .brand-mark,
+  body[data-driving="true"] .scene-keyboard,
+  body[data-driving="true"] .safari-footer {
+    display: none;
+  }
+  body[data-driving="true"] .safari-header nav {
+    width: auto;
+    flex-shrink: 0;
+  }
+  body[data-driving="true"] .safari-header nav button {
+    padding: 8px;
+  }
+  body[data-driving="true"] .safari-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 222px;
+    min-height: 0;
+  }
+  body[data-driving="true"] .scene-area {
+    height: calc(100svh - 64px);
+    min-height: 0;
+    max-height: none;
+  }
+  body[data-driving="true"] .vehicle-card {
+    position: relative;
+    inset: auto;
+    width: auto;
+    height: calc(100svh - 64px);
+    overflow-y: auto;
+    margin: 0;
+    padding: 12px;
+    border-radius: 0;
+  }
+  body[data-driving="true"] #drive-controls {
+    inset: auto 10px 10px;
+    gap: 8px;
+  }
+  body[data-driving="true"] #drive-controls button {
+    min-width: 48px;
+    min-height: 64px;
+    padding: 6px;
+  }
+  body[data-driving="true"] .drive-steering,
+  body[data-driving="true"] .drive-pedals {
+    gap: 5px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

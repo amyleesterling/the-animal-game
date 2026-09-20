@@ -33,8 +33,19 @@ See [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md) for the full product, education
 [Start the seven-stop story safari](https://amyleesterling.github.io/the-animal-game/safari.html).
 Help Sophia gather seven clues before sunset, meet seven species, and photograph
 each animal for a saved field book. The vintage Land Cruiser with roof rack is
-the expedition vehicle; next-stop travel is instant. Sophia walks with her
-supplied animation, while the animal models hold static poses.
+now drivable. Choose **Get in the jeep**, then use **W/S** or **↑/↓** for
+forward/reverse, **A/D** or **←/→** to steer, and **Space** to brake.
+**E** boards or exits when stopped with room beside the jeep. On a phone, hold
+the on-screen steering and pedal buttons, then choose **Park & get out**.
+Follow the direction arrow between discoveries, or use the optional quick jump.
+Sophia walks with her supplied animation; animal models and vehicle wheels
+currently hold static poses.
+
+The jeep stops for trees, animals, water and the edge of the play area. Settings,
+switching tabs and losing focus stop it and release its controls. Story progress
+and photographs are saved; refreshing places Sophia and the jeep at the current
+story stop rather than remembering the exact parking spot. See
+[driving verification](docs/DRIVING_QA.md) for test coverage and device limits.
 
 The lion, ostrich, and hippo have been rebuilt with generated reference images
 and Meshy Image-to-3D. They remain available for inspection in the model gallery.

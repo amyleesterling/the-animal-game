@@ -213,9 +213,9 @@ node node_modules/@playwright/test/cli.js test tests/e2e/characters.spec.ts --ou
 
 The new cycle/framing case passed in 44.5 seconds, classic pair behavior in
 29.0 seconds, phone/tablet/landscape in 24.4 seconds, Safari in 30.1 seconds,
-and missing-Cora fallback in 11.9 seconds. The desktop test observed both
-standing/waving sequences repeat with a stagger and stationary roots, and
-reported no uncaught page errors. The final Safari check covers actual
+and missing-Cora fallback in 11.9 seconds. The cycle test observed both
+standing/waving sequences repeat with a stagger and stationary roots. The
+classic pair case reported no uncaught page errors. The final Safari check covers actual
 walking, modal pause/resume, jeep driving/exit, and unobstructed photo mode.
 
 The coordinator independently ran:
@@ -251,3 +251,19 @@ Desktop screenshot filenames identify Sophia's observed phase; Cora may be in
 the other phase because the cycles are staggered. No actionable review finding
 remains. Chrome software WebGL and emulated mobile viewports do not establish
 physical-phone performance or replace child playtesting.
+
+### Published welcome verification
+
+Runtime source `13ec41740d347bb50bdb8c9eaca9e34d7756b877` was published in
+Pages commit `9063e62dc5c013f83252fd9797f7b352a57f09c2`. Pages run
+`35544785529` succeeded. Live build metadata matches that source; an in-app
+browser screenshot shows both loaded characters between the copy and zebras
+with no console warnings or errors. Normal visits omit the expensive bounds
+diagnostics. The existing weather preview still reports commit `977d39b`.
+
+The centered-cycle and reduced-motion phone/tablet cases were also rerun
+against `https://amyleesterling.github.io/the-animal-game/`: both passed in
+1.2 minutes (44.7s and 24.0s). Hosted evidence is saved in the sibling
+`welcome-cycle-hosted-results` directory. These tests cover the published
+asset paths, repeating staggered standing/waving, stationary roots, and
+framing at all six viewport sizes.

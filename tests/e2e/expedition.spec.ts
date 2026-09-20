@@ -1,6 +1,29 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { zebra } from "../../src/content/species";
 
+test("the guide reaches the zebra even at two frames per second", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.addInitScript(() => {
+    // A slow-rendering browser must preserve walking speed in real seconds.
+    // Keep normal graphics and motion settings so they cannot hide the bug.
+    window.requestAnimationFrame = (callback: FrameRequestCallback): number =>
+      window.setTimeout(() => callback(performance.now()), 500);
+    window.cancelAnimationFrame = (id: number): void => window.clearTimeout(id);
+  });
+  await page.goto("/");
+  await expect(page.locator("#start-button")).toBeEnabled({ timeout: 15_000 });
+  await expect(page.locator("html")).not.toHaveClass(/reduce-motion/);
+  await page.locator("#start-button").click();
+  await page.locator("#guide-button").click();
+  await expect(page.locator("#meet-button")).toBeEnabled({ timeout: 8_000 });
+  await page.locator("#meet-button").click();
+  await expect(
+    page.getByRole("heading", { name: zebra.quizzes[0].prompt }),
+  ).toBeVisible();
+});
+
 /** Use actual Tab/Space input so this also checks reachability, not just click handlers. */
 async function keyboardActivate(page: Page, target: Locator): Promise<void> {
   await expect(target).toBeEnabled();

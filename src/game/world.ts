@@ -8,6 +8,7 @@ import type {
   WorldStatus,
 } from "./contracts";
 import { createZebra, disposeScene } from "./zebra";
+import { stepToward } from "./movement";
 
 type Direction = "forward" | "backward" | "left" | "right";
 const UP = new THREE.Vector3(0, 1, 0);
@@ -665,7 +666,7 @@ export function createWorld(
   function animate(time: number) {
     if (disposed) return;
     frame = requestAnimationFrame(animate);
-    const frameDuration = (time - lastTime) / 1000;
+    const frameDuration = Math.max(0, (time - lastTime) / 1000);
     const delta = Math.min(frameDuration, 0.05);
     lastTime = time;
     if (document.hidden || contextLost) return;
@@ -677,8 +678,13 @@ export function createWorld(
       if (guideDestination) {
         velocity.copy(guideDestination).sub(player.position);
         velocity.y = 0;
-        if (velocity.length() < 0.15) guideDestination = null;
-        else velocity.normalize().multiplyScalar(4.8);
+        velocity.normalize().multiplyScalar(4.8);
+        // Assisted walking follows elapsed visible time rather than the capped
+        // animation step, so slow graphics cannot trap a child on the approach.
+        if (stepToward(player.position, guideDestination, frameDuration, 4.8)) {
+          guideDestination = null;
+          velocity.set(0, 0, 0);
+        }
       } else {
         const forward = Number(movement.forward) - Number(movement.backward);
         const right = Number(movement.right) - Number(movement.left);
@@ -688,8 +694,8 @@ export function createWorld(
           -Math.cos(yaw) * forward - Math.sin(yaw) * right,
         );
         if (velocity.lengthSq() > 0) velocity.normalize().multiplyScalar(4.2);
+        player.position.addScaledVector(velocity, delta);
       }
-      player.position.addScaledVector(velocity, delta);
       player.position.x = THREE.MathUtils.clamp(player.position.x, -38, 38);
       player.position.z = THREE.MathUtils.clamp(player.position.z, -55, 20);
       for (const tree of trees) {
@@ -787,6 +793,7 @@ export function createWorld(
 
   return {
     setActive(value) {
+      if (active !== value) lastTime = performance.now();
       active = value;
       if (value) hasExplored = true;
       player.visible = hasExplored && !photoMode;
@@ -828,6 +835,7 @@ export function createWorld(
     },
     guideToAnimal() {
       clearMovement();
+      lastTime = performance.now();
       yaw = 0;
       pitch = 0.34;
       guideDestination = animal.root.position

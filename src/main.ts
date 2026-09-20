@@ -462,7 +462,15 @@ document.addEventListener("visibilitychange", () => {
 });
 
 async function init(): Promise<void> {
-  $<HTMLButtonElement>("start-button").disabled = true;
+  const startupControls = [
+    "start-button",
+    "book-button",
+    "settings-button",
+    "grownups-button",
+  ];
+  startupControls.forEach((id) => {
+    $<HTMLButtonElement>(id).disabled = true;
+  });
   try {
     assertValidContent();
   } catch {
@@ -479,6 +487,11 @@ async function init(): Promise<void> {
       "Your saved field book could not be opened, so it has been left untouched. You can explore temporarily, or start a new field book in For grown-ups.",
     );
   }
+  startupControls
+    .filter((id) => id !== "start-button")
+    .forEach((id) => {
+      $<HTMLButtonElement>(id).disabled = false;
+    });
   setNarrationVolume(progress.settings.volume);
   if (matchMedia("(prefers-reduced-motion: reduce)").matches)
     progress.settings.reducedMotion = true;

@@ -1,7 +1,7 @@
 {
-  "builtAt": "2026-09-20T22:39:03.2106875Z",
-  "publishedAt": "2026-09-20T22:42:09.8860958Z",
-  "purpose": "Sophia and Cora welcome visitors and explore side by side",
-  "sourceCommit": "860999e2c0b089a41cd22387b4a13b4f8ec8894b",
-  "sourceBranch": "codex/sophia-cora-companions"
+  "purpose": "Sophia and Cora use their supplied waving and walking animations",
+  "sourceBranch": "codex/sophia-cora-companions",
+  "publishedAt": "2026-09-20T22:57:19.3345498Z",
+  "builtAt": "2026-09-20T22:51:09.6287220Z",
+  "sourceCommit": "91a9696b173e60791af7d1f3e4f0e28c229fe5a8"
 }

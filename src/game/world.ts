@@ -8,7 +8,7 @@ import type {
   WorldStatus,
 } from "./contracts";
 import { createZebra, disposeScene } from "./zebra";
-import { createPlayer } from "./player";
+import { createPlayer, DEFAULT_PLAYER_CHARACTER } from "./player";
 import { createCompanion } from "./companion";
 import { CORA_CHARACTER } from "../content/characters";
 import {
@@ -373,20 +373,47 @@ export function createWorld(
     return rig;
   });
 
-  const explorer = createPlayer((state) => {
-    renderer.domElement.dataset.playerModelState = state;
-  });
+  const explorer = createPlayer(
+    (state) => {
+      renderer.domElement.dataset.playerModelState = state;
+    },
+    {
+      ...DEFAULT_PLAYER_CHARACTER,
+      welcomeCycle: { idleSeconds: 5, phaseSeconds: 0 },
+    },
+  );
   const player = explorer.root;
   player.position.set(0, 0, 5);
   scene.add(player);
   const characterCompanion = CORA_CHARACTER
-    ? createCompanion(CORA_CHARACTER, (state) => {
-        renderer.domElement.dataset.companionModelState = state;
-      })
+    ? createCompanion(
+        {
+          ...CORA_CHARACTER,
+          welcomeCycle: { idleSeconds: 5, phaseSeconds: 2.4 },
+        },
+        (state) => {
+          renderer.domElement.dataset.companionModelState = state;
+        },
+      )
     : null;
   if (characterCompanion) scene.add(characterCompanion.root);
   renderer.domElement.dataset.characterCount = characterCompanion ? "2" : "1";
   const welcomeRay = new THREE.Vector3();
+  const welcomeProbe = new THREE.Vector3();
+  const welcomeRight = new THREE.Vector3();
+  const welcomeHerd = [animal, ...companions].map((rig) => ({
+    root: rig.root,
+    position: rig.root.position.clone(),
+  }));
+  const welcomeBounds = new THREE.Box3();
+  let welcomeTextRight = 0;
+  const stackedWelcome = window.matchMedia(
+    "(max-width: 760px), (max-width: 1100px) and (orientation: portrait)",
+  );
+  // Precise skinned bounds visit every vertex. Keep that QA work off the
+  // normal animation path, especially on phones.
+  const measureWelcomeBounds =
+    new URLSearchParams(window.location.search).get("characterBounds") === "1";
 
   let active = false;
   let hasExplored = false;
@@ -519,6 +546,14 @@ export function createWorld(
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
+    welcomeTextRight = options.welcomeContent
+      ? options.welcomeContent.getBoundingClientRect().right -
+        container.getBoundingClientRect().left
+      : width * 0.4;
+    container.parentElement?.style.setProperty(
+      "--welcome-text-edge",
+      `${welcomeTextRight}px`,
+    );
   };
   const observer = new ResizeObserver(resize);
   observer.observe(container);
@@ -526,7 +561,7 @@ export function createWorld(
 
   function updateCamera(snap = false) {
     if (!hasExplored) {
-      const narrow = container.clientWidth <= 760;
+      const narrow = stackedWelcome.matches;
       cameraDestination
         .copy(spawn)
         .add(new THREE.Vector3(4.5, narrow ? 1.45 : 1.7, 8.5));
@@ -586,36 +621,69 @@ export function createWorld(
   }
 
   function placeWelcomeCharacters() {
-    const narrow = container.clientWidth <= 760;
+    const narrow = stackedWelcome.matches;
     // Keep the welcome figures in the clear part of the scene, above the
     // mobile introduction and to the right of the desktop reading column.
     camera.updateMatrixWorld();
-    welcomeRay
-      .set(
-        narrow
-          ? characterCompanion
-            ? 0.35
-            : 0
-          : characterCompanion
-            ? 0.5
-            : 0.45,
-        narrow ? -0.75 : -0.45,
-        0.5,
-      )
-      .unproject(camera)
-      .sub(camera.position)
-      .normalize();
-    const distance = -camera.position.y / welcomeRay.y;
-    player.position.copy(camera.position).addScaledVector(welcomeRay, distance);
+    const placeAt = (x: number) => {
+      welcomeRay
+        .set(x, narrow ? -0.75 : -0.45, 0.5)
+        .unproject(camera)
+        .sub(camera.position)
+        .normalize();
+      const distance = -camera.position.y / welcomeRay.y;
+      player.position
+        .copy(camera.position)
+        .addScaledVector(welcomeRay, distance);
+    };
+    placeAt(0);
+    const footY = welcomeProbe.copy(player.position).project(camera).y;
+    const headY = welcomeProbe
+      .copy(player.position)
+      .addScaledVector(UP, 1)
+      .project(camera).y;
+    const pixelsPerMeter = ((headY - footY) * container.clientHeight) / 2;
+    if (narrow) {
+      placeAt(
+        characterCompanion
+          ? (pixelsPerMeter * 1.25) / container.clientWidth
+          : 0,
+      );
+    } else {
+      // Measure the available reading column, then reserve a body width and
+      // Cora's side-by-side spacing. This keeps the pair central on wide
+      // screens without crowding the text on smaller laptops.
+      const screenX =
+        welcomeTextRight +
+        44 +
+        pixelsPerMeter * (characterCompanion ? 1.75 : 0.5);
+      placeAt((screenX / container.clientWidth) * 2 - 1);
+    }
     player.position.y = 0;
     player.rotation.y = Math.atan2(
       player.position.x - camera.position.x,
       player.position.z - camera.position.z,
     );
     player.visible = true;
+    // Keep the zebras beyond the pair on laptops as well as wide screens.
+    // These are presentation positions only; exploring restores the herd.
+    let herdShift = 0;
+    welcomeRight.set(1, 0, 0).applyQuaternion(camera.quaternion);
+    if (!narrow) {
+      const playerX = welcomeProbe.copy(player.position).project(camera).x;
+      const zebraX = welcomeProbe.copy(spawn).project(camera).x;
+      const meterX =
+        welcomeProbe.copy(spawn).add(welcomeRight).project(camera).x - zebraX;
+      const desiredX = playerX + 0.3;
+      herdShift = Math.max(0, (desiredX - zebraX) / meterX);
+    }
+    welcomeHerd.forEach(({ root, position }) => {
+      root.position.copy(position).addScaledVector(welcomeRight, herdShift);
+    });
   }
 
   function updateStatus() {
+    publishWelcomeBounds();
     const distance = player.position.distanceTo(animal.root.position);
     let photoReady =
       distance >= zebra.behaviors.comfortRadius + 0.4 &&
@@ -636,6 +704,50 @@ export function createWorld(
       fps: Math.round(fps),
     };
     settings.onStatus(status);
+  }
+
+  function publishWelcomeBounds() {
+    const canvas = renderer.domElement;
+    const rect = measureWelcomeBounds ? canvas.getBoundingClientRect() : null;
+    for (const [name, root] of [
+      ["sophia", player],
+      ["cora", characterCompanion?.root],
+    ] as const) {
+      canvas.dataset[`${name}WelcomePhase`] =
+        !hasExplored && root
+          ? (root.userData.welcomePhase ?? "inactive")
+          : "inactive";
+      if (!rect || hasExplored || !root?.visible) {
+        delete canvas.dataset[`${name}ScreenBounds`];
+        continue;
+      }
+      welcomeBounds.setFromObject(root, true);
+      let left = Infinity,
+        top = Infinity,
+        right = -Infinity,
+        bottom = -Infinity;
+      for (let corner = 0; corner < 8; corner++) {
+        welcomeProbe
+          .set(
+            corner & 1 ? welcomeBounds.max.x : welcomeBounds.min.x,
+            corner & 2 ? welcomeBounds.max.y : welcomeBounds.min.y,
+            corner & 4 ? welcomeBounds.max.z : welcomeBounds.min.z,
+          )
+          .project(camera);
+        const x = rect.left + ((welcomeProbe.x + 1) * rect.width) / 2;
+        const y = rect.top + ((1 - welcomeProbe.y) * rect.height) / 2;
+        left = Math.min(left, x);
+        right = Math.max(right, x);
+        top = Math.min(top, y);
+        bottom = Math.max(bottom, y);
+      }
+      canvas.dataset[`${name}ScreenBounds`] = JSON.stringify({
+        left,
+        top,
+        right,
+        bottom,
+      });
+    }
   }
 
   function resolvePlayerCollisions(position: GroundPosition) {
@@ -819,6 +931,9 @@ export function createWorld(
       active = value;
       const entering = value && !hasExplored;
       if (entering) {
+        welcomeHerd.forEach(({ root, position }) =>
+          root.position.copy(position),
+        );
         player.position.set(0, 0, 5);
         player.rotation.y = 0;
         characterCompanion?.update(

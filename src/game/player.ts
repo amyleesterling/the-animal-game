@@ -12,6 +12,7 @@ export interface PlayerCharacter {
   assetPath: string;
   walkAnimation?: string;
   greetingAnimation?: string;
+  welcomeCycle?: { idleSeconds: number; phaseSeconds: number };
   height?: number;
 }
 
@@ -33,6 +34,29 @@ export interface PlayerVisual {
     greeting?: boolean,
   ): void;
   dispose(): void;
+}
+
+function welcomeFrame(
+  elapsed: number,
+  waveSeconds: number,
+  cycle: NonNullable<PlayerCharacter["welcomeCycle"]>,
+) {
+  const duration = waveSeconds + cycle.idleSeconds;
+  const time = THREE.MathUtils.euclideanModulo(
+    elapsed + cycle.phaseSeconds,
+    duration,
+  );
+  const waving = time < waveSeconds;
+  const blendSeconds = Math.min(0.35, waveSeconds / 4);
+  const standingWeight = waving
+    ? 1 -
+      THREE.MathUtils.smoothstep(
+        Math.min(time, waveSeconds - time),
+        0,
+        blendSeconds,
+      )
+    : 1;
+  return { time, waving, standingWeight };
 }
 
 /** Keep authored joint motion, but let the collision controller own travel. */
@@ -95,6 +119,14 @@ export function createPlayerModel(
   const targetHeight = character.height ?? 1.8;
   if (!Number.isFinite(targetHeight) || targetHeight <= 0)
     throw new Error(`${character.name}'s model height is invalid.`);
+  const cycle = character.welcomeCycle;
+  if (
+    cycle &&
+    (!Number.isFinite(cycle.idleSeconds) ||
+      cycle.idleSeconds <= 0 ||
+      !Number.isFinite(cycle.phaseSeconds))
+  )
+    throw new Error(`${character.name}'s welcome timing is invalid.`);
   let hasSkeleton = false;
   source.traverse((object) => {
     if (!(object instanceof THREE.Mesh)) return;
@@ -109,6 +141,7 @@ export function createPlayerModel(
 
   const root = new THREE.Group();
   root.name = `${character.id}-walking-visual`;
+  root.userData.welcomePhase = "inactive";
   const oriented = new THREE.Group();
   oriented.rotation.y = Math.PI; // Authored +Z faces the controller's -Z.
   oriented.add(source);
@@ -188,6 +221,7 @@ export function createPlayerModel(
   let walking = false;
   let playingGreeting = false;
   let greetingTime = 0;
+  let welcomeTime = 0;
   let wasGreeting = false;
   let disposed = false;
   return {
@@ -196,6 +230,8 @@ export function createPlayerModel(
       if (disposed) return;
       const shouldWalk = moving && !reducedMotion;
       const elapsed = Number.isFinite(delta) && delta > 0 ? delta : 0;
+      root.userData.welcomePhase =
+        greeting && !moving ? (reducedMotion ? "still" : "waving") : "inactive";
       if (shouldWalk) {
         if (playingGreeting) greetingAction?.stop();
         if (!walking) {
@@ -208,19 +244,47 @@ export function createPlayerModel(
         if (walking) action.stop();
         oriented.position.y = -bounds.min.y * scale;
         if (greeting && !moving) {
+          if (!wasGreeting) welcomeTime = 0;
+          if (!reducedMotion) welcomeTime += elapsed;
+          const frame =
+            cycle && !reducedMotion
+              ? welcomeFrame(welcomeTime, greetingClip?.duration ?? 4.8, cycle)
+              : undefined;
           if (greetingAction) {
             if (!playingGreeting) {
               poses.restoreImported();
               greetingAction.reset().play();
-            }
+            } else poses.restoreAuthored();
             oriented.position.y =
               -(reducedMotion ? frozenGreetingFloor : greetingFloor) * scale;
             if (reducedMotion) greetingAction.time = frozenGreetingTime;
-            mixer.update(reducedMotion ? 0 : elapsed);
+            else if (frame)
+              greetingAction.time = Math.min(
+                frame.time,
+                greetingClip!.duration - 0.000001,
+              );
+            mixer.update(reducedMotion || frame ? 0 : elapsed);
+            // The mixer may skip unchanged tracks. Restore/capture its pure
+            // authored sample so a repeated blend never compounds itself.
+            poses.captureAuthored();
           } else {
             if (!wasGreeting) greetingTime = 0;
             if (!reducedMotion) greetingTime += elapsed;
             poses.greet(greetingTime, reducedMotion);
+          }
+          if (frame) {
+            poses.ambient(
+              welcomeTime + cycle!.phaseSeconds,
+              frame.standingWeight,
+            );
+            poses.anchorRoots();
+            oriented.position.y =
+              -THREE.MathUtils.lerp(
+                greetingAction ? greetingFloor : bounds.min.y,
+                bounds.min.y,
+                frame.standingWeight,
+              ) * scale;
+            root.userData.welcomePhase = frame.waving ? "waving" : "standing";
           }
         } else {
           if (playingGreeting) greetingAction?.stop();
@@ -297,7 +361,8 @@ export function createPlayer(
 ): PlayerVisual {
   const root = new THREE.Group();
   root.name = "player";
-  let visual = createFallbackPlayer(character.height);
+  root.userData.welcomePhase = "inactive";
+  let visual = createFallbackPlayer(character.height, character.welcomeCycle);
   root.add(visual.root);
   const controller = new AbortController();
   let disposed = false;
@@ -312,6 +377,7 @@ export function createPlayer(
         return;
       }
       loaded.animate(0, lastMoving, lastReducedMotion, lastGreeting);
+      root.userData.welcomePhase = loaded.root.userData.welcomePhase;
       visual.dispose();
       visual = loaded;
       root.add(visual.root);
@@ -328,6 +394,7 @@ export function createPlayer(
       lastReducedMotion = reducedMotion;
       lastGreeting = greeting;
       visual.animate(delta, moving, reducedMotion, greeting);
+      root.userData.welcomePhase = visual.root.userData.welcomePhase;
     },
     dispose() {
       if (disposed) return;
@@ -340,9 +407,13 @@ export function createPlayer(
   };
 }
 
-function createFallbackPlayer(height = 1.8): PlayerVisual {
+function createFallbackPlayer(
+  height = 1.8,
+  cycle?: PlayerCharacter["welcomeCycle"],
+): PlayerVisual {
   const player = new THREE.Group();
   player.name = "procedural-explorer-fallback";
+  player.userData.welcomePhase = "inactive";
   if (Number.isFinite(height) && height > 0)
     player.scale.setScalar(height / 1.8);
   const mat = (color: number) =>
@@ -450,6 +521,8 @@ function createFallbackPlayer(height = 1.8): PlayerVisual {
   });
 
   let elapsed = 0;
+  let welcomeTime = 0;
+  let wasGreeting = false;
   let disposed = false;
   return {
     root: player,
@@ -457,6 +530,21 @@ function createFallbackPlayer(height = 1.8): PlayerVisual {
       if (disposed) return;
       if (!reducedMotion && Number.isFinite(delta) && delta > 0)
         elapsed += delta;
+      const greetingNow = greeting && !moving;
+      if (!wasGreeting) welcomeTime = 0;
+      if (greetingNow && !reducedMotion && Number.isFinite(delta) && delta > 0)
+        welcomeTime += delta;
+      const frame =
+        greetingNow && !reducedMotion && cycle
+          ? welcomeFrame(welcomeTime, 4.8, cycle)
+          : undefined;
+      player.userData.welcomePhase = !greetingNow
+        ? "inactive"
+        : reducedMotion
+          ? "still"
+          : frame && !frame.waving
+            ? "standing"
+            : "waving";
       explorerLegs.forEach((leg, i) => {
         leg.rotation.x =
           moving && !reducedMotion
@@ -467,9 +555,13 @@ function createFallbackPlayer(height = 1.8): PlayerVisual {
         const side = index === 0 ? -1 : 1;
         arm.rotation.z = side * 0.12;
         if (index === 0 && greeting && !moving)
-          arm.rotation.z =
-            -2.45 + (reducedMotion ? 0 : Math.sin(elapsed * 5) * 0.16);
+          arm.rotation.z = THREE.MathUtils.lerp(
+            -2.45 + (reducedMotion ? 0 : Math.sin(elapsed * 5) * 0.16),
+            side * 0.12,
+            frame?.standingWeight ?? 0,
+          );
       });
+      wasGreeting = greetingNow;
     },
     dispose() {
       if (disposed) return;

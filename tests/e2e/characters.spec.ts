@@ -183,6 +183,186 @@ async function readableWelcome(page: Page) {
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
 }
 
+async function framedWelcome(page: Page, canvas: Locator) {
+  await expect(canvas).toHaveAttribute("data-sophia-screen-bounds", /left/);
+  await expect(canvas).toHaveAttribute("data-cora-screen-bounds", /left/);
+  const geometry = await canvas.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const copy = document.querySelector(".welcome")!.getBoundingClientRect();
+    const fields = ["left", "top", "right", "bottom"] as const;
+    const plainRect = (value: DOMRect) =>
+      Object.fromEntries(
+        fields.map((field) => [field, value[field]]),
+      ) as Record<(typeof fields)[number], number>;
+    return {
+      canvas: plainRect(rect),
+      copy: plainRect(copy),
+      figures: ["sophia", "cora"].map((name) => ({
+        name,
+        bounds: JSON.parse(
+          element.getAttribute(`data-${name}-screen-bounds`)!,
+        ) as Record<(typeof fields)[number], number>,
+      })),
+    };
+  });
+  for (const { name, bounds } of geometry.figures) {
+    expect(Object.values(bounds).every(Number.isFinite)).toBe(true);
+    expect(
+      bounds.right - bounds.left,
+      `${name} must have a rendered width`,
+    ).toBeGreaterThan(30);
+    expect(
+      bounds.bottom - bounds.top,
+      `${name} must remain recognisable`,
+    ).toBeGreaterThan(100);
+    expect(
+      bounds.left,
+      `${name} leaves the left scene edge`,
+    ).toBeGreaterThanOrEqual(geometry.canvas.left - 1);
+    expect(
+      bounds.right,
+      `${name} leaves the right scene edge`,
+    ).toBeLessThanOrEqual(geometry.canvas.right + 1);
+    expect(
+      bounds.top,
+      `${name} leaves the top scene edge`,
+    ).toBeGreaterThanOrEqual(geometry.canvas.top - 1);
+    expect(
+      bounds.bottom,
+      `${name} leaves the bottom scene edge`,
+    ).toBeLessThanOrEqual(geometry.canvas.bottom + 1);
+    const overlapsCopy =
+      bounds.left < geometry.copy.right &&
+      bounds.right > geometry.copy.left &&
+      bounds.top < geometry.copy.bottom &&
+      bounds.bottom > geometry.copy.top;
+    expect(
+      overlapsCopy,
+      `${name}'s real projected bounds overlap welcome text`,
+    ).toBe(false);
+  }
+  await expect(page.locator("#start-button")).toBeVisible();
+}
+
+async function observedWelcomeCycle(canvas: Locator) {
+  return canvas.evaluate(async (element) => {
+    const canvas = element as HTMLCanvasElement;
+    const phases = { sophia: [] as string[], cora: [] as string[] };
+    const start = performance.now();
+    const origin = {
+      x: Number(canvas.dataset.explorerX),
+      z: Number(canvas.dataset.explorerZ),
+      coraX: Number(canvas.dataset.companionX),
+      coraZ: Number(canvas.dataset.companionZ),
+    };
+    let staggered = false;
+    let maximumTravel = 0;
+    return new Promise<{
+      phases: typeof phases;
+      staggered: boolean;
+      maximumTravel: number;
+    }>((resolve) => {
+      const sample = () => {
+        const current = {
+          sophia: canvas.dataset.sophiaWelcomePhase ?? "missing",
+          cora: canvas.dataset.coraWelcomePhase ?? "missing",
+        };
+        for (const name of ["sophia", "cora"] as const) {
+          if (phases[name].at(-1) !== current[name])
+            phases[name].push(current[name]);
+        }
+        staggered ||= current.sophia !== current.cora;
+        maximumTravel = Math.max(
+          maximumTravel,
+          Math.hypot(
+            Number(canvas.dataset.explorerX) - origin.x,
+            Number(canvas.dataset.explorerZ) - origin.z,
+          ),
+          Math.hypot(
+            Number(canvas.dataset.companionX) - origin.coraX,
+            Number(canvas.dataset.companionZ) - origin.coraZ,
+          ),
+        );
+        if (
+          (phases.sophia.length >= 3 && phases.cora.length >= 3 && staggered) ||
+          performance.now() - start >= 25000
+        ) {
+          resolve({ phases, staggered, maximumTravel });
+          return;
+        }
+        setTimeout(sample, 50);
+      };
+      sample();
+    });
+  });
+}
+
+test("the centered welcome pair repeats staggered standing and waving across desktop sizes", async ({
+  page,
+}, info) => {
+  test.setTimeout(120000);
+  await page.setViewportSize({ width: 2048, height: 1169 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("./?characterBounds=1");
+  const canvas = page.locator("#world canvas");
+  await loadedCharacter(canvas, "welcome");
+  await pairVisible(canvas);
+  await renderedFrames(canvas);
+  await expect(canvas).toHaveAttribute(
+    "data-sophia-welcome-phase",
+    /^(standing|waving)$/,
+  );
+  await expect(canvas).toHaveAttribute(
+    "data-cora-welcome-phase",
+    /^(standing|waving)$/,
+  );
+  const cycle = await observedWelcomeCycle(canvas);
+  for (const phases of Object.values(cycle.phases)) {
+    expect(phases.length).toBeGreaterThanOrEqual(3);
+    expect(
+      phases.every((phase) => phase === "standing" || phase === "waving"),
+    ).toBe(true);
+    expect(phases[0]).toBe(phases[2]);
+    expect(phases[0]).not.toBe(phases[1]);
+  }
+  expect(cycle.staggered, "The girls should greet on different phases").toBe(
+    true,
+  );
+  expect(
+    cycle.maximumTravel,
+    "Welcome animation must not move either world root",
+  ).toBeLessThan(0.001);
+  for (const [width, height] of [
+    [2048, 1169],
+    [1440, 960],
+    [1280, 720],
+  ] as const) {
+    await page.setViewportSize({ width, height });
+    await renderedFrames(canvas);
+    await readableWelcome(page);
+    await expect(canvas).toHaveAttribute(
+      "data-sophia-welcome-phase",
+      "standing",
+      { timeout: 15000 },
+    );
+    await framedWelcome(page, canvas);
+    await page.screenshot({
+      path: info.outputPath(`welcome-${width}-standing.png`),
+    });
+    await expect(canvas).toHaveAttribute(
+      "data-sophia-welcome-phase",
+      "waving",
+      { timeout: 15000 },
+    );
+    await renderedFrames(canvas);
+    await framedWelcome(page, canvas);
+    await welcomeDoesNotWalk(page, canvas);
+    await page.screenshot({
+      path: info.outputPath(`welcome-${width}-waving.png`),
+    });
+  }
+});
+
 test("Sophia and Cora welcome without walking, then explore, pause and leave the photograph clear", async ({
   page,
 }, info) => {
@@ -190,7 +370,7 @@ test("Sophia and Cora welcome without walking, then explore, pause and leave the
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("./");
+  await page.goto("./?characterBounds=1");
   const canvas = page.locator("#world canvas");
   await loadedCharacter(canvas, "welcome");
   await pairVisible(canvas);
@@ -198,6 +378,7 @@ test("Sophia and Cora welcome without walking, then explore, pause and leave the
   await welcomeDoesNotWalk(page, canvas);
   await readableWelcome(page);
   await renderedFrames(canvas);
+  await framedWelcome(page, canvas);
   await page.screenshot({
     path: info.outputPath("sophia-cora-welcome-desktop.png"),
   });
@@ -247,17 +428,20 @@ test.describe("phone welcome pair", () => {
     isMobile: true,
     hasTouch: true,
   });
-  test("reduced-motion pair stays stationary with reachable portrait and short landscape actions", async ({
+  test("reduced-motion pair stays stationary with reachable phone, tablet and short landscape actions", async ({
     page,
   }, info) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("./");
+    await page.goto("./?characterBounds=1");
     const canvas = page.locator("#world canvas");
     await loadedCharacter(canvas, "welcome");
     await pairVisible(canvas);
     await expect(page.locator("html")).toHaveClass(/reduce-motion/);
+    await expect(canvas).toHaveAttribute("data-sophia-welcome-phase", "still");
+    await expect(canvas).toHaveAttribute("data-cora-welcome-phase", "still");
     for (const [name, width, height] of [
       ["portrait", 390, 844],
+      ["portrait-tablet", 820, 1180],
       ["landscape", 667, 375],
     ] as const) {
       await page.setViewportSize({ width, height });
@@ -265,6 +449,12 @@ test.describe("phone welcome pair", () => {
       await welcomeDoesNotWalk(page, canvas);
       await readableWelcome(page);
       await renderedFrames(canvas);
+      await framedWelcome(page, canvas);
+      await expect(canvas).toHaveAttribute(
+        "data-sophia-welcome-phase",
+        "still",
+      );
+      await expect(canvas).toHaveAttribute("data-cora-welcome-phase", "still");
       await page.screenshot({
         path: info.outputPath(`sophia-cora-welcome-${name}.png`),
         fullPage: true,
@@ -331,7 +521,7 @@ test("the safari pair walks together, pauses, rides the jeep and stays out of th
   page,
 }, info) => {
   test.setTimeout(120000);
-  await page.goto("./");
+  await page.goto("./?characterBounds=1");
   await loadedCharacter(page.locator("#world canvas"), "welcome");
   await page.locator(".safari-entry").click();
   await expect(page).toHaveURL(/\/safari\.html$/);
@@ -408,7 +598,7 @@ test("an unavailable Cora model remains hidden while Sophia can still explore", 
 }) => {
   await page.route("**/models/cora.glb", (route) => route.abort());
   for (const safari of [false, true]) {
-    await page.goto(safari ? "./safari.html" : "./");
+    await page.goto(safari ? "./safari.html" : "./?characterBounds=1");
     const canvas = page.locator(
       safari ? "#safari-world canvas" : "#world canvas",
     );

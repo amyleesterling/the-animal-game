@@ -64,7 +64,12 @@ export function createCompanion(
         return;
       }
       if (options.paused) {
-        visual.animate(0, false, options.reducedMotion, false);
+        visual.animate(
+          0,
+          false,
+          options.reducedMotion,
+          Boolean(options.greeting),
+        );
         return;
       }
 
@@ -178,11 +183,15 @@ export function createCompanion(
       root.rotation.y = moved
         ? Math.atan2(old.x - root.position.x, old.z - root.position.z)
         : leaderYaw;
+      const greeting = Boolean(options.greeting && !options.moving && !moved);
+      const animationSeconds = Number.isFinite(delta) ? Math.max(0, delta) : 0;
       visual.animate(
-        Number.isFinite(delta) ? THREE.MathUtils.clamp(delta, 0, 0.5) : 0,
+        // Stationary welcome cycles share Sophia's elapsed-time clock, even
+        // on slow devices. Keep the joint-animation cap for ordinary travel.
+        greeting ? animationSeconds : Math.min(animationSeconds, 0.5),
         moved,
         options.reducedMotion,
-        Boolean(options.greeting && !options.moving && !moved),
+        greeting,
       );
     },
     dispose() {

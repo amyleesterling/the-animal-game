@@ -137,9 +137,9 @@ em {
     linear-gradient(
       90deg,
       #fbf8edef 0%,
-      #fbf8edc9 25%,
-      #fbf8ed10 58%,
-      transparent 80%
+      #fbf8edc9 calc(var(--welcome-text-edge, 40vw) - 200px),
+      #fbf8ed10 var(--welcome-text-edge, 40vw),
+      transparent calc(var(--welcome-text-edge, 40vw) + 40px)
     ),
     linear-gradient(0deg, #f9f5eec9, transparent 14%);
 }
@@ -1529,7 +1529,7 @@ dialog::backdrop {
 .welcome-names p {
   margin: 4px 0 0;
 }
-@media (max-width: 760px) {
+@media (max-width: 760px), (max-width: 1100px) and (orientation: portrait) {
   #app:not(.playing) {
     min-height: 100dvh;
     background: var(--cream);
@@ -1552,6 +1552,9 @@ dialog::backdrop {
   #app:not(.playing) .bottom-bar {
     position: relative;
     margin-top: 36px;
+  }
+  #app:not(.playing) .welcome-names {
+    display: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {

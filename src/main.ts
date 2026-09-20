@@ -523,6 +523,7 @@ async function init(): Promise<void> {
   try {
     world = createWorld($("world"), {
       ...progress.settings,
+      welcomeContent: $("welcome"),
       onStatus: handleStatus,
       onError: (message) => {
         worldFailed = true;

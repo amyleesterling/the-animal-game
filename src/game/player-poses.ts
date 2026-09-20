@@ -1,6 +1,9 @@
 import * as THREE from "three";
 
-function capturePose(source: THREE.Group): () => void {
+function capturePose(source: THREE.Group): {
+  (weight?: number): void;
+  capture(): void;
+} {
   const transforms: {
     object: THREE.Object3D;
     position: THREE.Vector3;
@@ -15,13 +18,28 @@ function capturePose(source: THREE.Group): () => void {
       scale: object.scale.clone(),
     });
   });
-  return () => {
+  const restore = (weight = 1) => {
     for (const transform of transforms) {
-      transform.object.position.copy(transform.position);
-      transform.object.quaternion.copy(transform.quaternion);
-      transform.object.scale.copy(transform.scale);
+      if (weight === 1) {
+        transform.object.position.copy(transform.position);
+        transform.object.quaternion.copy(transform.quaternion);
+        transform.object.scale.copy(transform.scale);
+      } else if (weight > 0) {
+        transform.object.position.lerp(transform.position, weight);
+        transform.object.quaternion.slerp(transform.quaternion, weight);
+        transform.object.scale.lerp(transform.scale, weight);
+      }
     }
   };
+  return Object.assign(restore, {
+    capture() {
+      for (const transform of transforms) {
+        transform.position.copy(transform.object.position);
+        transform.quaternion.copy(transform.object.quaternion);
+        transform.scale.copy(transform.object.scale);
+      }
+    },
+  });
 }
 
 /** Pose the supplied Mixamo rig in model space; never alter root travel. */
@@ -29,12 +47,18 @@ export function createPlayerPoses(source: THREE.Group) {
   // Keep the imported local transforms. Skeleton.pose() applies world-space
   // bind inverses to Sophia's scaled armature and shrinks it by another 100x.
   const restoreImported = capturePose(source);
+  const authoredPose = capturePose(source);
+  const roots: { bone: THREE.Bone; x: number; z: number }[] = [];
+  source.traverse((object) => {
+    if (object instanceof THREE.Bone && !(object.parent instanceof THREE.Bone))
+      roots.push({ bone: object, x: object.position.x, z: object.position.z });
+  });
   const bone = (name: string) => {
     let found: THREE.Bone | undefined;
     source.traverse((object) => {
       if (
         object instanceof THREE.Bone &&
-        object.name.replace(/[^a-z]/gi, "").toLowerCase() ===
+        object.name.replace(/[^a-z0-9]/gi, "").toLowerCase() ===
           `mixamorig${name}`.toLowerCase()
       )
         found = object;
@@ -108,10 +132,29 @@ export function createPlayerPoses(source: THREE.Group) {
         )
     : new THREE.Vector3(0, 0, 1);
   const waveRotation = new THREE.Quaternion();
+  const spine = bone("Spine2");
+  const neck = bone("Neck");
   restoreStanding();
   return {
     restoreImported,
+    restoreAuthored: authoredPose,
+    captureAuthored: authoredPose.capture,
     stand: restoreStanding,
+    ambient(elapsed: number, weight = 1) {
+      restoreStanding(weight);
+      // Breathing and a small head turn stay above the planted hips and legs.
+      if (spine) {
+        spine.scale.y *= 1 + Math.sin(elapsed * 1.5) * 0.003 * weight;
+        spine.rotateX(Math.sin(elapsed * 1.5) * 0.006 * weight);
+      }
+      neck?.rotateY(Math.sin(elapsed * 0.7) * 0.025 * weight);
+    },
+    anchorRoots() {
+      for (const root of roots) {
+        root.bone.position.x = root.x;
+        root.bone.position.z = root.z;
+      }
+    },
     greet(elapsed: number, reducedMotion: boolean) {
       restoreGreeting();
       if (hand && !reducedMotion) {

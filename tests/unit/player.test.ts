@@ -223,8 +223,199 @@ describe.each([DEFAULT_PLAYER_CHARACTER, CORA_CHARACTER])(
       ).toThrow(`${character.name}'s greeting animation is missing.`);
       createPlayerModel(gltf.scene, gltf.animations, character).dispose();
     });
+
+    it("cycles through the full wave and ambient standing, repeats, and keeps idle feet planted", async () => {
+      mockImageDecoder();
+      const gltf = await parseAsset(character);
+      const duration = gltf.animations.find(
+        (clip) => clip.name === character.greetingAnimation,
+      )!.duration;
+      const player = createPlayerModel(gltf.scene, gltf.animations, {
+        ...character,
+        welcomeCycle: { idleSeconds: 5, phaseSeconds: 0 },
+      });
+      player.root.position.set(3, 0, -4);
+      const feet = [
+        bonePosition(player.root, "LeftFoot"),
+        bonePosition(player.root, "RightFoot"),
+      ];
+      const hips = bonePosition(player.root, "Hips");
+      let time = 0;
+      const advanceTo = (next: number) => {
+        player.animate(next - time, false, false, true);
+        time = next;
+      };
+      advanceTo(1.25);
+      expect(player.root.userData.welcomePhase).toBe("waving");
+      const firstWave = bonePose(player.root);
+      advanceTo(duration + 1);
+      expect(player.root.userData.welcomePhase).toBe("standing");
+      const firstIdle = bonePose(player.root);
+      const head = bonePosition(player.root, "Head");
+      player.animate(0, false, false, true);
+      expect(bonePose(player.root)).toEqual(firstIdle);
+      advanceTo(duration + 1.75);
+      expect(bonePose(player.root)).not.toEqual(firstIdle);
+      const headMovement = bonePosition(player.root, "Head").distanceTo(head);
+      expect(headMovement).toBeGreaterThan(0.00001);
+      expect(headMovement).toBeLessThan(0.03);
+      expect(
+        bonePosition(player.root, "LeftFoot").distanceTo(feet[0]),
+      ).toBeLessThan(0.000001);
+      expect(
+        bonePosition(player.root, "RightFoot").distanceTo(feet[1]),
+      ).toBeLessThan(0.000001);
+      expect(bonePosition(player.root, "Hips").distanceTo(hips)).toBeLessThan(
+        0.000001,
+      );
+      expect(
+        new THREE.Box3().setFromObject(player.root, true).min.y,
+      ).toBeCloseTo(0);
+      advanceTo(duration + 5 + 1.25);
+      expect(player.root.userData.welcomePhase).toBe("waving");
+      bonePose(player.root).forEach((value, index) =>
+        expect(value).toBeCloseTo(firstWave[index], 6),
+      );
+      advanceTo(2 * duration + 6);
+      expect(player.root.userData.welcomePhase).toBe("standing");
+      expect(player.root.position.toArray()).toEqual([3, 0, -4]);
+      player.dispose();
+    });
+
+    it("blends both welcome boundaries without jumps or pose accumulation on paused frames", async () => {
+      mockImageDecoder();
+      const gltf = await parseAsset(character);
+      const duration = gltf.animations.find(
+        (clip) => clip.name === character.greetingAnimation,
+      )!.duration;
+      const player = createPlayerModel(gltf.scene, gltf.animations, {
+        ...character,
+        welcomeCycle: { idleSeconds: 5, phaseSeconds: 0 },
+      });
+      let time = 0;
+      for (const boundary of [duration, duration + 5]) {
+        player.animate(boundary - 0.001 - time, false, false, true);
+        const paused = bonePose(player.root);
+        for (let frame = 0; frame < 10; frame++)
+          player.animate(0, false, false, true);
+        expect(bonePose(player.root)).toEqual(paused);
+        const before = skinOf(player.root).skeleton.bones.map((bone) =>
+          bone.quaternion.clone(),
+        );
+        const hand = bonePosition(player.root, "RightHand");
+        const feet = [
+          bonePosition(player.root, "LeftFoot"),
+          bonePosition(player.root, "RightFoot"),
+        ];
+        player.animate(0.002, false, false, true);
+        skinOf(player.root).skeleton.bones.forEach((bone, index) =>
+          expect(bone.quaternion.angleTo(before[index])).toBeLessThan(0.002),
+        );
+        expect(
+          bonePosition(player.root, "RightHand").distanceTo(hand),
+        ).toBeLessThan(0.001);
+        expect(
+          bonePosition(player.root, "LeftFoot").distanceTo(feet[0]),
+        ).toBeLessThan(0.001);
+        expect(
+          bonePosition(player.root, "RightFoot").distanceTo(feet[1]),
+        ).toBeLessThan(0.001);
+        time = boundary + 0.001;
+      }
+      player.dispose();
+    });
+
+    it("freezes the cycle on paused frames and reduced motion, with movement and exploration taking precedence", async () => {
+      mockImageDecoder();
+      const [gltf, reference] = await Promise.all([
+        parseAsset(character),
+        parseAsset(character),
+      ]);
+      const player = createPlayerModel(gltf.scene, gltf.animations, {
+        ...character,
+        welcomeCycle: { idleSeconds: 5, phaseSeconds: 2.4 },
+      });
+      const clean = createPlayerModel(
+        reference.scene,
+        reference.animations,
+        character,
+      );
+      player.animate(4, false, false, true);
+      const paused = bonePose(player.root);
+      expect(player.root.userData.welcomePhase).toBe("standing");
+      for (let frame = 0; frame < 20; frame++)
+        player.animate(0, false, false, true);
+      expect(bonePose(player.root)).toEqual(paused);
+      player.animate(0, false, true, true);
+      expect(player.root.userData.welcomePhase).toBe("still");
+      const still = bonePose(player.root);
+      expect(bonePosition(player.root, "RightHand").y).toBeGreaterThan(
+        bonePosition(player.root, "Head").y,
+      );
+      player.animate(20, false, true, true);
+      expect(bonePose(player.root)).toEqual(still);
+      player.animate(0, false, false, true);
+      expect(player.root.userData.welcomePhase).toBe("standing");
+      expect(bonePose(player.root)).toEqual(paused);
+      player.animate(0.25, true, false, true);
+      clean.animate(0.25, true, false);
+      expect(player.root.userData.welcomePhase).toBe("inactive");
+      expect(bonePose(player.root)).toEqual(bonePose(clean.root));
+      player.animate(4, false, false, false);
+      clean.animate(4, false, false, false);
+      expect(bonePose(player.root)).toEqual(bonePose(clean.root));
+      expect(player.root.userData.welcomePhase).toBe("inactive");
+      player.dispose();
+      clean.dispose();
+    });
   },
 );
+
+it("staggers Sophia and Cora through their actual welcome cycles", async () => {
+  mockImageDecoder();
+  const [a, b] = await Promise.all([parseAsset(), parseAsset(CORA_CHARACTER)]);
+  const sophia = createPlayerModel(a.scene, a.animations, {
+    ...DEFAULT_PLAYER_CHARACTER,
+    welcomeCycle: { idleSeconds: 5, phaseSeconds: 0 },
+  });
+  const cora = createPlayerModel(b.scene, b.animations, {
+    ...CORA_CHARACTER,
+    welcomeCycle: { idleSeconds: 5, phaseSeconds: 2.4 },
+  });
+  sophia.animate(3, false, false, true);
+  cora.animate(3, false, false, true);
+  expect(sophia.root.userData.welcomePhase).toBe("waving");
+  expect(cora.root.userData.welcomePhase).toBe("standing");
+  sophia.animate(5.5, false, false, true);
+  cora.animate(5.5, false, false, true);
+  expect(sophia.root.userData.welcomePhase).toBe("standing");
+  expect(cora.root.userData.welcomePhase).toBe("waving");
+  expect(sophia.root.position.toArray()).toEqual([0, 0, 0]);
+  expect(cora.root.position.toArray()).toEqual([0, 0, 0]);
+  sophia.dispose();
+  cora.dispose();
+});
+
+it("forwards welcome phases through the asynchronous player wrapper", async () => {
+  mockImageDecoder();
+  mockAssetFetch();
+  const state = vi.fn();
+  const player = createPlayer(state, {
+    ...DEFAULT_PLAYER_CHARACTER,
+    welcomeCycle: { idleSeconds: 5, phaseSeconds: 6 },
+  });
+  player.animate(0, false, false, true);
+  expect(player.root.userData.welcomePhase).toBe("standing");
+  await vi.waitFor(() => expect(state).toHaveBeenLastCalledWith("loaded"));
+  expect(player.root.userData.welcomePhase).toBe("standing");
+  player.animate(5, false, false, true);
+  expect(player.root.userData.welcomePhase).toBe("waving");
+  player.animate(0, false, true, true);
+  expect(player.root.userData.welcomePhase).toBe("still");
+  player.animate(0, false, false, false);
+  expect(player.root.userData.welcomePhase).toBe("inactive");
+  player.dispose();
+});
 
 describe("Sophia's default character and procedural fallback", () => {
   it("preserves the real skeleton and clip, grounds its pose, and animates its joints", async () => {

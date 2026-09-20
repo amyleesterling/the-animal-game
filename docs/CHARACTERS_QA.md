@@ -155,3 +155,99 @@ Inspected follow-up evidence, relative to `../sophia-wave-browser-results/`:
 No new review finding remains. This follow-up uses the existing meaningful
 browser cases; physical-phone performance and child playtesting remain outside
 these checks.
+
+## Centered welcome and ambient greeting cycle
+
+The welcome revision moves the pair into the space between the copy and zebras
+and alternates each supplied wave with ambient standing. All five character
+browser cases pass on the final corrected source, with two additional classic
+expedition regressions passing independently.
+
+The updated character suite adds a bounded test at 2048×1169, 1440×960, and
+1280×720. It observes each actual player's `standing`/`waving` phases repeating,
+their stagger, and unchanged world positions. Standing and waving screenshots
+are captured at every desktop size. Precise projected model bounds must remain
+inside the scene and clear of the welcome copy. The existing phone case also
+checks those bounds and fixed `still` phases under reduced motion at 390×844,
+820×1180, and 667×375. Existing walking, pause, jeep, photo, and asset-failure
+checks remain. Exact skinned bounds are enabled only by the test URL query
+`?characterBounds=1`, avoiding that diagnostic work on normal visits.
+
+These diagnostics come from the rendered models and live animation state;
+the tests do not inject poses or simulate a successful load. A local review
+measured the precise bounds calculation at about 17.66ms median and 25.48ms
+p95 per pair, so normal visits do not execute it. These measurements describe
+the diagnostic's local cost, not physical-phone performance.
+
+The first five-case run passed the desktop loop, phone case, and missing-Cora
+case. The cycle test confirmed repetition, stagger, and stationary roots, then
+found a 3.16px overlap between Cora's conservative projected world bounding box
+and the welcome element at 2048×1169 during a wave. The screenshot still showed
+a visible gap from the actual text. A 12px additional layout reserve now keeps
+the conservative check strict. The Safari case was interrupted by a Vite
+page reload during jeep exit after a concurrent source edit; it requires a
+clean rerun and was not established as a product regression. It passes on the
+final frozen source.
+
+The coordinator separately found portrait-tablet clipping at 820×1180 and
+extended the stacked welcome layout to portrait widths up to 1100px. The
+expanded phone/tablet case verifies that correction. A reviewer also found
+the companion wrapper's half-second animation cap slowed Cora's greeting at
+one frame per second. Stationary greetings now use the full visible elapsed
+time. A subsequent controller test exposed pose drift when a partially blended
+greeting was paused with zero elapsed time. Restoring and caching the pure
+authored pose before applying the ambient blend corrects that drift. The
+intermediate browser run was stopped for this correction and is not counted
+as a pass.
+
+The animation agent reports 43 focused player/companion tests passing,
+including actual Cora bone poses and phases at 1 FPS versus 60 FPS through
+12 seconds, paused updates, and repeated zero-delta evaluations near both
+blend boundaries. The coordinator reports all 197 unit tests passing, plus
+the final production build, TypeScript, formatting, and diff checks.
+
+```text
+node node_modules/@playwright/test/cli.js test tests/e2e/characters.spec.ts --output="C:/Users/amyle/Documents/New project/welcome-cycle-verified-results"
+5 passed (2.4m)
+```
+
+The new cycle/framing case passed in 44.5 seconds, classic pair behavior in
+29.0 seconds, phone/tablet/landscape in 24.4 seconds, Safari in 30.1 seconds,
+and missing-Cora fallback in 11.9 seconds. The desktop test observed both
+standing/waving sequences repeat with a stagger and stationary roots, and
+reported no uncaught page errors. The final Safari check covers actual
+walking, modal pause/resume, jeep driving/exit, and unobstructed photo mode.
+
+The coordinator independently ran:
+
+```text
+node node_modules/@playwright/test/cli.js test tests/e2e/expedition.spec.ts --grep "starting clears welcome|essential expedition" --output="C:/Users/amyle/Documents/New project/welcome-cycle-expedition-results"
+2 passed (25.3s)
+```
+
+Active Chrome screenshots at 2048×1169, 1440×960, and 1280×720 show both full
+figures between the welcome copy and zebras, with legible, reachable actions.
+The 390×844, 820×1180, and 667×375 screenshots show the centered pair in the
+scene above the copy, without the previous tablet clipping. Reduced motion
+holds both authored raised-hand poses. These are full-page mobile captures:
+the page scrolls, and the tests verify each action after scrolling it into
+view. The phone exploration screenshot also shows both figures clear of the
+mission card. Classic and Safari photo screenshots contain no companion.
+
+Inspected final evidence, relative to `../welcome-cycle-verified-results/`:
+
+- `characters-the-centered-we-8ad34-waving-across-desktop-sizes/welcome-2048-waving.png`
+- `characters-the-centered-we-8ad34-waving-across-desktop-sizes/welcome-1440-standing.png`
+- `characters-the-centered-we-8ad34-waving-across-desktop-sizes/welcome-1280-waving.png`
+- `characters-phone-welcome-p-13e29-and-short-landscape-actions/sophia-cora-welcome-portrait.png`
+- `characters-phone-welcome-p-13e29-and-short-landscape-actions/sophia-cora-welcome-portrait-tablet.png`
+- `characters-phone-welcome-p-13e29-and-short-landscape-actions/sophia-cora-welcome-landscape.png`
+- `characters-phone-welcome-p-13e29-and-short-landscape-actions/sophia-cora-phone-explore.png`
+- `characters-the-safari-pair-f10da--and-stays-out-of-the-photo/sophia-cora-safari-explore.png`
+- `characters-the-safari-pair-f10da--and-stays-out-of-the-photo/safari-photo-without-companion.png`
+- `characters-Sophia-and-Cora-80626--leave-the-photograph-clear/classic-photo-without-companion.png`
+
+Desktop screenshot filenames identify Sophia's observed phase; Cora may be in
+the other phase because the cycles are staggered. No actionable review finding
+remains. Chrome software WebGL and emulated mobile viewports do not establish
+physical-phone performance or replace child playtesting.

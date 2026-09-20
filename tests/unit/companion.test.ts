@@ -1,10 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { CORA_CHARACTER } from "../../src/content/characters";
 import {
   createCompanion,
   type CompanionOptions,
 } from "../../src/game/companion";
-import type { PlayerCharacter } from "../../src/game/player";
+import { createPlayerModel, type PlayerCharacter } from "../../src/game/player";
 import type { GroundPosition } from "../../src/game/movement";
 import type { ModelState } from "../../src/game/zebra-model";
 
@@ -19,6 +22,11 @@ const options: CompanionOptions = {
   reducedMotion: false,
 };
 const clear = () => undefined;
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 
 function fixture(ready = true) {
   const visual = {
@@ -106,6 +114,122 @@ describe("optional character companion", () => {
       companion.update(0.1, { x: 0, z: -21 }, 0, options, clear);
       expect(visual.animate).toHaveBeenLastCalledWith(0.1, false, false, false);
     }
+  });
+
+  it("forwards all finite greeting time while retaining ordinary animation caps", () => {
+    const { companion, visual } = fixture();
+    const leader = { x: 0, z: 0 };
+    for (const delta of [1, 3, 20]) {
+      companion.update(delta, leader, 0, { ...options, greeting: true }, clear);
+      expect(visual.animate).toHaveBeenLastCalledWith(
+        delta,
+        false,
+        false,
+        true,
+      );
+    }
+    for (const delta of [-1, Number.NaN, Number.POSITIVE_INFINITY]) {
+      companion.update(delta, leader, 0, { ...options, greeting: true }, clear);
+      expect(visual.animate).toHaveBeenLastCalledWith(0, false, false, true);
+    }
+    companion.update(3, leader, 0, options, clear);
+    expect(visual.animate).toHaveBeenLastCalledWith(0.5, false, false, false);
+    companion.update(
+      3,
+      leader,
+      0,
+      { ...options, greeting: true, moving: true },
+      clear,
+    );
+    expect(visual.animate).toHaveBeenLastCalledWith(0.5, false, false, false);
+    companion.update(
+      3,
+      leader,
+      0,
+      { ...options, greeting: true, paused: true },
+      clear,
+    );
+    expect(visual.animate).toHaveBeenLastCalledWith(0, false, false, true);
+    companion.dispose();
+  });
+
+  it("keeps Cora's actual welcome phases and poses aligned at one and sixty FPS", async () => {
+    vi.stubGlobal("self", { URL });
+    vi.stubGlobal(
+      "createImageBitmap",
+      vi.fn().mockResolvedValue({ width: 1024, height: 1024, close: vi.fn() }),
+    );
+    const bytes = readFileSync(
+      new URL("../../public/models/cora.glb", import.meta.url),
+    );
+    const results: { phase: string; pose: number[] }[][] = [];
+    for (const fps of [60, 1]) {
+      const gltf = await new GLTFLoader().parseAsync(
+        new Uint8Array(bytes).buffer,
+        "http://localhost/models/",
+      );
+      const config = {
+        ...CORA_CHARACTER,
+        welcomeCycle: { idleSeconds: 5, phaseSeconds: 2.4 },
+      };
+      const visual = createPlayerModel(gltf.scene, gltf.animations, config);
+      const companion = createCompanion(config, undefined, (onState) => {
+        onState?.("loaded");
+        return visual;
+      });
+      let skin: THREE.SkinnedMesh | undefined;
+      visual.root.traverse((object) => {
+        if (object instanceof THREE.SkinnedMesh) skin = object;
+      });
+      const pose = () =>
+        skin!.skeleton.bones.flatMap((bone) => [
+          ...bone.position.toArray(),
+          ...bone.quaternion.toArray(),
+          ...bone.scale.toArray(),
+        ]);
+      const snapshots: { phase: string; pose: number[] }[] = [];
+      const leader = { x: 0, z: 0 };
+      companion.update(0, leader, 0, { ...options, greeting: true }, clear);
+      for (let frame = 1; frame <= fps * 12; frame++) {
+        companion.update(
+          1 / fps,
+          leader,
+          0,
+          { ...options, greeting: true },
+          clear,
+        );
+        if (frame % (fps * 3) === 0) {
+          snapshots.push({
+            phase: visual.root.userData.welcomePhase,
+            pose: pose(),
+          });
+          const beforePause = pose();
+          companion.update(
+            20,
+            leader,
+            0,
+            { ...options, greeting: true, paused: true },
+            clear,
+          );
+          expect(pose()).toEqual(beforePause);
+        }
+      }
+      expect(companion.root.position.toArray()).toEqual([1.25, 0, 0]);
+      expect(snapshots.map((snapshot) => snapshot.phase)).toEqual([
+        "standing",
+        "standing",
+        "waving",
+        "waving",
+      ]);
+      results.push(snapshots);
+      companion.dispose();
+    }
+    results[0].forEach((snapshot, index) => {
+      expect(results[1][index].phase).toBe(snapshot.phase);
+      snapshot.pose.forEach((value, joint) =>
+        expect(results[1][index].pose[joint]).toBeCloseTo(value, 5),
+      );
+    });
   });
 
   it("keeps collision substeps at one FPS rather than snapping through an obstacle to catch up", () => {
@@ -226,7 +350,7 @@ describe("optional character companion", () => {
       clear,
     );
     expect(companion.root.position).toEqual(position);
-    expect(visual.animate).toHaveBeenLastCalledWith(0, false, false, false);
+    expect(visual.animate).toHaveBeenLastCalledWith(0, false, false, true);
     companion.update(
       0.5,
       { x: 0, z: -3 },

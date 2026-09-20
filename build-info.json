@@ -1,7 +1,7 @@
 {
-  "purpose": "Drive the safari Land Cruiser with keyboard and touch controls",
-  "sourceBranch": "codex/drive-safari-jeep",
-  "sourceCommit": "ce4dd88cf412e93f4ca3fac55b5eb0892b051042",
-  "builtAt": "2026-09-20T19:58:55.2901070Z",
-  "publishedAt": "2026-09-20T20:05:46.7288830Z"
+  "purpose": "Discover nearby safari animals with a name-or-skip popup",
+  "sourceBranch": "codex/proximity-animal-discovery",
+  "sourceCommit": "893c2020d250823a421d373b0d47d5ee22a6d753",
+  "builtAt": "2026-09-20T20:38:19.0857722Z",
+  "publishedAt": "2026-09-20T20:42:24.8238835Z"
 }

@@ -63,9 +63,10 @@ app.innerHTML = `
     <section class="welcome" id="welcome" aria-labelledby="welcome-title">
       <div class="eyebrow">${icon("compass")} YOUR FIRST EXPEDITION</div>
       <h1 id="welcome-title">A world of<br>little <em>wonders.</em></h1>
-      <p class="welcome-copy">Follow your curiosity into the savanna. Meet a zebra. Take a photo. Make a discovery that’s yours.</p>
+      <p class="welcome-copy">Seven animals. Seven clues. Join Sophia’s Land Cruiser safari to discover what makes a savanna thrive.</p>
+      <a class="primary start-button safari-entry" href="./safari.html">Start the story safari ${icon("arrow")}</a>
       <button class="primary start-button" id="start-button">Let’s explore ${icon("arrow")}</button>
-      <p class="quiet start-note">A small adventure for curious minds.</p>
+      <p class="quiet start-note">Your original zebra adventure and field book are still here, too.</p>
       <a class="animal-preview-link" href="./animal-lab.html">Preview the next animals ${icon("arrow")}</a>
       <div class="welcome-steps"><span>${icon("compass")} Explore</span><span>${icon("camera")} Discover</span><span>${icon("book")} Remember</span></div>
     </section>

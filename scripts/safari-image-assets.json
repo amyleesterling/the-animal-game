@@ -1,0 +1,46 @@
+{
+  "batch": "safari-image-assets-20260920-v1",
+  "estimatedCreditsPerAsset": 30,
+  "concurrency": 2,
+  "request": {
+    "model_type": "standard",
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": false,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "image_enhancement": false,
+    "target_formats": ["glb"],
+    "multi_view_thumbnails": true
+  },
+  "assets": [
+    {
+      "id": "lion",
+      "name": "Lion",
+      "scientificName": "Panthera leo",
+      "reference": "assets/references/lion.png",
+      "targetPolycount": 20000
+    },
+    {
+      "id": "common-ostrich",
+      "name": "Common ostrich",
+      "scientificName": "Struthio camelus",
+      "reference": "assets/references/common-ostrich.png",
+      "targetPolycount": 20000
+    },
+    {
+      "id": "hippopotamus",
+      "name": "Hippopotamus",
+      "scientificName": "Hippopotamus amphibius",
+      "reference": "assets/references/hippopotamus.png",
+      "targetPolycount": 20000
+    },
+    {
+      "id": "safari-jeep",
+      "name": "Vintage safari Land Cruiser with roof rack",
+      "reference": "assets/references/safari-jeep.png",
+      "targetPolycount": 25000
+    }
+  ]
+}

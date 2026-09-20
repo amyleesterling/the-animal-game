@@ -1,0 +1,162 @@
+{
+  "batch": "safari-image-assets-20260920-v1",
+  "startedAt": "2026-09-20T18:34:37.409Z",
+  "finishedAt": "2026-09-20T18:38:45.563Z",
+  "request": {
+    "model_type": "standard",
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": false,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "image_enhancement": false,
+    "target_formats": [
+      "glb"
+    ],
+    "multi_view_thumbnails": true
+  },
+  "consumedCredits": 120,
+  "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35529496947",
+  "references": "assets/references/prompts.json",
+  "assets": [
+    {
+      "id": "lion",
+      "name": "Lion",
+      "file": "lion.glb",
+      "status": "ready",
+      "bytes": 1916396,
+      "sha256": "6433eeb9a15a7ef5597f9cd2872c2a0e4739b9c0a3b847014c135759e03b28be",
+      "sourceBytes": 5947700,
+      "sourceSha256": "1a1040e267d5442b357dc10298f42f3d30e2785240a8f4b4b7f8534f623381e9",
+      "polygonCount": 20819,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c019-4c0d-761c-a647-fcb2db8f4098",
+      "referenceImage": "assets/references/lion.png",
+      "referenceSha256": "2f780ae327c8c08228c7c3dfcc65da63dff9c0756fbae27ef6c19fd9d038207f",
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35529496947",
+      "reportedCredits": 30,
+      "modifications": "Embedded textures resized to 1024px. Every non-image buffer verified byte-identical.",
+      "scientificName": "Panthera leo",
+      "replacesSha256": "6c3f62d45efcf12e186d2328409b346f4148bf06949a17bf77fcbc26790ecca9"
+    },
+    {
+      "id": "common-ostrich",
+      "name": "Common ostrich",
+      "file": "common-ostrich.glb",
+      "status": "ready",
+      "bytes": 1489156,
+      "sha256": "86f8a012cdd7ee6fa3237ec6968e2fa9e3e2cfd95a712cbdafce6086442df3d7",
+      "sourceBytes": 5295988,
+      "sourceSha256": "f366a3cc9412e679dcbf0d8c47823dfdbfffbf4be1617a1b7cdffba6ccd4872c",
+      "polygonCount": 20891,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c019-4c13-771e-a96e-1862ce074ad5",
+      "referenceImage": "assets/references/common-ostrich.png",
+      "referenceSha256": "b41e34142ac3dbda2c8ce57532857f4f1a0e374954b48410db894f0598b07b35",
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35529496947",
+      "reportedCredits": 30,
+      "modifications": "Embedded textures resized to 1024px. Every non-image buffer verified byte-identical.",
+      "scientificName": "Struthio camelus",
+      "replacesSha256": "7bad1fd65641b8856a7e365cdc2db11694f60dbb1d73269c70950be54eac171c"
+    },
+    {
+      "id": "hippopotamus",
+      "name": "Hippopotamus",
+      "file": "hippopotamus.glb",
+      "status": "ready",
+      "bytes": 1100676,
+      "sha256": "5cc15b35390d1eb68c794c261987b3e8bca9f28d0379cc17297a68ac23ba30d9",
+      "sourceBytes": 4413900,
+      "sourceSha256": "20ea5e8b0e90b66f3d6b2a677d6b7cf1b3e5065d31b96379d5edf64251349efe",
+      "polygonCount": 20608,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c01a-90b6-77d7-8a3f-b13d6cb0e08a",
+      "referenceImage": "assets/references/hippopotamus.png",
+      "referenceSha256": "0c1718611dcc3a3ec0d747b0a07a0def607a77d900aa0567c518b37df706b18d",
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35529496947",
+      "reportedCredits": 30,
+      "modifications": "Embedded textures resized to 1024px. Every non-image buffer verified byte-identical.",
+      "scientificName": "Hippopotamus amphibius",
+      "replacesSha256": "04e57dedd6105477f88577606596b3f9e643541876f42ea2bca83d5202fad668"
+    },
+    {
+      "id": "safari-jeep",
+      "name": "Vintage safari Land Cruiser with roof rack",
+      "file": "safari-jeep.glb",
+      "status": "ready",
+      "bytes": 2152152,
+      "sha256": "c801f81b69d731581ca12ab9cf40c61f96db3438c3ff1de7533ee1de600b65c2",
+      "sourceBytes": 5468372,
+      "sourceSha256": "e470ebd9cef09c9fd17f3cc2eef9d42232905c8b4855b3020e0a1b692bfd1677",
+      "polygonCount": 25292,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c01b-2e65-73c8-8463-58dc51335dac",
+      "referenceImage": "assets/references/safari-jeep.png",
+      "referenceSha256": "9283e52e694706c780fac98b6ecf68f8d9dfb1c62bf19b6f791c62a7dc90fba2",
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35529496947",
+      "reportedCredits": 30,
+      "modifications": "Embedded textures resized to 1024px. Every non-image buffer verified byte-identical."
+    }
+  ]
+}

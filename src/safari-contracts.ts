@@ -1,0 +1,54 @@
+/** Shared interfaces for the seven-stop story safari. Keep the classic zebra save intact. */
+export type SafariStop = {
+  id: string;
+  name: string;
+  scientificName: string;
+  chapter: string;
+  story: string;
+  mission: string;
+  clue: string;
+  facts: string[];
+  sources: { title: string; url: string }[];
+  question: {
+    prompt: string;
+    choices: { id: string; text: string }[];
+    correctId: string;
+    explanation: string;
+  };
+  modelPath: string;
+  height: number;
+  forwardAxis: "+x" | "-x" | "+z" | "-z";
+  position: [number, number, number];
+};
+
+export type SafariStatus = {
+  nearby: boolean;
+  photoReady: boolean;
+  distance: number;
+  animalLoaded: boolean;
+  jeepLoaded: boolean;
+};
+
+export type SafariWorldOptions = {
+  stops: SafariStop[];
+  reducedMotion: boolean;
+  lowQuality: boolean;
+  onStatus: (status: SafariStatus) => void;
+  onError: (message: string) => void;
+};
+
+export interface SafariWorld {
+  setStop(id: string): void;
+  guideToAnimal(): void;
+  setActive(active: boolean): void;
+  setPhotoMode(active: boolean): void;
+  setMovement(
+    direction: "forward" | "backward" | "left" | "right",
+    pressed: boolean,
+  ): void;
+  setOptions(
+    options: Partial<Pick<SafariWorldOptions, "reducedMotion" | "lowQuality">>,
+  ): void;
+  capture(): string | null;
+  dispose(): void;
+}

@@ -1,0 +1,53 @@
+# The Sunset Safari
+
+The new playtest is `safari.html`. The original zebra expedition and its saved
+field book remain available at the home page. A separate IndexedDB database
+stores the story journey so the earlier save is preserved.
+
+Sophia has a packed Land Cruiser and an empty field book. Before sunset, find
+seven clues about the savanna: grass, water, food at different heights, roots,
+watchful neighbors, hunters, and animals that eat carrion as well as hunt.
+There is no countdown. Each stop has a short observation, one question with
+supportive feedback, a wildlife photograph, and a clue added to the field book.
+The ending brings those observations together without claiming that a few
+sightings are a scientific habitat assessment.
+
+The route visits plains zebra, African savanna elephant, northern giraffe,
+common warthog, Thomson's gazelle, cheetah, and spotted hyena. The player can
+walk around the connected savanna and return to unlocked stops from the field
+book. The jeep is a visible expedition vehicle; choosing the next stop places
+Sophia beside it at the next viewing area. This version has instant travel,
+not player-controlled driving. Animals retain their static authored poses;
+Sophia uses her supplied walking animation.
+
+## Reference-led asset revisions
+
+The initial nine-model batch used only text prompts with Meshy T2 geometry.
+Amy's screenshots identified poor lion mane/head geometry, fragmented ostrich
+feathers, and an unnatural hippo muzzle. Those models were replaced through
+a separate, bounded four-model Image-to-3D batch, including the safari vehicle.
+
+The four new reference images were created with Codex's built-in OpenAI image
+generation, reviewed for silhouette and anatomy, and supplied directly to
+Meshy as PNG data URIs. Images and the exact prompts are retained in
+`assets/references/`. The lion uses a continuous mane; the ostrich uses a
+coherent feather coat and two distinct legs; the hippo has a broad continuous
+muzzle with nostrils on top. The vehicle reference is a sand-colored vintage
+FJ40 Land Cruiser with ivory roof, roof rack, modest luggage, and rear spare.
+
+The Meshy request selects standard Meshy 7.1 generation, image enhancement off,
+texturing at 2K, and triangle remeshing at approximately 20,000 faces per animal
+and 25,000 for the jeep. Four cardinal renders are retained with the raw model
+downloads for inspection. The batch estimate is 120 credits. Actual task IDs,
+reported consumption, source/reference/output hashes, and mesh counts are
+recorded after completion in `SAFARI_ASSET_GENERATION.json`.
+
+The workflow uses the existing GitHub environment secret. Credentials never
+enter the game or committed files. The one-time tag is immutable, paid POSTs
+are not retried, and uncertain submissions retain their checkpoint for
+reconciliation. `scripts/prepare-safari-assets.py` compresses textures for web
+delivery and verifies every non-image buffer remains identical.
+
+The three revised species stay in the animal workbench for inspection. The
+seven accepted species form the playable story. This separation lets Amy
+continue evaluating the new art without blocking the safari.

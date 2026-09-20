@@ -1,6 +1,6 @@
 {
   "batch": "savanna-tests-20260920-v1",
-  "reviewStatus": "AI-generated test assets; anatomy review and animation pending",
+  "reviewStatus": "Seven species in the story safari; image-guided lion, ostrich and hippo revisions in the gallery. Static animal models.",
   "animals": [
     {
       "id": "african-elephant",
@@ -17,14 +17,8 @@
       "polygonCount": 4432,
       "textures": [
         {
-          "sourceSize": [
-            2048,
-            2048
-          ],
-          "outputSize": [
-            1024,
-            1024
-          ],
+          "sourceSize": [2048, 2048],
+          "outputSize": [1024, 1024],
           "mimeType": "image/jpeg"
         }
       ],
@@ -47,14 +41,8 @@
       "polygonCount": 4372,
       "textures": [
         {
-          "sourceSize": [
-            2048,
-            2048
-          ],
-          "outputSize": [
-            1024,
-            1024
-          ],
+          "sourceSize": [2048, 2048],
+          "outputSize": [1024, 1024],
           "mimeType": "image/jpeg"
         }
       ],
@@ -65,32 +53,31 @@
     {
       "id": "lion",
       "name": "Lion",
-      "scientificName": "Panthera leo",
       "file": "lion.glb",
-      "bytes": 493504,
-      "sha256": "6c3f62d45efcf12e186d2328409b346f4148bf06949a17bf77fcbc26790ecca9",
-      "previewTaskId": "01a0bfef-d73b-745b-a7e6-744067392aec",
-      "textureTaskId": "01a0bff0-2d90-7685-b2b9-c00b1f36d7c9",
       "status": "ready",
-      "sourceBytes": 3200800,
-      "sourceSha256": "215186344893b6f79c550230f31bebcadf92ff6451999314e652c20ae6b00d26",
-      "polygonCount": 4032,
+      "bytes": 1916396,
+      "sha256": "6433eeb9a15a7ef5597f9cd2872c2a0e4739b9c0a3b847014c135759e03b28be",
+      "sourceBytes": 5947700,
+      "sourceSha256": "1a1040e267d5442b357dc10298f42f3d30e2785240a8f4b4b7f8534f623381e9",
+      "polygonCount": 20819,
       "textures": [
         {
-          "sourceSize": [
-            2048,
-            2048
-          ],
-          "outputSize": [
-            1024,
-            1024
-          ],
+          "sourceSize": [2048, 2048],
+          "outputSize": [1024, 1024],
           "mimeType": "image/jpeg"
         }
       ],
       "embeddedAnimations": [],
       "skinCount": 0,
-      "modifications": "Embedded textures resized to 1024px. Non-image buffers verified byte-identical."
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c019-4c0d-761c-a647-fcb2db8f4098",
+      "referenceImage": "assets/references/lion.png",
+      "referenceSha256": "2f780ae327c8c08228c7c3dfcc65da63dff9c0756fbae27ef6c19fd9d038207f",
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35529496947",
+      "reportedCredits": 30,
+      "modifications": "Embedded textures resized to 1024px. Every non-image buffer verified byte-identical.",
+      "scientificName": "Panthera leo",
+      "replacesSha256": "6c3f62d45efcf12e186d2328409b346f4148bf06949a17bf77fcbc26790ecca9"
     },
     {
       "id": "cheetah",
@@ -107,14 +94,8 @@
       "polygonCount": 4384,
       "textures": [
         {
-          "sourceSize": [
-            2048,
-            2048
-          ],
-          "outputSize": [
-            1024,
-            1024
-          ],
+          "sourceSize": [2048, 2048],
+          "outputSize": [1024, 1024],
           "mimeType": "image/jpeg"
         }
       ],
@@ -137,14 +118,8 @@
       "polygonCount": 4213,
       "textures": [
         {
-          "sourceSize": [
-            2048,
-            2048
-          ],
-          "outputSize": [
-            1024,
-            1024
-          ],
+          "sourceSize": [2048, 2048],
+          "outputSize": [1024, 1024],
           "mimeType": "image/jpeg"
         }
       ],
@@ -155,32 +130,31 @@
     {
       "id": "common-ostrich",
       "name": "Common ostrich",
-      "scientificName": "Struthio camelus",
       "file": "common-ostrich.glb",
-      "bytes": 595068,
-      "sha256": "7bad1fd65641b8856a7e365cdc2db11694f60dbb1d73269c70950be54eac171c",
-      "previewTaskId": "01a0bff1-242a-767c-9795-1d250d35fb90",
-      "textureTaskId": "01a0bff1-7a92-7058-8dfc-2454731d9ea0",
       "status": "ready",
-      "sourceBytes": 3286832,
-      "sourceSha256": "90e1c69c74efe2e7a57c7a6ecea3f4186203b9135e273d348e6335ae7bd0d8fb",
-      "polygonCount": 3942,
+      "bytes": 1489156,
+      "sha256": "86f8a012cdd7ee6fa3237ec6968e2fa9e3e2cfd95a712cbdafce6086442df3d7",
+      "sourceBytes": 5295988,
+      "sourceSha256": "f366a3cc9412e679dcbf0d8c47823dfdbfffbf4be1617a1b7cdffba6ccd4872c",
+      "polygonCount": 20891,
       "textures": [
         {
-          "sourceSize": [
-            2048,
-            2048
-          ],
-          "outputSize": [
-            1024,
-            1024
-          ],
+          "sourceSize": [2048, 2048],
+          "outputSize": [1024, 1024],
           "mimeType": "image/jpeg"
         }
       ],
       "embeddedAnimations": [],
       "skinCount": 0,
-      "modifications": "Embedded textures resized to 1024px. Non-image buffers verified byte-identical."
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c019-4c13-771e-a96e-1862ce074ad5",
+      "referenceImage": "assets/references/common-ostrich.png",
+      "referenceSha256": "b41e34142ac3dbda2c8ce57532857f4f1a0e374954b48410db894f0598b07b35",
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35529496947",
+      "reportedCredits": 30,
+      "modifications": "Embedded textures resized to 1024px. Every non-image buffer verified byte-identical.",
+      "scientificName": "Struthio camelus",
+      "replacesSha256": "7bad1fd65641b8856a7e365cdc2db11694f60dbb1d73269c70950be54eac171c"
     },
     {
       "id": "common-warthog",
@@ -197,14 +171,8 @@
       "polygonCount": 4432,
       "textures": [
         {
-          "sourceSize": [
-            2048,
-            2048
-          ],
-          "outputSize": [
-            1024,
-            1024
-          ],
+          "sourceSize": [2048, 2048],
+          "outputSize": [1024, 1024],
           "mimeType": "image/jpeg"
         }
       ],
@@ -227,14 +195,8 @@
       "polygonCount": 4349,
       "textures": [
         {
-          "sourceSize": [
-            2048,
-            2048
-          ],
-          "outputSize": [
-            1024,
-            1024
-          ],
+          "sourceSize": [2048, 2048],
+          "outputSize": [1024, 1024],
           "mimeType": "image/jpeg"
         }
       ],
@@ -245,32 +207,31 @@
     {
       "id": "hippopotamus",
       "name": "Hippopotamus",
-      "scientificName": "Hippopotamus amphibius",
       "file": "hippopotamus.glb",
-      "bytes": 447288,
-      "sha256": "04e57dedd6105477f88577606596b3f9e643541876f42ea2bca83d5202fad668",
-      "previewTaskId": "01a0bff2-70c4-77f7-80c7-8c286aae5a8c",
-      "textureTaskId": "01a0bff2-c756-7697-9ac3-d7e84b5ef62b",
       "status": "ready",
-      "sourceBytes": 3297404,
-      "sourceSha256": "38d0d6bdb4254e180ebfe3ab105015f2cabfeb4be0998a49ed3a3d24bb93de67",
-      "polygonCount": 4402,
+      "bytes": 1100676,
+      "sha256": "5cc15b35390d1eb68c794c261987b3e8bca9f28d0379cc17297a68ac23ba30d9",
+      "sourceBytes": 4413900,
+      "sourceSha256": "20ea5e8b0e90b66f3d6b2a677d6b7cf1b3e5065d31b96379d5edf64251349efe",
+      "polygonCount": 20608,
       "textures": [
         {
-          "sourceSize": [
-            2048,
-            2048
-          ],
-          "outputSize": [
-            1024,
-            1024
-          ],
+          "sourceSize": [2048, 2048],
+          "outputSize": [1024, 1024],
           "mimeType": "image/jpeg"
         }
       ],
       "embeddedAnimations": [],
       "skinCount": 0,
-      "modifications": "Embedded textures resized to 1024px. Non-image buffers verified byte-identical."
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c01a-90b6-77d7-8a3f-b13d6cb0e08a",
+      "referenceImage": "assets/references/hippopotamus.png",
+      "referenceSha256": "0c1718611dcc3a3ec0d747b0a07a0def607a77d900aa0567c518b37df706b18d",
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35529496947",
+      "reportedCredits": 30,
+      "modifications": "Embedded textures resized to 1024px. Every non-image buffer verified byte-identical.",
+      "scientificName": "Hippopotamus amphibius",
+      "replacesSha256": "04e57dedd6105477f88577606596b3f9e643541876f42ea2bca83d5202fad668"
     }
   ],
   "generatedAt": "2026-09-20T17:53:36.789Z",
@@ -280,6 +241,12 @@
     "geometry": "meshy-t2",
     "texture": "meshy-7.1"
   },
-  "provenance": "Generated at Amy's request through her Meshy API account. No source images were uploaded; prompts are recorded in the repository. No license is inferred from the API credential.",
-  "preparationScript": "scripts/prepare-test-animals.py"
+  "provenance": "Initial text-generated batch with image-guided lion, ostrich and hippo replacements. See per-model generation fields and repository receipts.",
+  "preparationScript": "scripts/prepare-test-animals.py",
+  "imageRevision": {
+    "batch": "safari-image-assets-20260920-v1",
+    "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35529496947",
+    "reportedCredits": 120,
+    "includesVehicle": true
+  }
 }

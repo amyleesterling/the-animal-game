@@ -62,6 +62,20 @@ exploration mode before closing and explicitly restores world activity. A
 browser regression checks walking out of encounter range and guiding back
 after this reset.
 
+The first Linux CI run passed seven browser tests but exposed slow manual
+walking in the reset test. Manual travel used a capped animation step while
+the guide already used elapsed time. Manual travel now consumes visible
+elapsed time, checking tree, pond and world-boundary collisions every 0.2
+world units. Pause, visibility and fresh-input transitions reset stale timing.
+
+The reset regression now uses reduced motion to start at the same 8 m guide
+destination and renders at two frames per second. An isolated negative control
+with capped travel still enabled failed to leave encounter range within eight
+seconds. Restoring elapsed-time travel passed the same test in 7.1 seconds
+overall. Four additional unit cases cover equal travel at different frame
+rates, trees, the pond and world bounds. Independent review found no further
+issues with the movement fix.
+
 ## Final checks
 
 All checks below passed against the integrated tree, using Windows, Node 22.14,
@@ -71,8 +85,8 @@ Vite 7.3.6 and the repository's Chromium/SwiftShader browser configuration:
 | --- | --- |
 | `npm run format:check` | Pass |
 | `npm run check` | Pass |
-| `npm test` | 56 tests passed across 6 files |
-| `npm run build` | Pass; JavaScript 648.71 kB / 173.21 kB gzip |
+| `npm test` | 60 tests passed across 6 files |
+| `npm run build` | Pass; JavaScript 648.91 kB / 173.30 kB gzip |
 | `npm run test:e2e` | 8 tests passed in about 2 minutes |
 | Keyboard flow, `--repeat-each 3` | 3 additional passes after the focus fix |
 | `git diff --check` | Pass |

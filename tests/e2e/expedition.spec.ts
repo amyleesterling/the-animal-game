@@ -291,6 +291,15 @@ test("the essential expedition can be completed with keyboard input", async ({
 test("resetting during a quiz resumes movement in the savanna", async ({
   page,
 }) => {
+  // Reduced motion makes the guide arrive at its fixed observation spot before
+  // the quiz opens, so the retreat starts at the same distance on every device.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => {
+    // Manual walking must remain useful on the same slow devices as the guide.
+    window.requestAnimationFrame = (callback: FrameRequestCallback): number =>
+      window.setTimeout(() => callback(performance.now()), 500);
+    window.cancelAnimationFrame = (id: number): void => window.clearTimeout(id);
+  });
   await page.goto("/");
   await meetZebra(page);
   await page.locator("#grownups-button").click();

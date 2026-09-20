@@ -1,14 +1,62 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { disposeModelResources, type ModelState } from "./zebra-model";
+import { createPlayerPoses } from "./player-poses";
 
-export const PLAYER_ASSET_PATH = "/models/soph-walking.glb";
+export const PLAYER_ASSET_PATH = "/models/sophia.glb";
 export const PLAYER_WALK_ANIMATION = "Walking_Woman";
+
+export interface PlayerCharacter {
+  id: string;
+  name: string;
+  assetPath: string;
+  walkAnimation?: string;
+  greetingAnimation?: string;
+  welcomeCycle?: { idleSeconds: number; phaseSeconds: number };
+  height?: number;
+}
+
+export const DEFAULT_PLAYER_CHARACTER: Readonly<PlayerCharacter> = {
+  id: "sophia",
+  name: "Sophia",
+  assetPath: PLAYER_ASSET_PATH,
+  walkAnimation: PLAYER_WALK_ANIMATION,
+  greetingAnimation: "Wave_for_Help_4",
+  height: 1.8,
+};
 
 export interface PlayerVisual {
   root: THREE.Group;
-  animate(delta: number, moving: boolean, reducedMotion: boolean): void;
+  animate(
+    delta: number,
+    moving: boolean,
+    reducedMotion: boolean,
+    greeting?: boolean,
+  ): void;
   dispose(): void;
+}
+
+function welcomeFrame(
+  elapsed: number,
+  waveSeconds: number,
+  cycle: NonNullable<PlayerCharacter["welcomeCycle"]>,
+) {
+  const duration = waveSeconds + cycle.idleSeconds;
+  const time = THREE.MathUtils.euclideanModulo(
+    elapsed + cycle.phaseSeconds,
+    duration,
+  );
+  const waving = time < waveSeconds;
+  const blendSeconds = Math.min(0.35, waveSeconds / 4);
+  const standingWeight = waving
+    ? 1 -
+      THREE.MathUtils.smoothstep(
+        Math.min(time, waveSeconds - time),
+        0,
+        blendSeconds,
+      )
+    : 1;
+  return { time, waving, standingWeight };
 }
 
 /** Keep authored joint motion, but let the collision controller own travel. */
@@ -47,12 +95,38 @@ function disposePlayerResources(root: THREE.Group): void {
 export function createPlayerModel(
   source: THREE.Group,
   animations: THREE.AnimationClip[],
+  character: PlayerCharacter = DEFAULT_PLAYER_CHARACTER,
 ): PlayerVisual {
   const animation = animations.find(
-    (clip) => clip.name === PLAYER_WALK_ANIMATION,
+    (clip) => clip.name === (character.walkAnimation ?? PLAYER_WALK_ANIMATION),
   );
-  if (!animation || animation.duration <= 0)
-    throw new Error("Soph's walking animation is missing.");
+  if (
+    !animation ||
+    !Number.isFinite(animation.duration) ||
+    animation.duration <= 0
+  )
+    throw new Error(`${character.name}'s walking animation is missing.`);
+  const greetingClip = character.greetingAnimation
+    ? animations.find((clip) => clip.name === character.greetingAnimation)
+    : undefined;
+  if (
+    character.greetingAnimation &&
+    (!greetingClip ||
+      !Number.isFinite(greetingClip.duration) ||
+      greetingClip.duration <= 0)
+  )
+    throw new Error(`${character.name}'s greeting animation is missing.`);
+  const targetHeight = character.height ?? 1.8;
+  if (!Number.isFinite(targetHeight) || targetHeight <= 0)
+    throw new Error(`${character.name}'s model height is invalid.`);
+  const cycle = character.welcomeCycle;
+  if (
+    cycle &&
+    (!Number.isFinite(cycle.idleSeconds) ||
+      cycle.idleSeconds <= 0 ||
+      !Number.isFinite(cycle.phaseSeconds))
+  )
+    throw new Error(`${character.name}'s welcome timing is invalid.`);
   let hasSkeleton = false;
   source.traverse((object) => {
     if (!(object instanceof THREE.Mesh)) return;
@@ -63,27 +137,79 @@ export function createPlayerModel(
     // The skeleton moves outside the mesh's static bind-pose bounds.
     object.frustumCulled = false;
   });
-  if (!hasSkeleton) throw new Error("Soph's skeleton is missing.");
+  if (!hasSkeleton) throw new Error(`${character.name}'s skeleton is missing.`);
 
   const root = new THREE.Group();
-  root.name = "soph-walking-visual";
+  root.name = `${character.id}-walking-visual`;
+  root.userData.welcomePhase = "inactive";
   const oriented = new THREE.Group();
   oriented.rotation.y = Math.PI; // Authored +Z faces the controller's -Z.
   oriented.add(source);
   root.add(oriented);
+  const poses = createPlayerPoses(source);
+  // Walking has its own vertical origin. Keep the supplied bounce while
+  // grounding its first frame independently of the planted standing pose.
+  poses.restoreImported();
   const mixer = new THREE.AnimationMixer(source);
   const action = mixer.clipAction(makeInPlaceClip(source, animation));
   action.play();
   mixer.update(0);
+  root.updateMatrixWorld(true);
+  const walkFloor = new THREE.Box3().setFromObject(root, true).min.y;
+  action.stop();
+  const greetingAction = greetingClip
+    ? mixer.clipAction(makeInPlaceClip(source, greetingClip))
+    : undefined;
+  let greetingFloor = 0;
+  let frozenGreetingFloor = 0;
+  let frozenGreetingTime = 0;
+  if (greetingAction && greetingClip) {
+    poses.restoreImported();
+    greetingAction.play();
+    mixer.update(0);
+    root.updateMatrixWorld(true);
+    greetingFloor = new THREE.Box3().setFromObject(root, true).min.y;
+    // Some authored greetings start with both arms down. Choose a raised-hand
+    // frame for reduced motion, without changing or trimming the source clip.
+    const hands: THREE.Bone[] = [];
+    let hips: THREE.Bone | undefined;
+    source.traverse((object) => {
+      if (!(object instanceof THREE.Bone)) return;
+      if (/(?:left|right)hand$/i.test(object.name)) hands.push(object);
+      if (/hips$/i.test(object.name)) hips = object;
+    });
+    const position = new THREE.Vector3();
+    let highestHand = Number.NEGATIVE_INFINITY;
+    for (let sample = 0; sample < 24; sample++) {
+      const time = (greetingClip.duration * sample) / 24;
+      greetingAction.time = time;
+      mixer.update(0);
+      source.updateWorldMatrix(true, true);
+      const hipHeight = hips?.getWorldPosition(position).y ?? 0;
+      for (const hand of hands) {
+        const height = hand.getWorldPosition(position).y - hipHeight;
+        if (height > highestHand) {
+          highestHand = height;
+          frozenGreetingTime = time;
+        }
+      }
+    }
+    greetingAction.time = frozenGreetingTime;
+    mixer.update(0);
+    root.updateMatrixWorld(true);
+    frozenGreetingFloor = new THREE.Box3().setFromObject(root, true).min.y;
+    greetingAction.stop();
+  }
+  poses.stand();
   root.updateMatrixWorld(true);
   const bounds = new THREE.Box3().setFromObject(root, true);
   const height = bounds.max.y - bounds.min.y;
   if (!Number.isFinite(height) || height <= 0) {
     mixer.stopAllAction();
     mixer.uncacheRoot(source);
-    throw new Error("Soph's model dimensions are invalid.");
+    throw new Error(`${character.name}'s model dimensions are invalid.`);
   }
-  const scale = 1.8 / height;
+  const scale = targetHeight / height;
   const center = bounds.getCenter(new THREE.Vector3());
   oriented.scale.setScalar(scale);
   oriented.position.set(
@@ -93,19 +219,81 @@ export function createPlayerModel(
   );
 
   let walking = false;
+  let playingGreeting = false;
+  let greetingTime = 0;
+  let welcomeTime = 0;
+  let wasGreeting = false;
   let disposed = false;
   return {
     root,
-    animate(delta, moving, reducedMotion) {
+    animate(delta, moving, reducedMotion, greeting = false) {
       if (disposed) return;
       const shouldWalk = moving && !reducedMotion;
-      if (shouldWalk && Number.isFinite(delta) && delta > 0) {
-        mixer.update(delta);
-      } else if (walking && !shouldWalk) {
-        // Stationary and reduced-motion characters use a consistent resting pose.
-        mixer.setTime(0);
+      const elapsed = Number.isFinite(delta) && delta > 0 ? delta : 0;
+      root.userData.welcomePhase =
+        greeting && !moving ? (reducedMotion ? "still" : "waving") : "inactive";
+      if (shouldWalk) {
+        if (playingGreeting) greetingAction?.stop();
+        if (!walking) {
+          poses.restoreImported();
+          action.reset().play();
+        }
+        oriented.position.y = -walkFloor * scale;
+        mixer.update(elapsed);
+      } else {
+        if (walking) action.stop();
+        oriented.position.y = -bounds.min.y * scale;
+        if (greeting && !moving) {
+          if (!wasGreeting) welcomeTime = 0;
+          if (!reducedMotion) welcomeTime += elapsed;
+          const frame =
+            cycle && !reducedMotion
+              ? welcomeFrame(welcomeTime, greetingClip?.duration ?? 4.8, cycle)
+              : undefined;
+          if (greetingAction) {
+            if (!playingGreeting) {
+              poses.restoreImported();
+              greetingAction.reset().play();
+            } else poses.restoreAuthored();
+            oriented.position.y =
+              -(reducedMotion ? frozenGreetingFloor : greetingFloor) * scale;
+            if (reducedMotion) greetingAction.time = frozenGreetingTime;
+            else if (frame)
+              greetingAction.time = Math.min(
+                frame.time,
+                greetingClip!.duration - 0.000001,
+              );
+            mixer.update(reducedMotion || frame ? 0 : elapsed);
+            // The mixer may skip unchanged tracks. Restore/capture its pure
+            // authored sample so a repeated blend never compounds itself.
+            poses.captureAuthored();
+          } else {
+            if (!wasGreeting) greetingTime = 0;
+            if (!reducedMotion) greetingTime += elapsed;
+            poses.greet(greetingTime, reducedMotion);
+          }
+          if (frame) {
+            poses.ambient(
+              welcomeTime + cycle!.phaseSeconds,
+              frame.standingWeight,
+            );
+            poses.anchorRoots();
+            oriented.position.y =
+              -THREE.MathUtils.lerp(
+                greetingAction ? greetingFloor : bounds.min.y,
+                bounds.min.y,
+                frame.standingWeight,
+              ) * scale;
+            root.userData.welcomePhase = frame.waving ? "waving" : "standing";
+          }
+        } else {
+          if (playingGreeting) greetingAction?.stop();
+          poses.stand();
+        }
       }
       walking = shouldWalk;
+      wasGreeting = greeting && !moving;
+      playingGreeting = wasGreeting && !!greetingAction;
     },
     dispose() {
       if (disposed) return;
@@ -121,10 +309,15 @@ export function createPlayerModel(
 
 export async function loadPlayerVisual(
   signal: AbortSignal,
+  character: PlayerCharacter = DEFAULT_PLAYER_CHARACTER,
 ): Promise<PlayerVisual> {
-  const assetUrl = new URL(`.${PLAYER_ASSET_PATH}`, document.baseURI).href;
+  const assetUrl = new URL(
+    character.assetPath.replace(/^\//, "./"),
+    document.baseURI,
+  ).href;
   const response = await fetch(assetUrl, { signal });
-  if (!response.ok) throw new Error("Soph's model could not be downloaded.");
+  if (!response.ok)
+    throw new Error(`${character.name}'s model could not be downloaded.`);
   const bytes = await response.arrayBuffer();
   signal.throwIfAborted();
   const basePath = new URL(".", assetUrl).href;
@@ -149,10 +342,10 @@ export async function loadPlayerVisual(
         const image = (material as THREE.MeshStandardMaterial).map?.source
           .data as { width?: number; height?: number } | undefined;
         if (!image || !(Number(image.width) > 0) || !(Number(image.height) > 0))
-          throw new Error("Soph's texture could not be decoded.");
+          throw new Error(`${character.name}'s texture could not be decoded.`);
       }
     });
-    return createPlayerModel(ownedScene, gltf.animations);
+    return createPlayerModel(ownedScene, gltf.animations, character);
   } catch (error) {
     if (ownedScene) disposePlayerResources(ownedScene);
     throw error;
@@ -164,23 +357,27 @@ export async function loadPlayerVisual(
 /** Each world owns its parse, mixer, textures, skeleton, and late-load cleanup. */
 export function createPlayer(
   onState?: (state: ModelState) => void,
+  character: PlayerCharacter = DEFAULT_PLAYER_CHARACTER,
 ): PlayerVisual {
   const root = new THREE.Group();
   root.name = "player";
-  let visual = createFallbackPlayer();
+  root.userData.welcomePhase = "inactive";
+  let visual = createFallbackPlayer(character.height, character.welcomeCycle);
   root.add(visual.root);
   const controller = new AbortController();
   let disposed = false;
   let lastMoving = false;
   let lastReducedMotion = false;
+  let lastGreeting = false;
   onState?.("loading");
-  void loadPlayerVisual(controller.signal)
+  void loadPlayerVisual(controller.signal, character)
     .then((loaded) => {
       if (disposed) {
         loaded.dispose();
         return;
       }
-      loaded.animate(0, lastMoving, lastReducedMotion);
+      loaded.animate(0, lastMoving, lastReducedMotion, lastGreeting);
+      root.userData.welcomePhase = loaded.root.userData.welcomePhase;
       visual.dispose();
       visual = loaded;
       root.add(visual.root);
@@ -191,11 +388,13 @@ export function createPlayer(
     });
   return {
     root,
-    animate(delta, moving, reducedMotion) {
+    animate(delta, moving, reducedMotion, greeting = false) {
       if (disposed) return;
       lastMoving = moving;
       lastReducedMotion = reducedMotion;
-      visual.animate(delta, moving, reducedMotion);
+      lastGreeting = greeting;
+      visual.animate(delta, moving, reducedMotion, greeting);
+      root.userData.welcomePhase = visual.root.userData.welcomePhase;
     },
     dispose() {
       if (disposed) return;
@@ -208,9 +407,15 @@ export function createPlayer(
   };
 }
 
-function createFallbackPlayer(): PlayerVisual {
+function createFallbackPlayer(
+  height = 1.8,
+  cycle?: PlayerCharacter["welcomeCycle"],
+): PlayerVisual {
   const player = new THREE.Group();
   player.name = "procedural-explorer-fallback";
+  player.userData.welcomePhase = "inactive";
+  if (Number.isFinite(height) && height > 0)
+    player.scale.setScalar(height / 1.8);
   const mat = (color: number) =>
     new THREE.MeshStandardMaterial({ color, flatShading: true, roughness: 1 });
   const explorerMaterials = {
@@ -293,37 +498,70 @@ function createFallbackPlayer(): PlayerVisual {
     leg.add(shoe);
     return leg;
   });
-  for (const side of [-1, 1]) {
-    const arm = explorerPart(
+  const explorerArms = [-1, 1].map((side) => {
+    const shoulder = new THREE.Group();
+    shoulder.name = side === -1 ? "fallback-right-arm" : "fallback-left-arm";
+    shoulder.position.set(side * 0.265, 1.28, 0);
+    player.add(shoulder);
+    const arm = new THREE.Mesh(
       new THREE.CylinderGeometry(0.065, 0.07, 0.48, 7),
       explorerMaterials.skin,
-      side * 0.29,
-      1,
-      0,
     );
-    arm.rotation.z = side * 0.12;
-    explorerPart(
+    arm.position.y = -0.27;
+    arm.castShadow = true;
+    shoulder.add(arm);
+    const sleeve = new THREE.Mesh(
       new THREE.CylinderGeometry(0.085, 0.09, 0.22, 7),
       explorerMaterials.shirt,
-      side * 0.265,
-      1.18,
-      0,
     );
-  }
+    sleeve.position.y = -0.1;
+    sleeve.castShadow = true;
+    shoulder.add(sleeve);
+    return shoulder;
+  });
 
   let elapsed = 0;
+  let welcomeTime = 0;
+  let wasGreeting = false;
   let disposed = false;
   return {
     root: player,
-    animate(delta, moving, reducedMotion) {
+    animate(delta, moving, reducedMotion, greeting = false) {
       if (disposed) return;
-      elapsed += delta;
+      if (!reducedMotion && Number.isFinite(delta) && delta > 0)
+        elapsed += delta;
+      const greetingNow = greeting && !moving;
+      if (!wasGreeting) welcomeTime = 0;
+      if (greetingNow && !reducedMotion && Number.isFinite(delta) && delta > 0)
+        welcomeTime += delta;
+      const frame =
+        greetingNow && !reducedMotion && cycle
+          ? welcomeFrame(welcomeTime, 4.8, cycle)
+          : undefined;
+      player.userData.welcomePhase = !greetingNow
+        ? "inactive"
+        : reducedMotion
+          ? "still"
+          : frame && !frame.waving
+            ? "standing"
+            : "waving";
       explorerLegs.forEach((leg, i) => {
         leg.rotation.x =
           moving && !reducedMotion
             ? Math.sin(elapsed * 9 + i * Math.PI) * 0.4
             : 0;
       });
+      explorerArms.forEach((arm, index) => {
+        const side = index === 0 ? -1 : 1;
+        arm.rotation.z = side * 0.12;
+        if (index === 0 && greeting && !moving)
+          arm.rotation.z = THREE.MathUtils.lerp(
+            -2.45 + (reducedMotion ? 0 : Math.sin(elapsed * 5) * 0.16),
+            side * 0.12,
+            frame?.standingWeight ?? 0,
+          );
+      });
+      wasGreeting = greetingNow;
     },
     dispose() {
       if (disposed) return;

@@ -8,7 +8,9 @@ import type {
   WorldStatus,
 } from "./contracts";
 import { createZebra, disposeScene } from "./zebra";
-import { createPlayer } from "./player";
+import { createPlayer, DEFAULT_PLAYER_CHARACTER } from "./player";
+import { createCompanion } from "./companion";
+import { CORA_CHARACTER } from "../content/characters";
 import {
   moveWithCollisions,
   stepToward,
@@ -371,13 +373,47 @@ export function createWorld(
     return rig;
   });
 
-  const explorer = createPlayer((state) => {
-    renderer.domElement.dataset.playerModelState = state;
-  });
+  const explorer = createPlayer(
+    (state) => {
+      renderer.domElement.dataset.playerModelState = state;
+    },
+    {
+      ...DEFAULT_PLAYER_CHARACTER,
+      welcomeCycle: { idleSeconds: 5, phaseSeconds: 0 },
+    },
+  );
   const player = explorer.root;
   player.position.set(0, 0, 5);
-  player.visible = false;
   scene.add(player);
+  const characterCompanion = CORA_CHARACTER
+    ? createCompanion(
+        {
+          ...CORA_CHARACTER,
+          welcomeCycle: { idleSeconds: 5, phaseSeconds: 2.4 },
+        },
+        (state) => {
+          renderer.domElement.dataset.companionModelState = state;
+        },
+      )
+    : null;
+  if (characterCompanion) scene.add(characterCompanion.root);
+  renderer.domElement.dataset.characterCount = characterCompanion ? "2" : "1";
+  const welcomeRay = new THREE.Vector3();
+  const welcomeProbe = new THREE.Vector3();
+  const welcomeRight = new THREE.Vector3();
+  const welcomeHerd = [animal, ...companions].map((rig) => ({
+    root: rig.root,
+    position: rig.root.position.clone(),
+  }));
+  const welcomeBounds = new THREE.Box3();
+  let welcomeTextRight = 0;
+  const stackedWelcome = window.matchMedia(
+    "(max-width: 760px), (max-width: 1100px) and (orientation: portrait)",
+  );
+  // Precise skinned bounds visit every vertex. Keep that QA work off the
+  // normal animation path, especially on phones.
+  const measureWelcomeBounds =
+    new URLSearchParams(window.location.search).get("characterBounds") === "1";
 
   let active = false;
   let hasExplored = false;
@@ -387,6 +423,7 @@ export function createWorld(
   let pitch = 0.34;
   let disposed = false;
   let contextLost = false;
+  let companionPaused = false;
   let frame = 0;
   let elapsed = 0;
   let lastTime = performance.now();
@@ -472,7 +509,16 @@ export function createWorld(
     dragging = false;
   };
   const onVisibility = () => {
+    companionPaused = document.hidden || !document.hasFocus();
     clearMovement();
+    lastTime = performance.now();
+  };
+  const onBlur = () => {
+    companionPaused = true;
+    clearMovement();
+  };
+  const onFocus = () => {
+    companionPaused = false;
     lastTime = performance.now();
   };
   const onContextLost = (event: Event) => {
@@ -485,7 +531,8 @@ export function createWorld(
   };
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
-  window.addEventListener("blur", clearMovement);
+  window.addEventListener("blur", onBlur);
+  window.addEventListener("focus", onFocus);
   document.addEventListener("visibilitychange", onVisibility);
   renderer.domElement.addEventListener("pointerdown", onPointerDown);
   renderer.domElement.addEventListener("pointermove", onPointerMove);
@@ -499,6 +546,14 @@ export function createWorld(
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
+    welcomeTextRight = options.welcomeContent
+      ? options.welcomeContent.getBoundingClientRect().right -
+        container.getBoundingClientRect().left
+      : width * 0.4;
+    container.parentElement?.style.setProperty(
+      "--welcome-text-edge",
+      `${welcomeTextRight}px`,
+    );
   };
   const observer = new ResizeObserver(resize);
   observer.observe(container);
@@ -506,8 +561,13 @@ export function createWorld(
 
   function updateCamera(snap = false) {
     if (!hasExplored) {
-      cameraDestination.copy(spawn).add(new THREE.Vector3(4.5, 2.8, 8.5));
-      cameraTarget.copy(spawn).add(new THREE.Vector3(-3, 1.1, 0));
+      const narrow = stackedWelcome.matches;
+      cameraDestination
+        .copy(spawn)
+        .add(new THREE.Vector3(4.5, narrow ? 1.45 : 1.7, 8.5));
+      cameraTarget
+        .copy(spawn)
+        .add(new THREE.Vector3(-3, narrow ? 0.9 : 1.1, 0));
       camera.fov = 48;
       camera.zoom = 1;
     } else if (photoMode) {
@@ -541,9 +601,14 @@ export function createWorld(
             Math.cos(yaw) * orbitDistance,
           ),
         );
-      cameraTarget
-        .copy(player.position)
-        .add(new THREE.Vector3(-Math.sin(yaw) * 3, 1.1, -Math.cos(yaw) * 3));
+      cameraTarget.copy(player.position).add(
+        new THREE.Vector3(
+          -Math.sin(yaw) * 3,
+          // Leave the portrait mission card above the walking pair.
+          camera.aspect < 0.85 ? 2.7 : 1.1,
+          -Math.cos(yaw) * 3,
+        ),
+      );
       camera.fov = 48;
       camera.zoom = 1;
     }
@@ -555,7 +620,70 @@ export function createWorld(
     camera.updateProjectionMatrix();
   }
 
+  function placeWelcomeCharacters() {
+    const narrow = stackedWelcome.matches;
+    // Keep the welcome figures in the clear part of the scene, above the
+    // mobile introduction and to the right of the desktop reading column.
+    camera.updateMatrixWorld();
+    const placeAt = (x: number) => {
+      welcomeRay
+        .set(x, narrow ? -0.75 : -0.45, 0.5)
+        .unproject(camera)
+        .sub(camera.position)
+        .normalize();
+      const distance = -camera.position.y / welcomeRay.y;
+      player.position
+        .copy(camera.position)
+        .addScaledVector(welcomeRay, distance);
+    };
+    placeAt(0);
+    const footY = welcomeProbe.copy(player.position).project(camera).y;
+    const headY = welcomeProbe
+      .copy(player.position)
+      .addScaledVector(UP, 1)
+      .project(camera).y;
+    const pixelsPerMeter = ((headY - footY) * container.clientHeight) / 2;
+    if (narrow) {
+      placeAt(
+        characterCompanion
+          ? (pixelsPerMeter * 1.25) / container.clientWidth
+          : 0,
+      );
+    } else {
+      // Measure the available reading column, then reserve a body width and
+      // Cora's side-by-side spacing. This keeps the pair central on wide
+      // screens without crowding the text on smaller laptops.
+      const screenX =
+        welcomeTextRight +
+        44 +
+        pixelsPerMeter * (characterCompanion ? 1.75 : 0.5);
+      placeAt((screenX / container.clientWidth) * 2 - 1);
+    }
+    player.position.y = 0;
+    player.rotation.y = Math.atan2(
+      player.position.x - camera.position.x,
+      player.position.z - camera.position.z,
+    );
+    player.visible = true;
+    // Keep the zebras beyond the pair on laptops as well as wide screens.
+    // These are presentation positions only; exploring restores the herd.
+    let herdShift = 0;
+    welcomeRight.set(1, 0, 0).applyQuaternion(camera.quaternion);
+    if (!narrow) {
+      const playerX = welcomeProbe.copy(player.position).project(camera).x;
+      const zebraX = welcomeProbe.copy(spawn).project(camera).x;
+      const meterX =
+        welcomeProbe.copy(spawn).add(welcomeRight).project(camera).x - zebraX;
+      const desiredX = playerX + 0.3;
+      herdShift = Math.max(0, (desiredX - zebraX) / meterX);
+    }
+    welcomeHerd.forEach(({ root, position }) => {
+      root.position.copy(position).addScaledVector(welcomeRight, herdShift);
+    });
+  }
+
   function updateStatus() {
+    publishWelcomeBounds();
     const distance = player.position.distanceTo(animal.root.position);
     let photoReady =
       distance >= zebra.behaviors.comfortRadius + 0.4 &&
@@ -576,6 +704,50 @@ export function createWorld(
       fps: Math.round(fps),
     };
     settings.onStatus(status);
+  }
+
+  function publishWelcomeBounds() {
+    const canvas = renderer.domElement;
+    const rect = measureWelcomeBounds ? canvas.getBoundingClientRect() : null;
+    for (const [name, root] of [
+      ["sophia", player],
+      ["cora", characterCompanion?.root],
+    ] as const) {
+      canvas.dataset[`${name}WelcomePhase`] =
+        !hasExplored && root
+          ? (root.userData.welcomePhase ?? "inactive")
+          : "inactive";
+      if (!rect || hasExplored || !root?.visible) {
+        delete canvas.dataset[`${name}ScreenBounds`];
+        continue;
+      }
+      welcomeBounds.setFromObject(root, true);
+      let left = Infinity,
+        top = Infinity,
+        right = -Infinity,
+        bottom = -Infinity;
+      for (let corner = 0; corner < 8; corner++) {
+        welcomeProbe
+          .set(
+            corner & 1 ? welcomeBounds.max.x : welcomeBounds.min.x,
+            corner & 2 ? welcomeBounds.max.y : welcomeBounds.min.y,
+            corner & 4 ? welcomeBounds.max.z : welcomeBounds.min.z,
+          )
+          .project(camera);
+        const x = rect.left + ((welcomeProbe.x + 1) * rect.width) / 2;
+        const y = rect.top + ((1 - welcomeProbe.y) * rect.height) / 2;
+        left = Math.min(left, x);
+        right = Math.max(right, x);
+        top = Math.min(top, y);
+        bottom = Math.max(bottom, y);
+      }
+      canvas.dataset[`${name}ScreenBounds`] = JSON.stringify({
+        left,
+        top,
+        right,
+        bottom,
+      });
+    }
   }
 
   function resolvePlayerCollisions(position: GroundPosition) {
@@ -649,7 +821,12 @@ export function createWorld(
         player.position.x - previousPlayerX,
         player.position.z - previousPlayerZ,
       ) > 0.00001;
-    explorer.animate(frameDuration, playerMoved, settings.reducedMotion);
+    explorer.animate(
+      companionPaused ? 0 : frameDuration,
+      playerMoved,
+      settings.reducedMotion,
+      !hasExplored,
+    );
 
     const distance = player.position.distanceTo(animal.root.position);
     if (active && !photoMode && !guideDestination) {
@@ -707,6 +884,37 @@ export function createWorld(
         ring.scale.set(pulse, pulse * 0.65, 1);
       });
     updateCamera();
+    if (!hasExplored) placeWelcomeCharacters();
+    characterCompanion?.update(
+      frameDuration,
+      player.position,
+      player.rotation.y,
+      {
+        visible: !photoMode,
+        moving: playerMoved,
+        reducedMotion: settings.reducedMotion,
+        greeting: !hasExplored,
+        teleport: !hasExplored,
+        paused: companionPaused || (hasExplored && !active),
+      },
+      hasExplored ? resolvePlayerCollisions : () => undefined,
+    );
+    renderer.domElement.dataset.characterMode = !hasExplored
+      ? "welcome"
+      : photoMode
+        ? "photo"
+        : "explore";
+    renderer.domElement.dataset.explorerX = String(player.position.x);
+    renderer.domElement.dataset.explorerZ = String(player.position.z);
+    renderer.domElement.dataset.companionVisible = String(
+      characterCompanion?.root.visible ?? false,
+    );
+    renderer.domElement.dataset.companionX = String(
+      characterCompanion?.root.position.x ?? 0,
+    );
+    renderer.domElement.dataset.companionZ = String(
+      characterCompanion?.root.position.z ?? 0,
+    );
     renderer.render(scene, camera);
     if (time - lastStatusTime > 180) {
       updateStatus();
@@ -721,8 +929,34 @@ export function createWorld(
     setActive(value) {
       if (active !== value) lastTime = performance.now();
       active = value;
+      const entering = value && !hasExplored;
+      if (entering) {
+        welcomeHerd.forEach(({ root, position }) =>
+          root.position.copy(position),
+        );
+        player.position.set(0, 0, 5);
+        player.rotation.y = 0;
+        characterCompanion?.update(
+          0,
+          player.position,
+          0,
+          {
+            visible: true,
+            moving: false,
+            reducedMotion: settings.reducedMotion,
+            teleport: true,
+          },
+          resolvePlayerCollisions,
+        );
+      }
       if (value) hasExplored = true;
-      player.visible = hasExplored && !photoMode;
+      if (entering) {
+        updateCamera(true);
+        // The welcome figures stand near the zebra; starting moves Sophia
+        // back to the trail. Publish that distance before the mission renders.
+        updateStatus();
+      }
+      player.visible = !photoMode;
       if (!value) {
         clearMovement();
         guideDestination = null;
@@ -731,6 +965,7 @@ export function createWorld(
     setPhotoMode(value) {
       photoMode = value;
       player.visible = !value;
+      if (value && characterCompanion) characterCompanion.root.visible = false;
       clearMovement();
       guideDestination = null;
       updateCamera(true);
@@ -816,7 +1051,8 @@ export function createWorld(
       observer.disconnect();
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
-      window.removeEventListener("blur", clearMovement);
+      window.removeEventListener("blur", onBlur);
+      window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisibility);
       renderer.domElement.removeEventListener("pointerdown", onPointerDown);
       renderer.domElement.removeEventListener("pointermove", onPointerMove);
@@ -827,6 +1063,7 @@ export function createWorld(
         onContextLost,
       );
       explorer.dispose();
+      characterCompanion?.dispose();
       animal.dispose();
       companions.forEach((rig) => rig.dispose());
       disposeScene(scene);

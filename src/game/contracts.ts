@@ -9,6 +9,7 @@ export type WorldStatus = {
 export type WorldOptions = {
   reducedMotion: boolean;
   lowQuality: boolean;
+  welcomeContent?: HTMLElement;
   onStatus: (status: WorldStatus) => void;
   onError: (message: string) => void;
 };

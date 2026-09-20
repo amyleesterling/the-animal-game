@@ -18,7 +18,7 @@ test("Soph's supplied character loads and follows the guided approach", async ({
 test("a missing character model preserves the playable expedition", async ({
   page,
 }) => {
-  await page.route("**/models/soph-walking.glb", (route) => route.abort());
+  await page.route("**/models/sophia.glb", (route) => route.abort());
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("./");
   await expect(page.locator("#world canvas")).toHaveAttribute(

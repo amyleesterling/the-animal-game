@@ -1,5 +1,6 @@
 import "./style.css";
 import { createWorld } from "./game/world";
+import { CORA_CHARACTER } from "./content/characters";
 import { createSpecimen } from "./game/specimen";
 import type { World, WorldStatus } from "./game/contracts";
 import { assets, zebra, roster } from "./content/species";
@@ -63,7 +64,7 @@ app.innerHTML = `
     <section class="welcome" id="welcome" aria-labelledby="welcome-title">
       <div class="eyebrow">${icon("compass")} YOUR FIRST EXPEDITION</div>
       <h1 id="welcome-title">A world of<br>little <em>wonders.</em></h1>
-      <p class="welcome-copy">Seven animals. Seven clues. Join Sophia’s Land Cruiser safari to discover what makes a savanna thrive.</p>
+      <p class="welcome-copy">Seven animals. Seven clues. Join ${CORA_CHARACTER ? "Sophia and Cora on a" : "Sophia’s"} Land Cruiser safari to discover what makes a savanna thrive.</p>
       <a class="primary start-button safari-entry" href="./safari.html">Start the story safari ${icon("arrow")}</a>
       <button class="primary start-button" id="start-button">Let’s explore ${icon("arrow")}</button>
       <p class="quiet start-note">Your original zebra adventure and field book are still here, too.</p>
@@ -71,7 +72,7 @@ app.innerHTML = `
       <div class="welcome-steps"><span>${icon("compass")} Explore</span><span>${icon("camera")} Discover</span><span>${icon("book")} Remember</span></div>
     </section>
     <section class="mission-card hidden" id="mission" aria-labelledby="mission-title"></section>
-    <div class="location-tag" id="location-tag"><span class="location-line"></span><div><span class="eyebrow">FIELD NOTES · 001</span><p>The grasslands are waking up.</p><span class="quiet">There’s a striped someone to meet.</span></div></div>
+    <div class="location-tag welcome-names" id="location-tag"><span class="location-line"></span><div><span class="eyebrow">${CORA_CHARACTER ? "YOUR SAFARI FRIENDS" : "YOUR SAFARI FRIEND"}</span><p>${CORA_CHARACTER ? "Sophia & Cora" : "Sophia"}</p></div></div>
     <div class="photo-overlay hidden" id="photo-overlay"><div class="viewfinder" aria-hidden="true"><i></i><i></i><i></i><i></i><span>+</span></div><div class="photo-controls"><div><strong id="frame-status">Find your striped friend</strong><span class="quiet">A little space keeps wildlife comfortable.</span></div><label class="zoom-label">Zoom <input id="zoom" type="range" min="1" max="2" step="0.05" value="1"></label><button class="primary" id="shutter">${icon("camera")} Take photo</button><button class="soft" id="leave-photo">Back</button></div></div>
     <div class="touch-controls hidden" id="touch-controls" aria-label="Movement controls"><button data-move="forward" aria-label="Walk forward">↑</button><button data-move="left" aria-label="Walk left">←</button><button data-move="backward" aria-label="Walk backward">↓</button><button data-move="right" aria-label="Walk right">→</button></div>
     <div id="subtitle" class="subtitle hidden" role="status" aria-live="polite"></div>
@@ -225,6 +226,7 @@ function renderMission(focus = false): void {
       speak("Let’s take a gentle walk to the zebra.");
     });
     button("meet-button", () => {
+      if (!status.nearby) return;
       mode = "quiz";
       world?.setActive(false);
       renderMission(true);
@@ -350,7 +352,7 @@ function modelCredits(): string {
   const asset = assets.find((entry) => entry.id === zebra.model.assetId);
   if (asset?.kind !== "glb") return "";
   const credit = asset.attribution;
-  return `<section class="model-credits"><h3>Our zebra model</h3><p><a href="${esc(credit.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(credit.title)}</a> by ${esc(credit.creator)}, created with Meshy and supplied by Amy. Licensed under <a href="${esc(credit.licenseUrl)}" target="_blank" rel="noopener noreferrer">${esc(credit.license)}</a>.</p><p>${esc(credit.modifications)}</p><h3>Your explorer</h3><p>Amy supplied Soph’s character and walking animation. The character walks when you move and holds a still pose with reduced motion.</p><h3>The next animals</h3><p><a href="./animal-lab.html">Open the animal previews</a> to rotate and inspect the next models. These are early art tests; their anatomy and future movements still need review.</p></section>`;
+  return `<section class="model-credits"><h3>Our zebra model</h3><p><a href="${esc(credit.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(credit.title)}</a> by ${esc(credit.creator)}, created with Meshy and supplied by Amy. Licensed under <a href="${esc(credit.licenseUrl)}" target="_blank" rel="noopener noreferrer">${esc(credit.license)}</a>.</p><p>${esc(credit.modifications)}</p><h3>Your explorers</h3><p>Amy supplied Sophia’s walking character and Cora’s walking and waving animations. They welcome you together and explore side by side. Reduced motion keeps their poses still.</p><h3>The next animals</h3><p><a href="./animal-lab.html">Open the animal previews</a> to rotate and inspect the next models. These are early art tests; their anatomy and future movements still need review.</p></section>`;
 }
 function openGrownups(): void {
   openDialog(
@@ -521,6 +523,7 @@ async function init(): Promise<void> {
   try {
     world = createWorld($("world"), {
       ...progress.settings,
+      welcomeContent: $("welcome"),
       onStatus: handleStatus,
       onError: (message) => {
         worldFailed = true;

@@ -32,7 +32,7 @@ export function createZebra(
   };
   setState("loading");
   void loadZebraVisual(
-    zebra.model.assetPath,
+    new URL(`.${zebra.model.assetPath}`, document.baseURI).href,
     zebra.model.assetForwardAxis,
     zebra.model.targetHeight * zebra.model.scale,
     controller.signal,

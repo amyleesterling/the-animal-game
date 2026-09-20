@@ -30,6 +30,10 @@ See [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md) for the full product, education
 
 ## Play the first slice
 
+[Open the hosted playtest](https://amyleesterling.github.io/the-animal-game/)
+on a computer or phone. See [deployment notes](docs/DEPLOYMENT.md) for hosting,
+verification commands and device limitations.
+
 **Meet the Zebra is now a playable prototype.** Explore a small 3D savanna,
 meet an animated zebra, make three discoveries, take an in-game photograph,
 and open a field-book page containing your own photo and a rotatable zebra.

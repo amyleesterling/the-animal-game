@@ -30,6 +30,17 @@ height and facing, removes horizontal root travel from a runtime copy of
 the walking clip, and pauses the pose when stationary or using reduced motion.
 Source and shipped hashes are in `../assets-manifest.json`.
 
+# Sophia walking and waving
+
+Amy supplied `sophie wave 3d.glb` on 2026-09-20. The active explorer asset,
+`sophia.glb`, combines its authored `Wave_for_Help_4` clip with the existing
+`Walking_Woman` clip, using their identical geometry and 23-bone skeleton.
+Both source clips' sample bytes, geometry, and skin data are preserved;
+one embedded texture is resized to 1024px JPEG. Original source and shipped
+hashes are in `../assets-manifest.json` and the source repository's
+`docs/SOPHIA_ASSET_PREPARATION.json`. The older `soph-walking.glb` is retained
+for compatibility. No creator or license metadata is inferred.
+
 # Cora walking and waving
 
 Amy supplied `cora walking 3d.glb` and `cora character wave.glb` on 2026-09-20.

@@ -82,7 +82,8 @@ original procedural art. See the [asset credits](public/models/CREDITS.md)
 and [provenance manifest](public/assets-manifest.json).
 
 The explorer now uses Amy's supplied **Soph walking character**, with its
-embedded walking animation. Sophia stands and waves on the landing page, with
+embedded walking animation and her separately supplied wave. Sophia stands
+and plays that wave on the landing page, with
 a still greeting when reduced motion is enabled. Cora joins her using Amy's
 supplied walking and waving animations, welcoming visitors on the landing page
 and moving beside Sophia in both adventures. See

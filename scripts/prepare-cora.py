@@ -1,7 +1,9 @@
-"""Merge Cora's supplied clips onto one rig and optimize its embedded texture.
+"""Merge supplied walking/waving clips onto one rig and optimize its texture.
 
 Requires Python 3 and Pillow. From the repository root:
   python scripts/prepare-cora.py "path/cora walking 3d.glb" "path/cora character wave.glb"
+
+For another compatible character, pass --character, --output and --report.
 
 The walking file supplies the sole mesh, skin, and images. Only the wave clip's
 referenced accessors/buffer views are appended. Both clips' sample bytes are
@@ -177,7 +179,7 @@ def encode_glb(model, binary):
             struct.pack("<II", len(binary), 0x004E4942) + binary)
 
 
-def prepare(walk_path, wave_path, output_path, report_path):
+def prepare(walk_path, wave_path, output_path, report_path, character="Cora"):
     walk, walk_bin, walk_raw = load_glb(walk_path)
     wave, wave_bin, wave_raw = load_glb(wave_path)
     verify_compatible(walk, walk_bin, wave, wave_bin)
@@ -248,7 +250,7 @@ def prepare(walk_path, wave_path, output_path, report_path):
         "verification": {"sourceNodesSkinsMeshesCompatible": True, "sourceGeometryAndBindPoseBytesEqual": True,
                          "sourceTextureBytesEqual": True, "bothClipsPreservedByteForByte": True,
                          "allOriginalNonImageBufferViewsPreserved": True, "noDuplicateMeshesSkinsOrImages": True},
-        "provenance": "Both source GLBs supplied by Amy; Cora's original geometry, rig, walking and waving clips retained. Only embedded textures resized/re-encoded. No generated animation or replacement appearance added.",
+        "provenance": f"Both source GLBs supplied by Amy; {character}'s original geometry, rig, walking and waving clips retained. Only embedded textures resized/re-encoded. No generated animation or replacement appearance added.",
     }
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
@@ -260,7 +262,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("walking", type=Path)
     parser.add_argument("waving", type=Path)
+    parser.add_argument("--character", default="Cora", help="Character name for the provenance record")
     parser.add_argument("--output", type=Path, default=ROOT / "public/models/cora.glb")
     parser.add_argument("--report", type=Path, default=ROOT / "docs/CORA_ASSET_PREPARATION.json")
     args = parser.parse_args()
-    prepare(args.walking, args.waving, args.output, args.report)
+    prepare(args.walking, args.waving, args.output, args.report, args.character)

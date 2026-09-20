@@ -3,7 +3,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { disposeModelResources, type ModelState } from "./zebra-model";
 import { createPlayerPoses } from "./player-poses";
 
-export const PLAYER_ASSET_PATH = "/models/soph-walking.glb";
+export const PLAYER_ASSET_PATH = "/models/sophia.glb";
 export const PLAYER_WALK_ANIMATION = "Walking_Woman";
 
 export interface PlayerCharacter {
@@ -20,6 +20,7 @@ export const DEFAULT_PLAYER_CHARACTER: Readonly<PlayerCharacter> = {
   name: "Sophia",
   assetPath: PLAYER_ASSET_PATH,
   walkAnimation: PLAYER_WALK_ANIMATION,
+  greetingAnimation: "Wave_for_Help_4",
   height: 1.8,
 };
 

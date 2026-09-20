@@ -2,11 +2,12 @@
 
 Branch: `codex/sophia-cora-companions`. Date: 2026-09-20.
 
-Status: six distinct browser cases passed against the local integrated build:
+Initial Cora integration: six distinct browser cases passed against the local integrated build:
 four real-pair cases and two classic startup/keyboard regressions. The phone
 case also passed again after a camera correction. Desktop and phone welcome
 screenshots visibly show both real models with raised greeting hands. No
-character blocker remains from this review.
+character blocker remains from this review. The subsequent supplied-Sophia-wave
+verification is recorded at the end of this document.
 
 `tests/e2e/characters.spec.ts` verifies:
 
@@ -102,3 +103,55 @@ The inspected corrected phone image is
 Chrome with software WebGL and emulated mobile viewports does not establish
 physical-phone performance or replace child playtesting. No paid generation
 or recognition API is used for these checks.
+
+## Sophia's supplied wave follow-up
+
+Amy subsequently supplied Sophia's authored waving GLB. The coordinator is
+shipping it with her matching walking asset as `public/models/sophia.glb`.
+All four follow-up browser cases passed with the combined asset. The earlier
+six-case result above covers Sophia's previous procedural greeting and Cora's
+authored greeting.
+
+Independent source review found no blocker in the shared authored-greeting
+path: the configured clip is required, greeting and walking actions restore
+their own poses, reduced motion selects a fixed raised-hand frame, and only
+horizontal root travel is removed from runtime animation copies. Asset
+preparation requires compatible geometry, skin, hierarchy, and source texture,
+then checks both clips' sample bytes after texture optimization.
+
+An independent GLB metadata/hash check confirmed the 2,161,396-byte file matches
+`docs/SOPHIA_ASSET_PREPARATION.json` and contains exactly `Walking_Woman` and
+`Wave_for_Help_4`, with one mesh, skin, image, and embedded buffer. The default
+player explicitly selects the new model and supplied greeting clip.
+
+```text
+node node_modules/@playwright/test/cli.js test tests/e2e/characters.spec.ts tests/e2e/new-models.spec.ts --grep "Sophia and Cora welcome|reduced-motion pair|the safari pair|a missing character model" --output="C:/Users/amyle/Documents/New project/sophia-wave-browser-results"
+4 passed (1.5m)
+```
+
+Desktop pair behavior passed in 28.6 seconds, phone in 20.3 seconds, Safari in
+29.2 seconds, and the missing-Sophia-model playable fallback in 5.5 seconds.
+The coordinator reports all 187 unit tests passing across 15 files with two
+workers, plus TypeScript, the production build, and the full formatting check.
+
+Active Chrome screenshots show both supplied greetings in the 1440×960
+welcome scene. At 390×844 and 667×375, reduced motion holds each character's
+raised-hand authored pose. Both figures remain within the scene and the copy
+and actions remain readable. The phone exploration screenshot retains the
+corrected clear placement below the mission card. Classic and Safari movement,
+settings pause/resume, actual jeep travel/exit, and clear photo modes pass with
+the new default asset. The desktop case reports no uncaught page errors.
+
+Inspected follow-up evidence, relative to `../sophia-wave-browser-results/`:
+
+- `characters-Sophia-and-Cora-80626--leave-the-photograph-clear/sophia-cora-welcome-desktop.png`
+- `characters-Sophia-and-Cora-80626--leave-the-photograph-clear/sophia-cora-classic-explore.png`
+- `characters-phone-welcome-p-d6f56-and-short-landscape-actions/sophia-cora-welcome-portrait.png`
+- `characters-phone-welcome-p-d6f56-and-short-landscape-actions/sophia-cora-welcome-landscape.png`
+- `characters-phone-welcome-p-d6f56-and-short-landscape-actions/sophia-cora-phone-explore.png`
+- `characters-the-safari-pair-f10da--and-stays-out-of-the-photo/sophia-cora-safari-explore.png`
+- `characters-the-safari-pair-f10da--and-stays-out-of-the-photo/safari-photo-without-companion.png`
+
+No new review finding remains. This follow-up uses the existing meaningful
+browser cases; physical-phone performance and child playtesting remain outside
+these checks.

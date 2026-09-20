@@ -1,0 +1,78 @@
+{
+  "sources": [
+    {
+      "file": "soph character walking.glb",
+      "bytes": 8991348,
+      "sha256": "df55ea02516a02e19421829252c295a1ad3a0d18f12e2cf38db31780194de451",
+      "clip": "Walking_Woman"
+    },
+    {
+      "file": "sophie wave 3d.glb",
+      "bytes": 9106068,
+      "sha256": "1986b45c6cf62e89a5a50f8954733a2360ed80323954c471c19f0e7c88325999",
+      "clip": "Wave_for_Help_4"
+    }
+  ],
+  "output": {
+    "file": "sophia.glb",
+    "bytes": 2161396,
+    "sha256": "b33aaf59196febfbc2e3816195cbec7423ee7d95b2365567d1542f9e74bcc7d5"
+  },
+  "preparation": {
+    "script": "scripts/prepare-cora.py",
+    "scriptSha256": "5f798bfff0560f0e4569d61b0f6cbb9976b711779dc4e3f6ebfef10d245154a2",
+    "textureOptimizer": "scripts/optimize-character.py",
+    "textureOptimizerSha256": "523b079c039c1d96d5c033bac6f619b0ee54fdbc7e0890d23a7435fa107291d6",
+    "appendedAnimationAccessors": 48,
+    "appendedBufferViews": 48,
+    "meshCount": 1,
+    "skinCount": 1,
+    "nodeCount": 25,
+    "imageCount": 1
+  },
+  "animations": [
+    {
+      "name": "Walking_Woman",
+      "startSeconds": 0.0,
+      "endSeconds": 1.0,
+      "durationSeconds": 1.0,
+      "channelCount": 46,
+      "samplerCount": 46,
+      "sampleSha256": "1909ccd082d3958b93abc7f42422e6b97a3962dba4207dfa38dfb61b15ad207f",
+      "sampleBytesPreserved": true
+    },
+    {
+      "name": "Wave_for_Help_4",
+      "startSeconds": 0.0,
+      "endSeconds": 4.791666507720947,
+      "durationSeconds": 4.791666507720947,
+      "channelCount": 46,
+      "samplerCount": 46,
+      "sampleSha256": "987f360b4c6437051d64cd356d683710648acabc7f410f3a17f2fcadeafd4ede",
+      "sampleBytesPreserved": true
+    }
+  ],
+  "textures": [
+    {
+      "sourceSize": [
+        2048,
+        2048
+      ],
+      "outputSize": [
+        1024,
+        1024
+      ],
+      "mimeType": "image/jpeg"
+    }
+  ],
+  "pillowVersion": "12.3.0",
+  "verification": {
+    "sourceNodesSkinsMeshesCompatible": true,
+    "sourceGeometryAndBindPoseBytesEqual": true,
+    "sourceTextureBytesEqual": true,
+    "bothClipsPreservedByteForByte": true,
+    "allOriginalNonImageBufferViewsPreserved": true,
+    "noDuplicateMeshesSkinsOrImages": true
+  },
+  "provenance": "Both source GLBs supplied by Amy; Sophia's original geometry, rig, walking and waving clips retained. Only embedded textures resized/re-encoded. No generated animation or replacement appearance added."
+}

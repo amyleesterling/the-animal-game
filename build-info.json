@@ -1,6 +1,6 @@
 {
-  "sourceBranch": "codex/meshy-zebra-asset",
-  "sourceCommit": "e40d473ed1ee311bdad4d8a5f912d3a25df2f6f2",
-  "builtAt": "2026-09-20T14:06:10.9171871Z",
-  "purpose": "Phone and desktop playtest"
+  "purpose": "Soph walking character and nine Meshy animal previews",
+  "sourceBranch": "codex/soph-meshy-tests",
+  "builtAt": "2026-09-20T18:08:10.6254850Z",
+  "sourceCommit": "b909408bc7c5c035463ea83fd14ec035732ca85a"
 }

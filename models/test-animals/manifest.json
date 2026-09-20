@@ -1,0 +1,285 @@
+{
+  "batch": "savanna-tests-20260920-v1",
+  "reviewStatus": "AI-generated test assets; anatomy review and animation pending",
+  "animals": [
+    {
+      "id": "african-elephant",
+      "name": "African savanna elephant",
+      "scientificName": "Loxodonta africana",
+      "file": "african-elephant.glb",
+      "bytes": 558248,
+      "sha256": "00bbad7a7e3f170eb159f8f10386e37b39b548d0ffc3867c20981fd64aece64b",
+      "previewTaskId": "01a0bfee-8a5a-7365-a68b-fab6dac8f790",
+      "textureTaskId": "01a0bfee-e1a2-7427-9572-27e6c1a8432a",
+      "status": "ready",
+      "sourceBytes": 4156220,
+      "sourceSha256": "a1281dbee1cef166ea9021faee195143f277349245b48a0716dff6fc41738510",
+      "polygonCount": 4432,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "modifications": "Embedded textures resized to 1024px. Non-image buffers verified byte-identical."
+    },
+    {
+      "id": "giraffe",
+      "name": "Northern giraffe",
+      "scientificName": "Giraffa camelopardalis",
+      "file": "giraffe.glb",
+      "bytes": 622656,
+      "sha256": "fe4727b10897f6dfd08060d83937f6d12eb88ae0c93c6db84c77f32638ab6678",
+      "previewTaskId": "01a0bfef-d6cb-7196-89dc-d717523e132f",
+      "textureTaskId": "01a0bff0-2d3d-76a6-86ca-62ddb16423dd",
+      "status": "ready",
+      "sourceBytes": 4180236,
+      "sourceSha256": "c7b8fcdee916fe880e9ec947f4b7c0b1e439b9ae009597c9d77f839085d6eeff",
+      "polygonCount": 4372,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "modifications": "Embedded textures resized to 1024px. Non-image buffers verified byte-identical."
+    },
+    {
+      "id": "lion",
+      "name": "Lion",
+      "scientificName": "Panthera leo",
+      "file": "lion.glb",
+      "bytes": 493504,
+      "sha256": "6c3f62d45efcf12e186d2328409b346f4148bf06949a17bf77fcbc26790ecca9",
+      "previewTaskId": "01a0bfef-d73b-745b-a7e6-744067392aec",
+      "textureTaskId": "01a0bff0-2d90-7685-b2b9-c00b1f36d7c9",
+      "status": "ready",
+      "sourceBytes": 3200800,
+      "sourceSha256": "215186344893b6f79c550230f31bebcadf92ff6451999314e652c20ae6b00d26",
+      "polygonCount": 4032,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "modifications": "Embedded textures resized to 1024px. Non-image buffers verified byte-identical."
+    },
+    {
+      "id": "cheetah",
+      "name": "Cheetah",
+      "scientificName": "Acinonyx jubatus",
+      "file": "cheetah.glb",
+      "bytes": 663680,
+      "sha256": "405df79edc5dca206c14e4ee4ed08278a43bd1c004067283a596dc8abaca09eb",
+      "previewTaskId": "01a0bfef-d751-7552-9dd4-ce602e9a9d06",
+      "textureTaskId": "01a0bff0-2fdd-76a9-902d-22131e4c2de4",
+      "status": "ready",
+      "sourceBytes": 4164516,
+      "sourceSha256": "a86ded268c6e05420ab2b6cc84c648ac71e7a44d7a37930baf19f05d5421011e",
+      "polygonCount": 4384,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "modifications": "Embedded textures resized to 1024px. Non-image buffers verified byte-identical."
+    },
+    {
+      "id": "spotted-hyena",
+      "name": "Spotted hyena",
+      "scientificName": "Crocuta crocuta",
+      "file": "spotted-hyena.glb",
+      "bytes": 519096,
+      "sha256": "ee07e70d5de4a7f7940ac95c2f7509e88e96135935523fb7f6de6a53cc4d1cd9",
+      "previewTaskId": "01a0bff0-d79a-70c8-92a8-9a7122638dd0",
+      "textureTaskId": "01a0bff1-2c32-70bd-ba60-38187403c059",
+      "status": "ready",
+      "sourceBytes": 3967408,
+      "sourceSha256": "b35e2776ef0e312fa62caa6f67bd7c3ad5e8e6640228c8eae01f3ffa92b3b408",
+      "polygonCount": 4213,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "modifications": "Embedded textures resized to 1024px. Non-image buffers verified byte-identical."
+    },
+    {
+      "id": "common-ostrich",
+      "name": "Common ostrich",
+      "scientificName": "Struthio camelus",
+      "file": "common-ostrich.glb",
+      "bytes": 595068,
+      "sha256": "7bad1fd65641b8856a7e365cdc2db11694f60dbb1d73269c70950be54eac171c",
+      "previewTaskId": "01a0bff1-242a-767c-9795-1d250d35fb90",
+      "textureTaskId": "01a0bff1-7a92-7058-8dfc-2454731d9ea0",
+      "status": "ready",
+      "sourceBytes": 3286832,
+      "sourceSha256": "90e1c69c74efe2e7a57c7a6ecea3f4186203b9135e273d348e6335ae7bd0d8fb",
+      "polygonCount": 3942,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "modifications": "Embedded textures resized to 1024px. Non-image buffers verified byte-identical."
+    },
+    {
+      "id": "common-warthog",
+      "name": "Common warthog",
+      "scientificName": "Phacochoerus africanus",
+      "file": "common-warthog.glb",
+      "bytes": 528736,
+      "sha256": "c64b67e7c2fd67172c376fb7d93593a846fb68ddacd9b1a79d30ab7cf9f1f3e7",
+      "previewTaskId": "01a0bff1-24dd-75fd-a21a-79fe6b838a83",
+      "textureTaskId": "01a0bff1-7b91-7428-8a33-ed973ac0f88d",
+      "status": "ready",
+      "sourceBytes": 3843584,
+      "sourceSha256": "702cdb9062934c16066d9af8b6e16edd2e246fcfda59cc31bef8be6174f184f4",
+      "polygonCount": 4432,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "modifications": "Embedded textures resized to 1024px. Non-image buffers verified byte-identical."
+    },
+    {
+      "id": "thomsons-gazelle",
+      "name": "Thomson's gazelle",
+      "scientificName": "Eudorcas thomsonii",
+      "file": "thomsons-gazelle.glb",
+      "bytes": 578180,
+      "sha256": "b0dc8ec30b80870111a7b024e952816f3a34cd2ba713a31838b8530502e4bbed",
+      "previewTaskId": "01a0bff2-2022-7312-8210-4fbb59e968be",
+      "textureTaskId": "01a0bff2-7587-725b-ae1a-13f905388045",
+      "status": "ready",
+      "sourceBytes": 3945596,
+      "sourceSha256": "adf66e3a4608d0c09fb6ee3372fbc99031128f2a99375fc2a585ea4c9ec6518a",
+      "polygonCount": 4349,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "modifications": "Embedded textures resized to 1024px. Non-image buffers verified byte-identical."
+    },
+    {
+      "id": "hippopotamus",
+      "name": "Hippopotamus",
+      "scientificName": "Hippopotamus amphibius",
+      "file": "hippopotamus.glb",
+      "bytes": 447288,
+      "sha256": "04e57dedd6105477f88577606596b3f9e643541876f42ea2bca83d5202fad668",
+      "previewTaskId": "01a0bff2-70c4-77f7-80c7-8c286aae5a8c",
+      "textureTaskId": "01a0bff2-c756-7697-9ac3-d7e84b5ef62b",
+      "status": "ready",
+      "sourceBytes": 3297404,
+      "sourceSha256": "38d0d6bdb4254e180ebfe3ab105015f2cabfeb4be0998a49ed3a3d24bb93de67",
+      "polygonCount": 4402,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "modifications": "Embedded textures resized to 1024px. Non-image buffers verified byte-identical."
+    }
+  ],
+  "generatedAt": "2026-09-20T17:53:36.789Z",
+  "reportedCredits": 135,
+  "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35526999078",
+  "generationModels": {
+    "geometry": "meshy-t2",
+    "texture": "meshy-7.1"
+  },
+  "provenance": "Generated at Amy's request through her Meshy API account. No source images were uploaded; prompts are recorded in the repository. No license is inferred from the API credential.",
+  "preparationScript": "scripts/prepare-test-animals.py"
+}

@@ -324,6 +324,98 @@ function stormEnvelope(elapsedHours: number): number {
   return clamp(Math.sin(Math.pow(t, 0.62) * Math.PI), 0, 1);
 }
 
+export interface YearMonthProfile {
+  /** 0 = January. */
+  month: number;
+  /** Millimetres the average year brings in this month. Measured. */
+  rainMm: number;
+  /** Mean daily maximum temperature, degrees Celsius. Measured. */
+  maxC: number;
+  /** How green the grass is in the middle of this month, 0 to 1. Modelled. */
+  greenness: number;
+  /** How full the waterhole is in the middle of this month, 0 to 1. Modelled. */
+  waterLevel: number;
+}
+
+/**
+ * The whole year at a glance, sampled in the middle of each month. This is
+ * what makes the lesson visible: the wettest month and the greenest month are
+ * not the same month, because grass answers rain slowly.
+ */
+export function yearProfile(
+  site: ClimateSite = seronera,
+  year = 2026,
+): YearMonthProfile[] {
+  const profile: YearMonthProfile[] = [];
+  for (let month = 0; month < 12; month++) {
+    const day = dayOfYear(new Date(Date.UTC(year, month, 15)));
+    profile.push({
+      month,
+      rainMm: monthlyRainfallMm(site, year, month),
+      maxC: site.months[month].maxC,
+      greenness: normalise(
+        laggedRain(site, year, day, GRASS_MEMORY_DAYS),
+        grassRange,
+      ),
+      waterLevel: normalise(
+        laggedRain(site, year, day, WATER_MEMORY_DAYS),
+        waterRange,
+      ),
+    });
+  }
+  return profile;
+}
+
+/**
+ * The clearest evidence that the savanna answers rain slowly: two months that
+ * receive almost the same rain but look nothing alike, because of what fell
+ * in the months before them. Computed rather than asserted, so it stays true
+ * if the climate data is ever updated.
+ */
+export function matchedRainPair(profile = yearProfile()): {
+  wetter: YearMonthProfile;
+  drier: YearMonthProfile;
+  rainGapMm: number;
+  greennessGap: number;
+} | null {
+  let best: {
+    wetter: YearMonthProfile;
+    drier: YearMonthProfile;
+    rainGapMm: number;
+    greennessGap: number;
+  } | null = null;
+  for (const a of profile) {
+    for (const b of profile) {
+      if (a.month >= b.month) continue;
+      const rainGapMm = Math.abs(a.rainMm - b.rainMm);
+      // Only pairs that really did get the same rain are evidence of a lag.
+      if (rainGapMm > 12) continue;
+      const greennessGap = Math.abs(a.greenness - b.greenness);
+      if (best && greennessGap <= best.greennessGap) continue;
+      const [greener, browner] = a.greenness > b.greenness ? [a, b] : [b, a];
+      best = { wetter: greener, drier: browner, rainGapMm, greennessGap };
+    }
+  }
+  return best;
+}
+
+/**
+ * The month the grass is at its brownest and the month the waterhole is at
+ * its lowest. They are not the same month: groundwater has a longer memory
+ * than roots do, so the water outlasts the grass and then bottoms out later.
+ */
+export function troughMonths(profile = yearProfile()): {
+  brownestGrass: number;
+  lowestWater: number;
+} {
+  return {
+    brownestGrass: profile.reduce((a, b) => (b.greenness < a.greenness ? b : a))
+      .month,
+    lowestWater: profile.reduce((a, b) => (b.waterLevel < a.waterLevel ? b : a))
+      .month,
+  };
+}
+
 export function createEnvironment(
   options: EnvironmentOptions = {},
 ): Environment {

@@ -1,3 +1,4 @@
+import { createYearChart } from "./year-chart";
 import {
   seasons,
   type Environment,
@@ -254,6 +255,9 @@ export function createEnvironmentControls(
   speedGroup.append(speedRow);
   element.append(speedGroup);
 
+  const yearChart = createYearChart();
+  element.append(yearChart.element);
+
   const provenance = document.createElement("p");
   provenance.className = "weather-desk__provenance";
   provenance.textContent = `Rain and temperature are the ${site.period} averages measured at this place. How green the grass gets, and when a storm breaks, are worked out from those averages.`;
@@ -294,6 +298,8 @@ export function createEnvironmentControls(
       );
       lastSpeed = speed;
     }
+
+    yearChart.update(state);
 
     hourSlider.value = String(clock.hour);
     hourValue.textContent = describeHour(clock.hour);

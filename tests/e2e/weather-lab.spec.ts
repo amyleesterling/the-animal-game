@@ -201,3 +201,30 @@ test("the panel is usable on a phone, at a readable size", async ({ page }) => {
   });
   await page.screenshot({ path: `${EVIDENCE}/06-phone-storm.png` });
 });
+
+test("the year chart shows the whole year and follows the month", async ({
+  page,
+}) => {
+  const errors = await openLab(page);
+  const chart = page.locator(".year-chart");
+  await chart.scrollIntoViewIfNeeded();
+  await expect(chart).toBeVisible();
+
+  // Twelve rain bars, two response lines, a legend and a table view.
+  await expect(chart.locator(".year-chart__bar")).toHaveCount(12);
+  await expect(chart.locator(".year-chart__line")).toHaveCount(2);
+  await expect(chart.locator(".year-chart__legend li")).toHaveCount(2);
+  await expect(chart.locator("table tbody tr")).toHaveCount(12);
+
+  // The reading names the month the savanna is showing.
+  await expect(chart.locator(".year-chart__reading")).toContainText("April");
+  await page.locator(".lab__panel").screenshot({
+    path: `${EVIDENCE}/10-year-chart.png`,
+  });
+
+  // Changing month moves the marker and the reading.
+  await page.getByRole("button", { name: "August" }).click();
+  await page.waitForTimeout(500);
+  await expect(chart.locator(".year-chart__reading")).toContainText("August");
+  expect(errors).toEqual([]);
+});

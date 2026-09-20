@@ -6,11 +6,14 @@ import {
 } from "../../src/content/climate";
 import {
   createEnvironment,
+  matchedRainPair,
   seasonForMonth,
   seasons,
   solarPosition,
   stormChanceFor,
   sunTimes,
+  troughMonths,
+  yearProfile,
 } from "../../src/game/environment";
 
 const APRIL = 3;
@@ -280,5 +283,48 @@ describe("storms", () => {
     }
     // The first stormy hour is allowed; clearing the sky stops the rest.
     expect(stormyHours).toBeLessThanOrEqual(1);
+  });
+});
+
+describe("the year at a glance", () => {
+  it("reports twelve months of measured rain and modelled response", () => {
+    const profile = yearProfile();
+    expect(profile).toHaveLength(12);
+    profile.forEach((month, index) => {
+      expect(month.month).toBe(index);
+      expect(month.rainMm).toBeGreaterThan(0);
+      expect(month.greenness).toBeGreaterThanOrEqual(0);
+      expect(month.greenness).toBeLessThanOrEqual(1);
+      expect(month.waterLevel).toBeGreaterThanOrEqual(0);
+      expect(month.waterLevel).toBeLessThanOrEqual(1);
+    });
+  });
+
+  it("agrees with the live simulation on the same date", () => {
+    const environment = createEnvironment({ naturalStorms: false });
+    const profile = yearProfile(seronera, 2026);
+    for (const month of [APRIL, JULY, 10]) {
+      environment.setDate(2026, month, 15);
+      const live = environment.state();
+      expect(live.greenness).toBeCloseTo(profile[month].greenness, 6);
+      expect(live.waterLevel).toBeCloseTo(profile[month].waterLevel, 6);
+      expect(live.monthRainfallMm).toBeCloseTo(profile[month].rainMm, 6);
+    }
+  });
+
+  it("finds two months with the same rain and a very different savanna", () => {
+    const pair = matchedRainPair();
+    expect(pair).not.toBeNull();
+    // Same rain, by construction.
+    expect(pair!.rainGapMm).toBeLessThanOrEqual(12);
+    // Different savanna, which is the whole lesson.
+    expect(pair!.greennessGap).toBeGreaterThan(0.4);
+    // The greener of the two is the one that follows the wetter months.
+    expect(pair!.wetter.greenness).toBeGreaterThan(pair!.drier.greenness);
+  });
+
+  it("empties the waterhole later in the year than it browns the grass", () => {
+    const { brownestGrass, lowestWater } = troughMonths();
+    expect(lowestWater).toBeGreaterThan(brownestGrass);
   });
 });

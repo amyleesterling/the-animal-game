@@ -250,3 +250,194 @@
     font-size: 16px;
   }
 }
+
+/* The savanna year. Two panels on a shared month axis; the chart reads, the
+   month buttons above it control. */
+.year-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  /* Chart roles. Validated against a white surface: grass to water is
+     Delta E 26.5 for protan and 29.0 for normal vision. */
+  --chart-grass: #008300;
+  --chart-water: #2a78d6;
+  --chart-rain: #6f8ba6;
+  --chart-ink: var(--ink);
+  --chart-muted: var(--muted);
+  --chart-grid: #e4e6da;
+}
+
+.year-chart__title {
+  margin: 0;
+  font-size: 18px;
+  color: var(--green);
+}
+
+.year-chart__lead {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--chart-muted);
+}
+
+.year-chart__panel-title {
+  margin: 6px 0 -4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--chart-ink);
+}
+
+.year-chart__panel-title--second {
+  margin-top: 8px;
+}
+
+.year-chart__plot {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.year-chart__marker {
+  fill: #253c3212;
+  transition: x 180ms ease;
+}
+
+.year-chart__bar {
+  fill: var(--chart-rain);
+}
+
+.year-chart__axis {
+  stroke: #c9cdbc;
+  stroke-width: 1;
+}
+
+.year-chart__grid {
+  stroke: var(--chart-grid);
+  stroke-width: 1;
+}
+
+.year-chart__line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.year-chart__line--grass {
+  stroke: var(--chart-grass);
+}
+
+.year-chart__line--water {
+  stroke: var(--chart-water);
+}
+
+.year-chart__dot {
+  stroke: #fff;
+  stroke-width: 2;
+  transition:
+    cx 180ms ease,
+    cy 180ms ease;
+}
+
+.year-chart__dot--grass {
+  fill: var(--chart-grass);
+}
+
+.year-chart__dot--water {
+  fill: var(--chart-water);
+}
+
+.year-chart__months {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.year-chart__months li {
+  font-size: 12px;
+  text-align: center;
+  color: var(--chart-muted);
+}
+
+.year-chart__months li.is-current {
+  font-weight: 700;
+  color: var(--green);
+}
+
+.year-chart__legend {
+  display: flex;
+  gap: 16px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.year-chart__legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--chart-ink);
+}
+
+.year-chart__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.year-chart__swatch--grass {
+  background: var(--chart-grass);
+}
+
+.year-chart__swatch--water {
+  background: var(--chart-water);
+}
+
+.year-chart__reading {
+  margin: 4px 0 0;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--chart-ink);
+}
+
+.year-chart__lag {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--chart-muted);
+}
+
+.year-chart__table summary {
+  font-size: 14px;
+  color: var(--chart-muted);
+  cursor: pointer;
+  min-height: 24px;
+}
+
+.year-chart__table table {
+  width: 100%;
+  margin-top: 8px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.year-chart__table th,
+.year-chart__table td {
+  padding: 4px 6px;
+  text-align: right;
+  border-bottom: 1px solid var(--line);
+}
+
+.year-chart__table th[scope="row"],
+.year-chart__table thead th:first-child {
+  text-align: left;
+  font-weight: 600;
+}

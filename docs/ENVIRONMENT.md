@@ -19,14 +19,14 @@ rainfall in millimetres per day, temperature in degrees Celsius.
 
 The shape of the year that falls out of those numbers:
 
-| Month | Rain (mm/day) | Month | Rain (mm/day) |
-| --- | --- | --- | --- |
-| January | 3.83 | July | 0.30 |
-| February | 2.79 | August | 0.64 |
-| March | 4.54 | September | 0.86 |
-| April | 4.73 | October | 1.92 |
-| May | 2.13 | November | 4.66 |
-| June | 0.57 | December | 4.32 |
+| Month    | Rain (mm/day) | Month     | Rain (mm/day) |
+| -------- | ------------- | --------- | ------------- |
+| January  | 3.83          | July      | 0.30          |
+| February | 2.79          | August    | 0.64          |
+| March    | 4.54          | September | 0.86          |
+| April    | 4.73          | October   | 1.92          |
+| May      | 2.13          | November  | 4.66          |
+| June     | 0.57          | December  | 4.32          |
 
 That totals about 950 mm a year, which matches the published figure for the
 central Serengeti. April is roughly sixteen times wetter than July.
@@ -84,10 +84,14 @@ camera, so a downpour costs one draw call.
 
 ```ts
 const visuals = createEnvironmentVisuals({
-  scene, camera, sun, hemisphere,
+  scene,
+  camera,
+  sun,
+  hemisphere,
   grassMaterials: [grassMaterial],
   groundMaterials: [groundMaterial],
-  water, sunDisc,
+  water,
+  sunDisc,
 });
 visuals.apply(state, delta);
 grassLean(visuals.windSway());
@@ -119,8 +123,54 @@ the waterhole when it shrinks, moving on when the grass browns off.
 
 ## Verification
 
-- `npm test` — 22 unit tests covering the climate data, the seasons, solar
+- `npm test` — 27 unit tests covering the climate data, the seasons, solar
   geometry, the lagged greenness and water response, clock arithmetic across
   month, year and leap-year boundaries, and storm behaviour.
-- `npm run test:e2e` — six browser tests that assert what a child would see,
+- `npm run test:e2e` — seven browser tests that assert what a child would see,
   with screenshots written to `docs/evidence/weather/`.
+
+## The year chart
+
+The 3D savanna shows the weather. The year chart shows the **climate**, which
+is the part a falling raindrop cannot show: what changes from month to month,
+and why.
+
+`src/ui/year-chart.ts` draws two panels on a shared month axis:
+
+- **Rain that falls** — the twelve measured monthly totals, as bars.
+- **How the savanna answers** — the modelled greenness and waterhole level.
+
+They are deliberately two panels rather than two lines on two y-axes.
+Millimetres and "how green" are not comparable quantities, and putting them on
+one axis would invent a relationship the data does not have.
+
+Two findings are computed from the profile rather than asserted over it, so
+they stay true if the climate data is ever updated:
+
+- **May receives 66 mm and the grass is 76 out of 100. October receives almost
+  the same, 60 mm, and the grass is 20.** Same rain, different savanna,
+  because of what fell in the months before. `matchedRainPair()` searches for
+  the pair of months with near-equal rainfall and the largest gap in
+  greenness.
+- **The grass is brownest in August, but the waterhole is lowest in
+  September.** Groundwater has a longer memory than roots do.
+  `troughMonths()` finds both.
+
+`yearProfile()` in `src/game/environment.ts` is the single source of truth; a
+unit test asserts it agrees with the live simulation on the same date, so the
+chart can never drift from the savanna it describes.
+
+`src/content/savanna-year.ts` carries what each month means on the ground,
+including where the great migration usually is. The migration follows rainfall
+and new grass, so its timing shifts by weeks from year to year, and the copy
+describes a typical year rather than a schedule. Cited to Boone, Thirgood and
+Hopcraft (Ecology, 2006) for the migration modelled from rainfall and
+vegetation growth, and McNaughton (Nature, 1990) for why the herds calve on
+the mineral-rich southern short grass plains.
+
+### Chart colours
+
+Grass `#008300` and waterhole `#2a78d6`, validated against a white surface:
+colour-blind separation Delta E 26.5 (protan) and 29.0 for normal vision, both
+clear of the floors. Identity is never carried by colour alone: both series
+are named in a legend, and a table view lists every number.

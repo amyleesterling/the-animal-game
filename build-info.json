@@ -1,7 +1,7 @@
 {
-  "purpose": "Sophia standing and waving; Cora companion prepared pending her model",
-  "sourceBranch": "codex/sophia-cora-companions",
-  "sourceCommit": "5b0e7becd9971448486d5f1198ee2b0a3ca7e037",
-  "builtAt": "2026-09-20T22:14:29.1079856Z",
-  "publishedAt": "2026-09-20T22:15:19.8451281Z"
+  "builtAt": "2026-09-20T22:39:03.2106875Z",
+  "publishedAt": "2026-09-20T22:42:09.8860958Z",
+  "purpose": "Sophia and Cora welcome visitors and explore side by side",
+  "sourceCommit": "860999e2c0b089a41cd22387b4a13b4f8ec8894b",
+  "sourceBranch": "codex/sophia-cora-companions"
 }

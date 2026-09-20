@@ -7,6 +7,7 @@ import type {
   SafariWorldOptions,
 } from "../safari-contracts";
 import { createPlayer } from "./player";
+import { collectSafariEncounters, safariEncounterRange } from "./encounters";
 import {
   moveWithCollisions,
   stepToward,
@@ -41,7 +42,7 @@ export function safariViewpoints(
     observation: animal.clone().add(new THREE.Vector3(0, 0, range)),
     arrival: animal.clone().add(new THREE.Vector3(0, 0, range + 9)),
     jeep: animal.clone().add(new THREE.Vector3(5.5, 0, range + 5)),
-    encounterRange: range + 3,
+    encounterRange: safariEncounterRange(stop.height),
     photoRange: range + 6,
   };
 }
@@ -562,6 +563,22 @@ export function createSafariWorld(
   function updateStatus() {
     if (disposed) return;
     diagnosticState();
+    const encounters = collectSafariEncounters(
+      options.stops,
+      explorer.root.position,
+      animals,
+    );
+    // Diagnostics identify an actionable encounter, not a distant route goal.
+    const nearest = encounters.find(
+      (animal) => animal.distance <= animal.range,
+    );
+    if (nearest) {
+      canvas.dataset.nearestAnimalId = nearest.id;
+      canvas.dataset.nearestAnimalDistance = String(nearest.distance);
+    } else {
+      delete canvas.dataset.nearestAnimalId;
+      delete canvas.dataset.nearestAnimalDistance;
+    }
     const distance = explorer.root.position.distanceTo(
       new THREE.Vector3(...stop.position),
     );
@@ -586,6 +603,7 @@ export function createSafariWorld(
         ? "error"
         : "loading";
     const status: SafariStatus = {
+      encounters,
       distance,
       nearby: !driving && animalLoaded && distance <= views.encounterRange,
       photoReady,

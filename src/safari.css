@@ -541,6 +541,50 @@ dialog::backdrop {
   background: #162c225e;
   backdrop-filter: blur(3px);
 }
+#encounter-dialog {
+  width: min(620px, calc(100% - 28px));
+}
+#name-animal {
+  display: grid;
+  gap: 16px;
+}
+#animal-name-field {
+  display: grid;
+  gap: 8px;
+}
+#animal-name-field label {
+  font-weight: 600;
+}
+#animal-name {
+  min-width: 0;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  color: var(--ink);
+  background: #fffef8;
+  border: 2px solid #81916e;
+  border-radius: 10px;
+  font-size: 18px;
+}
+#animal-name[aria-invalid="true"] {
+  border-color: #a15a32;
+}
+#name-feedback:empty {
+  display: none;
+}
+#encounter-driving-note,
+#nearby-encounter {
+  margin-top: 16px;
+}
+.identified-name,
+.pending-photo {
+  padding: 12px 14px;
+  background: #e8edd9;
+  border-radius: 10px;
+}
+#encounter-dialog .dialog-top {
+  flex-wrap: wrap;
+}
 .dialog-top {
   display: flex;
   justify-content: space-between;

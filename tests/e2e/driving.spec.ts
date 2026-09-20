@@ -43,6 +43,13 @@ async function openSafari(page: Page) {
   await expect(page.locator("#enter-jeep")).toBeEnabled();
   await expect(canvas(page)).toHaveAttribute("data-vehicle-x", /-?\d/);
 }
+async function identifyNearbyAnimal(page: Page) {
+  await page.locator("#guide-animal").click();
+  await expect(page.locator("#encounter-dialog")).toBeVisible();
+  await page.locator("#skip-animal").click();
+  await expect(page.locator("#encounter-dialog")).not.toBeVisible();
+  await expect(page.locator("[data-answer]")).toHaveCount(3);
+}
 async function keyboardActivate(page: Page, button: Locator) {
   await expect(button).toBeEnabled();
   for (let step = 0; step < 35; step++) {
@@ -260,9 +267,7 @@ test("choosing the next driving destination preserves the parked jeep and saved 
   await expect(canvas(page)).toHaveAttribute("data-animal-state", "loaded", {
     timeout: 30000,
   });
-  await page.locator("#guide-animal").click();
-  await expect(page.locator("#discover-clue")).toBeEnabled();
-  await page.locator("#discover-clue").click();
+  await identifyNearbyAnimal(page);
   await page.locator('[data-answer="grass"]').click();
   await page.locator("#learn-clue").click();
   await expect(page.locator("#take-photo")).toBeEnabled();
@@ -319,8 +324,7 @@ test("driving to a revisited unfinished stop keeps controls active and resumes i
   await expect(canvas(page)).toHaveAttribute("data-animal-state", "loaded", {
     timeout: 30000,
   });
-  await page.locator("#guide-animal").click();
-  await page.locator("#discover-clue").click();
+  await identifyNearbyAnimal(page);
   await page.locator('[data-answer="grass"]').click();
   await page.locator("#learn-clue").click();
   await page.locator("#take-photo").click();
@@ -331,8 +335,7 @@ test("driving to a revisited unfinished stop keeps controls active and resumes i
   await expect(canvas(page)).toHaveAttribute("data-animal-state", "loaded", {
     timeout: 30000,
   });
-  await page.locator("#guide-animal").click();
-  await page.locator("#discover-clue").click();
+  await identifyNearbyAnimal(page);
   const elephant = safariStops.find((stop) => stop.id === "african-elephant")!;
   await page.locator(`[data-answer="${elephant.question.correctId}"]`).click();
   await expect(page.locator("#learn-clue")).toBeVisible();
@@ -510,6 +513,14 @@ test.describe("phone driving", () => {
       })
       .toBeLessThan(0.05);
     await expectStoppedAcrossFrames(page);
+    // This real steering path can enter a neighbor's range. Continue exploring
+    // after the new automatic encounter pause before testing the remaining pedals.
+    if (await page.locator("#encounter-dialog").isVisible()) {
+      await page.locator("#encounter-later").tap();
+      await expect(page.locator("#encounter-dialog")).not.toBeVisible();
+      await expect(canvas(page)).toHaveAttribute("data-travel-mode", "driving");
+      await expectStoppedAcrossFrames(page);
+    }
     await page.setViewportSize({ width: 667, height: 375 });
     await expectPhoneControls(page);
     await expectStoppedAcrossFrames(page);

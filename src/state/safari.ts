@@ -1,4 +1,6 @@
 import { safariStops } from "../content/safari";
+import { matchesAnimalName } from "../content/animal-names";
+import type { SafariStop } from "../safari-contracts";
 import {
   defaultSettings,
   isValidPhotoDataUrl,
@@ -10,6 +12,7 @@ export const SAFARI_DATABASE = "sophias-wild-world-story-safari";
 export const SAFARI_STORE = "journey";
 export const SAFARI_KEY = "current";
 export interface SafariEntry {
+  identification: { name: string; skipped: boolean } | null;
   attempts: number;
   answer: string | null;
   learned: boolean;
@@ -17,7 +20,7 @@ export interface SafariEntry {
   visits: number;
 }
 export interface SafariProgress {
-  schemaVersion: 1;
+  schemaVersion: 2;
   started: boolean;
   currentStopId: string;
   entries: Record<string, SafariEntry>;
@@ -28,13 +31,20 @@ export function newSafari(
   settings: Partial<GameSettings> = {},
 ): SafariProgress {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     started: false,
     currentStopId: safariStops[0].id,
     entries: Object.fromEntries(
       safariStops.map((s) => [
         s.id,
-        { attempts: 0, answer: null, learned: false, photo: null, visits: 0 },
+        {
+          identification: null,
+          attempts: 0,
+          answer: null,
+          learned: false,
+          photo: null,
+          visits: 0,
+        },
       ]),
     ),
     settings: { ...defaultSettings, ...settings },
@@ -48,7 +58,8 @@ export function isStopUnlocked(p: SafariProgress, id: string): boolean {
   const index = safariStops.findIndex((s) => s.id === id);
   return (
     index >= 0 &&
-    safariStops.slice(0, index).every((s) => p.entries[s.id].photo)
+    (p.entries[id].visits > 0 ||
+      safariStops.slice(0, index).every((s) => p.entries[s.id].photo))
   );
 }
 function changeEntry(
@@ -66,10 +77,46 @@ function changeEntry(
 export function visitStop(p: SafariProgress, id: string): SafariProgress {
   if (!isStopUnlocked(p, id))
     throw new Error("Follow the route to discover this stop first.");
+  return encounterStop(p, id);
+}
+
+/** The world/UI confirms proximity and loading; this transition records any known animal encounter. */
+export function encounterStop(p: SafariProgress, id: string): SafariProgress {
+  if (!safariStops.some((stop) => stop.id === id))
+    throw new Error("That animal is not part of this safari yet.");
   return changeEntry(
     { ...p, started: true, currentStopId: id },
     { visits: p.entries[id].visits + 1 },
   );
+}
+
+export function identifySafari(
+  p: SafariProgress,
+  name: string,
+  skipped = false,
+): SafariProgress {
+  const stop = safariStops.find((stop) => stop.id === p.currentStopId);
+  if (!stop || !p.started || p.entries[stop.id].visits < 1)
+    throw new Error("Come closer to an animal before naming it.");
+  if (p.entries[stop.id].identification) return p;
+  if (
+    typeof skipped !== "boolean" ||
+    (!skipped && !matchesAnimalName(stop.id, name))
+  )
+    throw new Error(
+      "Take another look and try its animal name, or choose Tell me the name.",
+    );
+  return changeEntry(p, {
+    identification: {
+      name: skipped ? stop.name : name.trim().replace(/\s+/g, " "),
+      skipped,
+    },
+  });
+}
+
+/** The first remaining route stop is always unlocked, even after an off-route discovery. */
+export function nextSafariStop(p: SafariProgress): SafariStop | undefined {
+  return safariStops.find((stop) => !p.entries[stop.id].photo);
 }
 export function answerSafari(
   p: SafariProgress,
@@ -77,8 +124,10 @@ export function answerSafari(
 ): SafariProgress {
   const stop = safariStops.find((s) => s.id === p.currentStopId)!;
   const entry = p.entries[stop.id];
-  if (!p.started || entry.learned || entry.answer)
+  if (!p.started || entry.visits < 1 || entry.learned || entry.answer)
     throw new Error("Read the current clue before answering again.");
+  if (!entry.identification)
+    throw new Error("Name this animal first, or choose Tell me the name.");
   if (!stop.question.choices.some((c) => c.id === choiceId))
     throw new Error("Choose one of the three answers.");
   return changeEntry(p, { answer: choiceId, attempts: entry.attempts + 1 });
@@ -119,10 +168,27 @@ function isDate(value: unknown): value is string {
     Number.isFinite(Date.parse(value))
   );
 }
+
+type LegacySafariEntry = Omit<SafariEntry, "identification">;
+type LegacySafariProgress = Omit<
+  SafariProgress,
+  "schemaVersion" | "entries"
+> & {
+  schemaVersion: 1;
+  entries: Record<string, LegacySafariEntry>;
+};
+
+/** The old schema keeps its original sequential rules; migration must not bless corrupt saves. */
+function isLegacySafariProgress(value: unknown): value is LegacySafariProgress {
+  return validProgress(value, 1);
+}
 export function isSafariProgress(value: unknown): value is SafariProgress {
+  return validProgress(value, 2);
+}
+function validProgress(value: unknown, version: 1 | 2): boolean {
   if (
     !object(value) ||
-    value.schemaVersion !== 1 ||
+    value.schemaVersion !== version ||
     typeof value.started !== "boolean" ||
     !object(value.entries) ||
     !object(value.settings)
@@ -166,8 +232,35 @@ export function isSafariProgress(value: unknown): value is SafariProgress {
     if (entry.learned && entry.answer === null) return false;
     if ((entry.attempts as number) > 0 && (entry.visits as number) === 0)
       return false;
-    // Stops can only be reached after every previous photograph exists.
+    if (version === 2) {
+      const identification = entry.identification;
+      if (identification !== null) {
+        if (
+          !object(identification) ||
+          typeof identification.name !== "string" ||
+          typeof identification.skipped !== "boolean" ||
+          (entry.visits as number) < 1 ||
+          identification.name !==
+            identification.name.trim().replace(/\s+/g, " ")
+        )
+          return false;
+        if (
+          identification.skipped
+            ? identification.name !== stop.name
+            : !matchesAnimalName(stop.id, identification.name)
+        )
+          return false;
+      }
+      if (
+        (entry.answer !== null || entry.learned || entry.photo !== null) &&
+        !identification
+      )
+        return false;
+      // A v1 retry may have attempts but no pending answer; migration asks for its name next.
+    }
+    // Only v1 required every previous photograph before an animal could be visited.
     if (
+      version === 1 &&
       missingPhoto &&
       ((entry.visits as number) > 0 ||
         (entry.attempts as number) > 0 ||
@@ -186,7 +279,15 @@ export function isSafariProgress(value: unknown): value is SafariProgress {
     } else missingPhoto = true;
   }
   const p = value as unknown as SafariProgress;
-  if (!isStopUnlocked(p, p.currentStopId)) return false;
+  if (version === 1) {
+    const current = safariStops.findIndex(
+      (stop) => stop.id === p.currentStopId,
+    );
+    if (
+      !safariStops.slice(0, current).every((stop) => p.entries[stop.id].photo)
+    )
+      return false;
+  }
   if (
     !p.started &&
     (p.currentStopId !== safariStops[0].id ||
@@ -197,6 +298,28 @@ export function isSafariProgress(value: unknown): value is SafariProgress {
   return discoveredCount(p) === safariStops.length
     ? isDate(p.completedAt)
     : p.completedAt === null;
+}
+
+function migrateLegacyProgress(value: LegacySafariProgress): SafariProgress {
+  return {
+    ...value,
+    schemaVersion: 2,
+    entries: Object.fromEntries(
+      safariStops.map((stop) => {
+        const entry = value.entries[stop.id];
+        return [
+          stop.id,
+          {
+            ...entry,
+            identification:
+              entry.answer !== null || entry.learned || entry.photo !== null
+                ? { name: stop.name, skipped: true }
+                : null,
+          },
+        ];
+      }),
+    ),
+  };
 }
 
 /** Separate database from the classic encounter. Failed reads never delete or replace data. */
@@ -305,18 +428,26 @@ export function createSafariStore(
           protectedAfterReadFailure = false;
           return null;
         }
-        if (object(value) && value.schemaVersion !== 1)
+        if (
+          object(value) &&
+          Object.hasOwn(value, "schemaVersion") &&
+          value.schemaVersion !== 1 &&
+          value.schemaVersion !== 2
+        )
           throw new SaveError(
             "unsupported-version",
             "This story save uses an unsupported version. It has been left untouched.",
           );
-        if (!isSafariProgress(value))
+        const progress = isLegacySafariProgress(value)
+          ? migrateLegacyProgress(value)
+          : value;
+        if (!isSafariProgress(progress))
           throw new SaveError(
             "corrupt",
             "This story save could not be read safely. It has been left untouched. Restart only when you are ready to replace it.",
           );
         protectedAfterReadFailure = false;
-        return value;
+        return progress;
       } catch (error) {
         protectedAfterReadFailure = true;
         throw error;

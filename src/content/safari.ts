@@ -14,7 +14,7 @@ export const safariStops: SafariStop[] = [
     scientificName: "Equus quagga",
     chapter: "The grassland clue",
     story:
-      "Sophia opens her empty field book beside the jeep. A striped neighbor is our first clue. What does this patch of grass offer a zebra?",
+      "Sophia opens her field book beside a striped neighbor. What does this patch of grass offer a zebra?",
     mission: "Find the zebra and discover its favorite kind of food.",
     clue: "Grass feeds grazers",
     facts: [
@@ -30,7 +30,7 @@ export const safariStops: SafariStop[] = [
       ],
       correctId: "grass",
       explanation:
-        "Zebras are grazers: most of their food is grass. Our first clue is a place to feed.",
+        "Zebras are grazers: most of their food is grass. A place to feed is one clue to a healthy habitat.",
     },
     modelPath: "/models/zebra.glb",
     height: 2.25,
@@ -106,7 +106,7 @@ export const safariStops: SafariStop[] = [
     scientificName: "Phacochoerus africanus",
     chapter: "A place to shelter",
     story:
-      "Sophia has found food and water clues. Now she wonders where a smaller animal can rest away from the heat.",
+      "Sophia looks for more than food and water. She wonders where a smaller animal can rest away from the heat.",
     mission: "Discover a warthog’s cozy hideaway.",
     clue: "Shelter matters too",
     facts: [
@@ -135,7 +135,7 @@ export const safariStops: SafariStop[] = [
     scientificName: "Eudorcas thomsonii",
     chapter: "A shared grassland",
     story:
-      "Our first grass clue has a new chapter. This small gazelle can feed where bigger grazers have already passed.",
+      "The grassland has a story to tell. This small gazelle can feed where bigger grazers have already passed.",
     mission: "Connect the gazelle’s meal to the zebra’s meal.",
     clue: "Grazers share the grassland",
     facts: [
@@ -198,7 +198,7 @@ export const safariStops: SafariStop[] = [
     scientificName: "Crocuta crocuta",
     chapter: "The last light",
     story:
-      "One page remains as the light turns golden. Sophia meets a misunderstood neighbor with more than one way to find a meal.",
+      "As the light turns golden, Sophia meets a misunderstood neighbor with more than one way to find a meal.",
     mission: "Discover the hyena’s two ways of finding food.",
     clue: "Hunters can be scavengers too",
     facts: [

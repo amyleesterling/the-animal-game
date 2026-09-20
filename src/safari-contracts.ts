@@ -22,6 +22,8 @@ export type SafariStop = {
 };
 
 export type SafariStatus = {
+  /** Loaded animals, nearest first, independently of the chosen story stop. */
+  encounters: { id: string; distance: number; range: number }[];
   nearby: boolean;
   photoReady: boolean;
   distance: number;

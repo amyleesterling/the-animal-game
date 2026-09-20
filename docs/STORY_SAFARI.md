@@ -12,6 +12,25 @@ supportive feedback, a wildlife photograph, and a clue added to the field book.
 The ending brings those observations together without claiming that a few
 sightings are a scientific habitat assessment.
 
+Nearby discoveries follow the animal in front of Sophia, independently of the
+suggested route. At roughly 10–13 metres (scaled for the animal), a prompt pauses
+movement and asks for the animal's name. Common names, case differences and a
+single spelling slip are accepted. **Skip · tell me the name** supplies its name
+and continues into the quiz. A name starts a partial field-book page immediately;
+the question and photograph complete its clue. Typed names stay on this device.
+
+If the player is driving, the prompt parks the jeep; continuing uses the same
+clear-space exit check as manual parking before opening the quiz. Dismissing a
+prompt keeps it quiet until moving at least four metres beyond its trigger range;
+the **Discover nearby animal** button can reopen it without walking away. Completed
+animals never reopen automatically. A saved unfinished discovery resumes without
+asking for its name again. The suggested next stop is the first missing photograph,
+so discovering animals out of order still leads to all seven clues.
+
+Story schema v2 records identification and permits discoveries in any order. Valid
+v1 saves are migrated in memory and upgraded on the next save, preserving photos,
+answers, settings and completion. Invalid or unsupported saves remain protected.
+
 The route visits plains zebra, African savanna elephant, northern giraffe,
 common warthog, Thomson's gazelle, cheetah, and spotted hyena. The player can
 walk around the connected savanna and return to unlocked stops from the field

@@ -8,6 +8,7 @@ import type {
   WorldStatus,
 } from "./contracts";
 import { createZebra, disposeScene } from "./zebra";
+import { createPlayer } from "./player";
 import {
   moveWithCollisions,
   stepToward,
@@ -370,107 +371,13 @@ export function createWorld(
     return rig;
   });
 
-  const player = new THREE.Group();
+  const explorer = createPlayer((state) => {
+    renderer.domElement.dataset.playerModelState = state;
+  });
+  const player = explorer.root;
   player.position.set(0, 0, 5);
   player.visible = false;
   scene.add(player);
-  const explorerMaterials = {
-    skin: mat(0xaf7955),
-    shirt: mat(0xd89045),
-    pants: mat(0x5c7068),
-    hat: mat(0xe5d2a2),
-    boots: mat(0x67583e),
-    bag: mat(0x536e61),
-  };
-  function explorerPart(
-    geometry: THREE.BufferGeometry,
-    material: THREE.Material,
-    x: number,
-    y: number,
-    z: number,
-  ) {
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(x, y, z);
-    mesh.castShadow = true;
-    player.add(mesh);
-    return mesh;
-  }
-  explorerPart(
-    new THREE.CylinderGeometry(0.21, 0.24, 0.55, 8),
-    explorerMaterials.shirt,
-    0,
-    1.01,
-    0,
-  );
-  explorerPart(
-    new THREE.SphereGeometry(0.2, 12, 10),
-    explorerMaterials.skin,
-    0,
-    1.47,
-    0,
-  );
-  explorerPart(
-    new THREE.CylinderGeometry(0.34, 0.34, 0.055, 18),
-    explorerMaterials.hat,
-    0,
-    1.62,
-    0,
-  );
-  explorerPart(
-    new THREE.CylinderGeometry(0.22, 0.25, 0.18, 12),
-    explorerMaterials.hat,
-    0,
-    1.71,
-    0,
-  );
-  explorerPart(
-    new THREE.BoxGeometry(0.34, 0.38, 0.16),
-    explorerMaterials.bag,
-    0,
-    1.05,
-    0.24,
-  );
-  const explorerLegs = [-1, 1].map((side) => {
-    const leg = new THREE.Group();
-    leg.position.set(side * 0.115, 0.75, 0);
-    player.add(leg);
-    const pants = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.085, 0.08, 0.35, 6),
-      explorerMaterials.pants,
-    );
-    pants.position.y = -0.15;
-    leg.add(pants);
-    const shin = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.056, 0.055, 0.25, 6),
-      explorerMaterials.skin,
-    );
-    shin.position.y = -0.43;
-    leg.add(shin);
-    const shoe = new THREE.Mesh(
-      new THREE.BoxGeometry(0.15, 0.12, 0.25),
-      explorerMaterials.boots,
-    );
-    shoe.position.set(0, -0.64, -0.035);
-    leg.add(shoe);
-    return leg;
-  });
-  for (const side of [-1, 1]) {
-    const arm = explorerPart(
-      new THREE.CylinderGeometry(0.065, 0.07, 0.48, 7),
-      explorerMaterials.skin,
-      side * 0.29,
-      1,
-      0,
-    );
-    arm.rotation.z = side * 0.12;
-    explorerPart(
-      new THREE.CylinderGeometry(0.085, 0.09, 0.22, 7),
-      explorerMaterials.shirt,
-      side * 0.265,
-      1.18,
-      0,
-    );
-  }
 
   let active = false;
   let hasExplored = false;
@@ -703,6 +610,8 @@ export function createWorld(
     elapsed += delta;
     if (frameDuration > 0)
       fps = THREE.MathUtils.lerp(fps, Math.min(120, 1 / frameDuration), 0.02);
+    const previousPlayerX = player.position.x;
+    const previousPlayerZ = player.position.z;
     velocity.set(0, 0, 0);
     if (active && !photoMode) {
       if (guideDestination) {
@@ -735,12 +644,12 @@ export function createWorld(
       if (velocity.lengthSq() > 0)
         player.rotation.y = Math.atan2(-velocity.x, -velocity.z);
     }
-    explorerLegs.forEach((leg, i) => {
-      leg.rotation.x =
-        !settings.reducedMotion && velocity.lengthSq() > 0
-          ? Math.sin(elapsed * 9 + i * Math.PI) * 0.4
-          : 0;
-    });
+    const playerMoved =
+      Math.hypot(
+        player.position.x - previousPlayerX,
+        player.position.z - previousPlayerZ,
+      ) > 0.00001;
+    explorer.animate(frameDuration, playerMoved, settings.reducedMotion);
 
     const distance = player.position.distanceTo(animal.root.position);
     if (active && !photoMode && !guideDestination) {
@@ -917,6 +826,7 @@ export function createWorld(
         "webglcontextlost",
         onContextLost,
       );
+      explorer.dispose();
       animal.dispose();
       companions.forEach((rig) => rig.dispose());
       disposeScene(scene);

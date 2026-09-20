@@ -7,3 +7,4 @@ playwright-report/
 .gstack/
 .DS_Store
 generated/
+__pycache__/

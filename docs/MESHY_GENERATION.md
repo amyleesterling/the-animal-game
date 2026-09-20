@@ -1,5 +1,12 @@
 # Meshy test animal batch
 
+Completed: [GitHub Actions run 35526999078](https://github.com/amyleesterling/the-animal-game/actions/runs/35526999078)
+generated all nine textured models successfully in about six minutes and
+reported 135 consumed credits. Optimized models total 5,006,456 bytes
+(about 0.45–0.66 MB each). Original downloads total 34,042,596 bytes.
+The optimizer verified every non-image buffer byte-identical. All nine
+models are static, without skeletons or animation clips.
+
 Amy requested these animals on 2026-09-20. The nine species complete the
 planned ten-species roster alongside the supplied zebra. This is an asset
 test batch, not nine completed educational encounters.

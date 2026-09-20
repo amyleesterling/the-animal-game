@@ -1534,3 +1534,14 @@ dialog::backdrop {
   padding: 14px;
   margin: 18px 0;
 }
+.animal-preview-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  color: #34442c;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-underline-offset: 4px;
+}

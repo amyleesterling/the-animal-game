@@ -1,0 +1,208 @@
+{
+  "batch": "savanna-tests-20260920-v1",
+  "startedAt": "2026-09-20T17:47:55.874Z",
+  "finishedAt": "2026-09-20T17:53:36.789Z",
+  "previewModel": "meshy-t2",
+  "textureModel": "meshy-7.1",
+  "consumedCredits": 135,
+  "animals": [
+    {
+      "id": "african-elephant",
+      "name": "African savanna elephant",
+      "scientificName": "Loxodonta africana",
+      "prompt": "Adult African savanna elephant, very large fan-shaped ears, long relaxed trunk clear of the legs, two curved ivory tusks, four thick legs and a thin tail. Grey wrinkled skin. One full-body wildlife game asset. Natural proportions, gently stylized realistic appearance matching a textured zebra. Neutral standing pose, feet on one plane, limbs clearly separated, facing forward. Animal only: no ground, scenery, pedestal, text, collar or accessories.",
+      "texturePrompt": "Adult African savanna elephant, very large fan-shaped ears, long relaxed trunk clear of the legs, two curved ivory tusks, four thick legs and a thin tail. Grey wrinkled skin. Natural wildlife colors and detailed skin or fur. No painted lighting, scenery or accessories.",
+      "preview": {
+        "submissionStartedAt": "2026-09-20T17:47:56.224Z",
+        "status": "SUCCEEDED",
+        "id": "01a0bfee-8a5a-7365-a68b-fab6dac8f790",
+        "progress": 100,
+        "consumedCredits": 5
+      },
+      "refine": {
+        "submissionStartedAt": "2026-09-20T17:48:18.474Z",
+        "status": "SUCCEEDED",
+        "id": "01a0bfee-e1a2-7427-9572-27e6c1a8432a",
+        "progress": 100,
+        "consumedCredits": 10
+      },
+      "status": "ready"
+    },
+    {
+      "id": "giraffe",
+      "name": "Northern giraffe",
+      "scientificName": "Giraffa camelopardalis",
+      "prompt": "Adult northern giraffe, extremely long upright neck, two small skin-covered ossicones, four long distinct legs, short mane and tufted tail. Irregular tan-brown patches separated by pale cream lines. One full-body wildlife game asset. Natural proportions, gently stylized realistic appearance matching a textured zebra. Neutral standing pose, feet on one plane, limbs clearly separated, facing forward. Animal only: no ground, scenery, pedestal, text, collar or accessories.",
+      "texturePrompt": "Adult northern giraffe, extremely long upright neck, two small skin-covered ossicones, four long distinct legs, short mane and tufted tail. Irregular tan-brown patches separated by pale cream lines. Natural wildlife colors and detailed skin or fur. No painted lighting, scenery or accessories.",
+      "preview": {
+        "submissionStartedAt": "2026-09-20T17:49:21.443Z",
+        "status": "SUCCEEDED",
+        "id": "01a0bfef-d6cb-7196-89dc-d717523e132f",
+        "progress": 100,
+        "consumedCredits": 5
+      },
+      "refine": {
+        "submissionStartedAt": "2026-09-20T17:49:43.440Z",
+        "status": "SUCCEEDED",
+        "id": "01a0bff0-2d3d-76a6-86ca-62ddb16423dd",
+        "progress": 100,
+        "consumedCredits": 10
+      },
+      "status": "ready"
+    },
+    {
+      "id": "lion",
+      "name": "Lion",
+      "scientificName": "Panthera leo",
+      "prompt": "Adult male African lion, natural tawny coat, full brown mane around head and neck, rounded ears, muscular quadruped body, four separate paws, long tail with dark tuft. Calm closed mouth. One full-body wildlife game asset. Natural proportions, gently stylized realistic appearance matching a textured zebra. Neutral standing pose, feet on one plane, limbs clearly separated, facing forward. Animal only: no ground, scenery, pedestal, text, collar or accessories.",
+      "texturePrompt": "Adult male African lion, natural tawny coat, full brown mane around head and neck, rounded ears, muscular quadruped body, four separate paws, long tail with dark tuft. Calm closed mouth. Natural wildlife colors and detailed skin or fur. No painted lighting, scenery or accessories.",
+      "preview": {
+        "submissionStartedAt": "2026-09-20T17:49:21.443Z",
+        "status": "SUCCEEDED",
+        "id": "01a0bfef-d73b-745b-a7e6-744067392aec",
+        "progress": 100,
+        "consumedCredits": 5
+      },
+      "refine": {
+        "submissionStartedAt": "2026-09-20T17:49:43.516Z",
+        "status": "SUCCEEDED",
+        "id": "01a0bff0-2d90-7685-b2b9-c00b1f36d7c9",
+        "progress": 100,
+        "consumedCredits": 10
+      },
+      "status": "ready"
+    },
+    {
+      "id": "cheetah",
+      "name": "Cheetah",
+      "scientificName": "Acinonyx jubatus",
+      "prompt": "Adult cheetah, slender long-legged body, small head, black tear lines from eyes to mouth, tan coat with small solid black spots, long thick spotted tail with dark rings near tip. Four distinct legs, calm closed mouth. One full-body wildlife game asset. Natural proportions, gently stylized realistic appearance matching a textured zebra. Neutral standing pose, feet on one plane, limbs clearly separated, facing forward. Animal only: no ground, scenery, pedestal, text, collar or accessories.",
+      "texturePrompt": "Adult cheetah, slender long-legged body, small head, black tear lines from eyes to mouth, tan coat with small solid black spots, long thick spotted tail with dark rings near tip. Four distinct legs, calm closed mouth. Natural wildlife colors and detailed skin or fur. No painted lighting, scenery or accessories.",
+      "preview": {
+        "submissionStartedAt": "2026-09-20T17:49:21.444Z",
+        "status": "SUCCEEDED",
+        "id": "01a0bfef-d751-7552-9dd4-ce602e9a9d06",
+        "progress": 100,
+        "consumedCredits": 5
+      },
+      "refine": {
+        "submissionStartedAt": "2026-09-20T17:49:44.075Z",
+        "status": "SUCCEEDED",
+        "id": "01a0bff0-2fdd-76a9-902d-22131e4c2de4",
+        "progress": 100,
+        "consumedCredits": 10
+      },
+      "status": "ready"
+    },
+    {
+      "id": "spotted-hyena",
+      "name": "Spotted hyena",
+      "scientificName": "Crocuta crocuta",
+      "prompt": "Adult spotted hyena, powerful broad head, rounded ears, strong shoulders higher than hindquarters, sloping back, four distinct legs, short bushy tail, sandy grey fur with irregular dark spots. Calm closed mouth. One full-body wildlife game asset. Natural proportions, gently stylized realistic appearance matching a textured zebra. Neutral standing pose, feet on one plane, limbs clearly separated, facing forward. Animal only: no ground, scenery, pedestal, text, collar or accessories.",
+      "texturePrompt": "Adult spotted hyena, powerful broad head, rounded ears, strong shoulders higher than hindquarters, sloping back, four distinct legs, short bushy tail, sandy grey fur with irregular dark spots. Calm closed mouth. Natural wildlife colors and detailed skin or fur. No painted lighting, scenery or accessories.",
+      "preview": {
+        "submissionStartedAt": "2026-09-20T17:50:27.187Z",
+        "status": "SUCCEEDED",
+        "id": "01a0bff0-d79a-70c8-92a8-9a7122638dd0",
+        "progress": 100,
+        "consumedCredits": 5
+      },
+      "refine": {
+        "submissionStartedAt": "2026-09-20T17:50:48.849Z",
+        "status": "SUCCEEDED",
+        "id": "01a0bff1-2c32-70bd-ba60-38187403c059",
+        "progress": 100,
+        "consumedCredits": 10
+      },
+      "status": "ready"
+    },
+    {
+      "id": "common-ostrich",
+      "name": "Common ostrich",
+      "scientificName": "Struthio camelus",
+      "prompt": "Adult male common ostrich, large rounded black feathered body, white wing and tail feathers, long bare pale grey neck, small head and short flat beak, exactly two long bare legs with two toes on each foot, wings folded. One full-body wildlife game asset. Natural proportions, gently stylized realistic appearance matching a textured zebra. Neutral standing pose, feet on one plane, limbs clearly separated, facing forward. Animal only: no ground, scenery, pedestal, text, collar or accessories.",
+      "texturePrompt": "Adult male common ostrich, large rounded black feathered body, white wing and tail feathers, long bare pale grey neck, small head and short flat beak, exactly two long bare legs with two toes on each foot, wings folded. Natural wildlife colors and detailed skin or fur. No painted lighting, scenery or accessories.",
+      "preview": {
+        "submissionStartedAt": "2026-09-20T17:50:46.793Z",
+        "status": "SUCCEEDED",
+        "id": "01a0bff1-242a-767c-9795-1d250d35fb90",
+        "progress": 100,
+        "consumedCredits": 5
+      },
+      "refine": {
+        "submissionStartedAt": "2026-09-20T17:51:08.780Z",
+        "status": "SUCCEEDED",
+        "id": "01a0bff1-7a92-7058-8dfc-2454731d9ea0",
+        "progress": 100,
+        "consumedCredits": 10
+      },
+      "status": "ready"
+    },
+    {
+      "id": "common-warthog",
+      "name": "Common warthog",
+      "scientificName": "Phacochoerus africanus",
+      "prompt": "Adult common warthog, broad flat snout, paired facial pads, curved upper tusks, grey-brown skin, sparse coarse mane along spine, compact body, four distinct legs with cloven hooves, thin tufted tail. One full-body wildlife game asset. Natural proportions, gently stylized realistic appearance matching a textured zebra. Neutral standing pose, feet on one plane, limbs clearly separated, facing forward. Animal only: no ground, scenery, pedestal, text, collar or accessories.",
+      "texturePrompt": "Adult common warthog, broad flat snout, paired facial pads, curved upper tusks, grey-brown skin, sparse coarse mane along spine, compact body, four distinct legs with cloven hooves, thin tufted tail. Natural wildlife colors and detailed skin or fur. No painted lighting, scenery or accessories.",
+      "preview": {
+        "submissionStartedAt": "2026-09-20T17:50:46.834Z",
+        "status": "SUCCEEDED",
+        "id": "01a0bff1-24dd-75fd-a21a-79fe6b838a83",
+        "progress": 100,
+        "consumedCredits": 5
+      },
+      "refine": {
+        "submissionStartedAt": "2026-09-20T17:51:09.030Z",
+        "status": "SUCCEEDED",
+        "id": "01a0bff1-7b91-7428-8a33-ed973ac0f88d",
+        "progress": 100,
+        "consumedCredits": 10
+      },
+      "status": "ready"
+    },
+    {
+      "id": "thomsons-gazelle",
+      "name": "Thomson's gazelle",
+      "scientificName": "Eudorcas thomsonii",
+      "prompt": "Adult male Thomson's gazelle, small slender antelope with tan back, white belly and rump, bold black horizontal flank stripe, two narrow ringed slightly backward-curved horns, facial stripes, four slim legs with cloven hooves. One full-body wildlife game asset. Natural proportions, gently stylized realistic appearance matching a textured zebra. Neutral standing pose, feet on one plane, limbs clearly separated, facing forward. Animal only: no ground, scenery, pedestal, text, collar or accessories.",
+      "texturePrompt": "Adult male Thomson's gazelle, small slender antelope with tan back, white belly and rump, bold black horizontal flank stripe, two narrow ringed slightly backward-curved horns, facial stripes, four slim legs with cloven hooves. Natural wildlife colors and detailed skin or fur. No painted lighting, scenery or accessories.",
+      "preview": {
+        "submissionStartedAt": "2026-09-20T17:51:51.297Z",
+        "status": "SUCCEEDED",
+        "id": "01a0bff2-2022-7312-8210-4fbb59e968be",
+        "progress": 100,
+        "consumedCredits": 5
+      },
+      "refine": {
+        "submissionStartedAt": "2026-09-20T17:52:13.041Z",
+        "status": "SUCCEEDED",
+        "id": "01a0bff2-7587-725b-ae1a-13f905388045",
+        "progress": 100,
+        "consumedCredits": 10
+      },
+      "status": "ready"
+    },
+    {
+      "id": "hippopotamus",
+      "name": "Hippopotamus",
+      "scientificName": "Hippopotamus amphibius",
+      "prompt": "Adult common hippopotamus, large barrel-shaped body, broad muzzle and closed mouth, small ears and eyes high on head, smooth grey-brown skin with soft pink around eyes and muzzle, four short separate legs, four toes on each foot, short tail. One full-body wildlife game asset. Natural proportions, gently stylized realistic appearance matching a textured zebra. Neutral standing pose, feet on one plane, limbs clearly separated, facing forward. Animal only: no ground, scenery, pedestal, text, collar or accessories.",
+      "texturePrompt": "Adult common hippopotamus, large barrel-shaped body, broad muzzle and closed mouth, small ears and eyes high on head, smooth grey-brown skin with soft pink around eyes and muzzle, four short separate legs, four toes on each foot, short tail. Natural wildlife colors and detailed skin or fur. No painted lighting, scenery or accessories.",
+      "preview": {
+        "submissionStartedAt": "2026-09-20T17:52:11.934Z",
+        "status": "SUCCEEDED",
+        "id": "01a0bff2-70c4-77f7-80c7-8c286aae5a8c",
+        "progress": 100,
+        "consumedCredits": 5
+      },
+      "refine": {
+        "submissionStartedAt": "2026-09-20T17:52:33.983Z",
+        "status": "SUCCEEDED",
+        "id": "01a0bff2-c756-7697-9ac3-d7e84b5ef62b",
+        "progress": 100,
+        "consumedCredits": 10
+      },
+      "status": "ready"
+    }
+  ]
+}

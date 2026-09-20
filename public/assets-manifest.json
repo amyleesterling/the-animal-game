@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "lastReviewed": "2026-09-19",
+  "stage": "Meet the Zebra prototype",
+  "assets": [
+    {
+      "id": "procedural-zebra-v1",
+      "type": "procedural-model",
+      "implementation": "src/game/zebra.ts",
+      "provenance": "Generated in this repository from Three.js primitive geometry and a procedural stripe texture. No third-party animal mesh or photograph is included.",
+      "promptVersion": "Meet the Zebra vertical slice, rig v1",
+      "reviewStatus": "Stylized placeholder; anatomical and movement review pending",
+      "animations": ["graze", "walk", "alert", "retreat", "tail-flick"],
+      "polygonCount": "Generated at runtime; measure before release",
+      "textureSizes": "Procedural canvas stripe texture; inspect implementation for dimensions",
+      "licenseSource": "Repository-authored prototype; repository has not selected a distribution license"
+    },
+    {
+      "id": "procedural-savanna-v1",
+      "type": "procedural-environment",
+      "implementation": "src/game/world.ts",
+      "provenance": "Generated in this repository from Three.js geometry and colors; terrain, path, grass, rocks, and acacia silhouettes are stylized placeholders.",
+      "reviewStatus": "Visual prototype; real-location and ecological review pending",
+      "licenseSource": "Repository-authored prototype; repository has not selected a distribution license"
+    },
+    {
+      "id": "browser-narration",
+      "type": "device-speech",
+      "provenance": "Browser speech synthesis using text stored in the game. Voice availability depends on the browser and device.",
+      "reviewStatus": "Prototype; pronunciation and complete device testing pending",
+      "audioFilesIncluded": false
+    }
+  ],
+  "missingProductionAssets": [
+    "Scientifically reviewed, rigged plains-zebra GLB and level-of-detail models",
+    "Licensed, provenance-recorded plains-zebra calls",
+    "Recorded narration and licensed ambience",
+    "Reviewed species range map and size comparison",
+    "Production models, facts, and audio for the nine upcoming species"
+  ],
+  "notes": [
+    "No animal-call recording is currently bundled; the UI must not imply one is available.",
+    "Generated safari photographs are captures of the in-game scene, not external image assets.",
+    "Behavior radii and timings are gameplay parameters, not measured biological constants."
+  ]
+}

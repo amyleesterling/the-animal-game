@@ -190,7 +190,7 @@ export function validateContent(
       errors.push(
         `${species.id}: undefined call asset ${species.audio.callAssetId}`,
       );
-    if (species.audio.narration !== "browser-speech")
+    if (species.audio.narration !== "recorded-guide")
       errors.push(`${species.id}: unsupported narration provider`);
     const positiveValues = [
       species.model.scale,

@@ -2,83 +2,103 @@
 
 Branch: `codex/sophia-cora-companions`. Date: 2026-09-20.
 
-Status: all six distinct targeted browser scenarios pass across the initial
-and final runs. Final screenshots were inspected. The coordinator reports
-178 passing unit tests, TypeScript, production build, and formatting checks,
-including the final camera and touch-target corrections. The player owner
-also reported 14/14 focused player tests passing.
+Status: six distinct browser cases passed against the local integrated build:
+four real-pair cases and two classic startup/keyboard regressions. The phone
+case also passed again after a camera correction. Desktop and phone welcome
+screenshots visibly show both real models with raised greeting hands. No
+character blocker remains from this review.
 
-Cora's character asset has not been supplied. The runtime configuration keeps
-her absent rather than displaying another copy of Sophia. Browser checks
-therefore expect one loaded character. Optional companion unit fixtures do
-not establish Cora's appearance, animation quality, or final framing.
+`tests/e2e/characters.spec.ts` verifies:
 
-`tests/e2e/characters.spec.ts` covers:
+- Both real models load for the welcome scene. Movement keys do not move
+  either character's root while they greet the player.
+- Classic exploration moves both characters, preserves personal space,
+  pauses both roots for settings, hides Cora from the photograph, and restores
+  the pair on return.
+- Reduced-motion portrait (390×844) and short landscape (667×375) layouts keep
+  readable, reachable welcome controls. Real touch movement moves both
+  characters after starting.
+- Story Safari supports both characters walking, settings pause/resume,
+  actual jeep movement, safe exit, encounter/quiz, and photo-mode visibility.
+- If Cora's model request fails, her companion remains hidden while Sophia
+  can still explore in both worlds. No duplicate Sophia is substituted.
 
-- Sophia's actual loaded model on the landing scene, with a welcome pose that
-  does not move through the world when movement keys are pressed.
-- Transition into classic exploration, actual keyboard movement, quiz/photo
-  mode, and returning to exploration.
-- Reduced-motion preference on a 390×844 touch portrait and 667×375 short
-  landscape screen; welcome actions stay readable, reachable and unobstructed.
-  Actual touch input still moves Sophia after entering the game.
-- The landing link into Story Safari, walking, settings pause/resume, and
-  entering and leaving the jeep.
+The configured character count is not proof that both models rendered. Tests
+also require both load states, actual companion visibility, finite position
+diagnostics, and real companion displacement. Screenshots establish the
+visible appearance and framing; model unit tests establish animation and
+resource ownership behavior.
 
-Three existing regression cases also pass: classic wrong-answer retry,
-photograph persistence and confirmed reset; keyboard driving/steering/reverse/
-brake/exit; and actually driving off route to an elephant encounter, naming
-skip, and safe exit into its quiz.
+The player owner reports 18 passing tests using the actual combined Cora asset,
+including authored wave playback, a fixed raised-hand reduced-motion frame,
+grounding, restoration to walking, and resource cleanup. Active Chrome
+screenshots independently confirm Cora's raised greeting, both with normal
+motion on desktop and reduced motion on phone. Formation fixtures verify
+collision and ownership logic; they do not substitute for real appearance.
 
-Browser position checks read the scene's actual explorer diagnostics. Pose
-correctness and fixed reduced-motion joint transforms require player unit
-tests and screenshot inspection; a mode label alone does not prove a visible
-character or a correct wave. Screenshots are captured only after several
-rendered frames.
+Independent review found follower drift at one frame per second: the prior
+0.5-second travel cap allowed Sophia to move farther each frame than Cora
+could follow. The world owner reproduced six metres of lag after five seconds,
+then separated the travel and animation caps. Travel now consumes up to two
+seconds in 0.2-metre collision substeps; the visual animation cap stays at
+0.5 seconds. Eleven companion tests passed, including one-FPS catch-up and a
+blocked-path regression that rejects teleporting through an obstacle.
 
-The reviewed player unit tests use Sophia's actual skeleton and check planted
-feet, lowered idle arms, raised greeting wrist with a bent elbow, unchanged
-legs/hips/head while waving, fixed reduced-motion joint transforms, no root
-drift, and clean restoration to standing or the original walking cycle. They
-also cover separate resource ownership and late-load cleanup for configured
-characters. These checks do not validate a Cora model that is not present.
+Visual review caught a separate phone defect despite passing state checks:
+the classic mission card covered both characters' heads and upper bodies.
+The coordinator raised the portrait camera target, lowering the pair in the
+frame. The new 390×844 screenshot shows both full figures below the card and
+clear of the walking controls. The phone case passed again after the change.
 
-Chrome with software WebGL and emulated phone dimensions cannot establish
-physical-phone performance or replace child playtesting. No extra character
-asset or paid generation API is used for these checks.
+The coordinator also corrected stale welcome proximity when starting classic
+exploration. The new browser regression pauses animation between welcome and
+start, then confirms that Meet is disabled synchronously and cannot open the
+quiz from outside encounter range. The complete keyboard expedition passes,
+including photo capture and repeated field-book reopening.
 
-The initial browser run used
-`node node_modules/@playwright/test/cli.js test tests/e2e/characters.spec.ts`
-with `--output="C:/Users/amyle/Documents/New project/character-browser-results"`.
-Desktop/classic and Safari transitions passed; phone verification found the
-mobile Settings button was 42px instead of the tested 44px touch target.
-Screenshot review independently found the classic camera easing from its
-welcome position too slowly, leaving Sophia offscreen after starting. The
-interface owner increased the target to 44px and snapped the initial
-exploration camera after changing modes.
+The first run used:
 
-The final run used the character, expedition, driving, and encounters specs
-with `-g "Sophia welcomes|reduced-motion welcome|wrong answers stay friendly|driving off route|keyboard entry starts"`
-and `--output="C:/Users/amyle/Documents/New project/character-final-results"`.
-All five selected cases passed: desktop/classic 27.2 seconds, phone 26.0,
-keyboard driving 16.9, off-route encounter 21.6, and classic photo/save/reset
-33.6. Together with the previously passing Safari transition case (20.8
-seconds), this verifies six distinct browser scenarios. Durations describe
-the local test run and are not performance measurements.
+```text
+node node_modules/@playwright/test/cli.js test tests/e2e/characters.spec.ts --output="C:/Users/amyle/Documents/New project/cora-browser-results"
+4 passed (1.6m)
+```
 
-Inspected final screenshots:
+The desktop loop passed in 30.2 seconds, phone in 20.4 seconds, Safari in
+29.2 seconds, and the unavailable-model case in 13.4 seconds. Browser output
+uses the sibling `../cora-browser-results/` directory,
+outside Vite's watched files. The phone welcome is a scrollable page; a
+full-page screenshot does not imply that every control fits into one viewport.
+Tests scroll to each welcome action and check legibility, a minimum 44px
+touch height, and that no scene layer intercepts its click/tap target.
 
-- `../character-final-results/characters-Sophia-welcomes-7474e-d-photo-controls-still-work/sophia-welcome-desktop.png`
-- `../character-final-results/characters-Sophia-welcomes-7474e-d-photo-controls-still-work/sophia-classic-explore.png`
-- `../character-final-results/characters-phone-welcome-c-50756-and-short-landscape-actions/sophia-welcome-portrait.png`
-- `../character-final-results/characters-phone-welcome-c-50756-and-short-landscape-actions/sophia-welcome-landscape.png`
-- `../character-browser-results/characters-the-landing-saf-65f9b-jeep-transitions-functional/sophia-safari-explore.png`
+After the portrait and startup corrections:
 
-Sophia faces the camera with planted feet and a raised hand on the welcome
-screen. The corrected classic view shows her immediately after starting;
-Safari also keeps her visible beside the jeep. The phone scene sits above the
-introductory copy so character and text do not overlap. Portrait and short
-landscape are scrollable pages: their full-page captures do not imply that
-every action fits into one viewport. Browser checks scrolled to each welcome
-action and confirmed readable text, minimum 44px height, and an unobstructed
-click/tap target.
+```text
+node node_modules/@playwright/test/cli.js test tests/e2e/characters.spec.ts tests/e2e/expedition.spec.ts --grep "reduced-motion pair|essential expedition|starting clears welcome" --output="C:/Users/amyle/Documents/New project/cora-followup-results"
+3 passed (46.8s)
+```
+
+The phone case passed in 21.6 seconds, synchronous-start regression in
+3.2 seconds, and keyboard expedition in 17.8 seconds. The coordinator reports
+183 unit tests passing across 15 files with two workers, the final production
+build (including TypeScript), and the full formatting check.
+
+Inspected first-run screenshots, relative to `../cora-browser-results/`:
+
+| Scene                                  | Screenshot                                                                                         |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Desktop raised greetings               | `characters-Sophia-and-Cora-80626--leave-the-photograph-clear/sophia-cora-welcome-desktop.png`     |
+| Classic exploration pair               | `characters-Sophia-and-Cora-80626--leave-the-photograph-clear/sophia-cora-classic-explore.png`     |
+| Clear classic photo                    | `characters-Sophia-and-Cora-80626--leave-the-photograph-clear/classic-photo-without-companion.png` |
+| Reduced-motion portrait                | `characters-phone-welcome-p-d6f56-and-short-landscape-actions/sophia-cora-welcome-portrait.png`    |
+| Reduced-motion landscape               | `characters-phone-welcome-p-d6f56-and-short-landscape-actions/sophia-cora-welcome-landscape.png`   |
+| Phone framing defect before correction | `characters-phone-welcome-p-d6f56-and-short-landscape-actions/sophia-cora-phone-explore.png`       |
+| Safari exploration pair                | `characters-the-safari-pair-f10da--and-stays-out-of-the-photo/sophia-cora-safari-explore.png`      |
+| Clear Safari photo                     | `characters-the-safari-pair-f10da--and-stays-out-of-the-photo/safari-photo-without-companion.png`  |
+
+The inspected corrected phone image is
+`../cora-followup-results/characters-phone-welcome-p-d6f56-and-short-landscape-actions/sophia-cora-phone-explore.png`.
+
+Chrome with software WebGL and emulated mobile viewports does not establish
+physical-phone performance or replace child playtesting. No paid generation
+or recognition API is used for these checks.

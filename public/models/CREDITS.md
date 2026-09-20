@@ -30,6 +30,18 @@ height and facing, removes horizontal root travel from a runtime copy of
 the walking clip, and pauses the pose when stationary or using reduced motion.
 Source and shipped hashes are in `../assets-manifest.json`.
 
+# Cora walking and waving
+
+Amy supplied `cora walking 3d.glb` and `cora character wave.glb` on 2026-09-20.
+They share the same mesh and 23-bone skeleton. `cora.glb` combines their
+`Walking_Woman` and `Wave_for_Help_4` clips with one optimized 1024px texture.
+Geometry, skin data and authored animation samples are preserved. The game
+normalizes scale and orientation and removes horizontal root travel from
+runtime animation copies. No creator or license is inferred from the export.
+Preparation details and source checksums are recorded in
+`docs/CORA_ASSET_PREPARATION.json` in the source repository and the adjacent
+`../assets-manifest.json`.
+
 # Nine savanna test animals
 
 The initial `test-animals/` batch was generated at Amy's request using her Meshy API

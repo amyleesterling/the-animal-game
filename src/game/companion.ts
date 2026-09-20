@@ -129,8 +129,11 @@ export function createCompanion(
         const dx = destination.x - old.x,
           dz = destination.z - old.z;
         const distance = Math.hypot(dx, dz);
+        // Travel must consume a whole slow frame: at one FPS the leader moves
+        // 4.2m, while a 0.5s animation cap would allow only 3m of follow travel.
+        // A separate stall cap still bounds collision work to sixty 0.2m steps.
         const seconds = Number.isFinite(delta)
-          ? THREE.MathUtils.clamp(delta, 0, 0.5)
+          ? THREE.MathUtils.clamp(delta, 0, 2)
           : 0;
         if (distance > 0.025 && seconds > 0) {
           moveWithCollisions(

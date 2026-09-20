@@ -11,6 +11,7 @@ export interface PlayerCharacter {
   name: string;
   assetPath: string;
   walkAnimation?: string;
+  greetingAnimation?: string;
   height?: number;
 }
 
@@ -74,8 +75,22 @@ export function createPlayerModel(
   const animation = animations.find(
     (clip) => clip.name === (character.walkAnimation ?? PLAYER_WALK_ANIMATION),
   );
-  if (!animation || animation.duration <= 0)
+  if (
+    !animation ||
+    !Number.isFinite(animation.duration) ||
+    animation.duration <= 0
+  )
     throw new Error(`${character.name}'s walking animation is missing.`);
+  const greetingClip = character.greetingAnimation
+    ? animations.find((clip) => clip.name === character.greetingAnimation)
+    : undefined;
+  if (
+    character.greetingAnimation &&
+    (!greetingClip ||
+      !Number.isFinite(greetingClip.duration) ||
+      greetingClip.duration <= 0)
+  )
+    throw new Error(`${character.name}'s greeting animation is missing.`);
   const targetHeight = character.height ?? 1.8;
   if (!Number.isFinite(targetHeight) || targetHeight <= 0)
     throw new Error(`${character.name}'s model height is invalid.`);
@@ -108,6 +123,49 @@ export function createPlayerModel(
   root.updateMatrixWorld(true);
   const walkFloor = new THREE.Box3().setFromObject(root, true).min.y;
   action.stop();
+  const greetingAction = greetingClip
+    ? mixer.clipAction(makeInPlaceClip(source, greetingClip))
+    : undefined;
+  let greetingFloor = 0;
+  let frozenGreetingFloor = 0;
+  let frozenGreetingTime = 0;
+  if (greetingAction && greetingClip) {
+    poses.restoreImported();
+    greetingAction.play();
+    mixer.update(0);
+    root.updateMatrixWorld(true);
+    greetingFloor = new THREE.Box3().setFromObject(root, true).min.y;
+    // Some authored greetings start with both arms down. Choose a raised-hand
+    // frame for reduced motion, without changing or trimming the source clip.
+    const hands: THREE.Bone[] = [];
+    let hips: THREE.Bone | undefined;
+    source.traverse((object) => {
+      if (!(object instanceof THREE.Bone)) return;
+      if (/(?:left|right)hand$/i.test(object.name)) hands.push(object);
+      if (/hips$/i.test(object.name)) hips = object;
+    });
+    const position = new THREE.Vector3();
+    let highestHand = Number.NEGATIVE_INFINITY;
+    for (let sample = 0; sample < 24; sample++) {
+      const time = (greetingClip.duration * sample) / 24;
+      greetingAction.time = time;
+      mixer.update(0);
+      source.updateWorldMatrix(true, true);
+      const hipHeight = hips?.getWorldPosition(position).y ?? 0;
+      for (const hand of hands) {
+        const height = hand.getWorldPosition(position).y - hipHeight;
+        if (height > highestHand) {
+          highestHand = height;
+          frozenGreetingTime = time;
+        }
+      }
+    }
+    greetingAction.time = frozenGreetingTime;
+    mixer.update(0);
+    root.updateMatrixWorld(true);
+    frozenGreetingFloor = new THREE.Box3().setFromObject(root, true).min.y;
+    greetingAction.stop();
+  }
   poses.stand();
   root.updateMatrixWorld(true);
   const bounds = new THREE.Box3().setFromObject(root, true);
@@ -127,6 +185,7 @@ export function createPlayerModel(
   );
 
   let walking = false;
+  let playingGreeting = false;
   let greetingTime = 0;
   let wasGreeting = false;
   let disposed = false;
@@ -137,6 +196,7 @@ export function createPlayerModel(
       const shouldWalk = moving && !reducedMotion;
       const elapsed = Number.isFinite(delta) && delta > 0 ? delta : 0;
       if (shouldWalk) {
+        if (playingGreeting) greetingAction?.stop();
         if (!walking) {
           poses.restoreImported();
           action.reset().play();
@@ -147,13 +207,28 @@ export function createPlayerModel(
         if (walking) action.stop();
         oriented.position.y = -bounds.min.y * scale;
         if (greeting && !moving) {
-          if (!wasGreeting) greetingTime = 0;
-          if (!reducedMotion) greetingTime += elapsed;
-          poses.greet(greetingTime, reducedMotion);
-        } else poses.stand();
+          if (greetingAction) {
+            if (!playingGreeting) {
+              poses.restoreImported();
+              greetingAction.reset().play();
+            }
+            oriented.position.y =
+              -(reducedMotion ? frozenGreetingFloor : greetingFloor) * scale;
+            if (reducedMotion) greetingAction.time = frozenGreetingTime;
+            mixer.update(reducedMotion ? 0 : elapsed);
+          } else {
+            if (!wasGreeting) greetingTime = 0;
+            if (!reducedMotion) greetingTime += elapsed;
+            poses.greet(greetingTime, reducedMotion);
+          }
+        } else {
+          if (playingGreeting) greetingAction?.stop();
+          poses.stand();
+        }
       }
       walking = shouldWalk;
       wasGreeting = greeting && !moving;
+      playingGreeting = wasGreeting && !!greetingAction;
     },
     dispose() {
       if (disposed) return;

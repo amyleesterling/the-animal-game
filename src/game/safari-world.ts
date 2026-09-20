@@ -561,6 +561,8 @@ export function createSafariWorld(
   function diagnosticState() {
     canvas.dataset.characterMode = photoMode ? "photo" : "explore";
     canvas.dataset.companionVisible = String(companion?.root.visible ?? false);
+    canvas.dataset.companionX = String(companion?.root.position.x ?? 0);
+    canvas.dataset.companionZ = String(companion?.root.position.z ?? 0);
     canvas.dataset.travelMode = driving ? "driving" : "walking";
     canvas.dataset.vehicleX = String(vehicle.x);
     canvas.dataset.vehicleZ = String(vehicle.z);

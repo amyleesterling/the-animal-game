@@ -83,8 +83,9 @@ and [provenance manifest](public/assets-manifest.json).
 
 The explorer now uses Amy's supplied **Soph walking character**, with its
 embedded walking animation. Sophia stands and waves on the landing page, with
-a still greeting when reduced motion is enabled. Companion movement is prepared
-for Cora; her own character file is still needed before she appears. See
+a still greeting when reduced motion is enabled. Cora joins her using Amy's
+supplied walking and waving animations, welcoming visitors on the landing page
+and moving beside Sophia in both adventures. See
 [character setup and current limits](docs/CHARACTERS.md).
 [Preview the nine next animals](https://amyleesterling.github.io/the-animal-game/animal-lab.html)
 in a separate rotatable gallery. All nine textured GLBs were generated through

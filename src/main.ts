@@ -226,6 +226,7 @@ function renderMission(focus = false): void {
       speak("Let’s take a gentle walk to the zebra.");
     });
     button("meet-button", () => {
+      if (!status.nearby) return;
       mode = "quiz";
       world?.setActive(false);
       renderMission(true);
@@ -351,7 +352,7 @@ function modelCredits(): string {
   const asset = assets.find((entry) => entry.id === zebra.model.assetId);
   if (asset?.kind !== "glb") return "";
   const credit = asset.attribution;
-  return `<section class="model-credits"><h3>Our zebra model</h3><p><a href="${esc(credit.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(credit.title)}</a> by ${esc(credit.creator)}, created with Meshy and supplied by Amy. Licensed under <a href="${esc(credit.licenseUrl)}" target="_blank" rel="noopener noreferrer">${esc(credit.license)}</a>.</p><p>${esc(credit.modifications)}</p><h3>Your explorer</h3><p>Amy supplied Soph’s character and walking animation. The character walks when you move and holds a still pose with reduced motion.</p><h3>The next animals</h3><p><a href="./animal-lab.html">Open the animal previews</a> to rotate and inspect the next models. These are early art tests; their anatomy and future movements still need review.</p></section>`;
+  return `<section class="model-credits"><h3>Our zebra model</h3><p><a href="${esc(credit.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(credit.title)}</a> by ${esc(credit.creator)}, created with Meshy and supplied by Amy. Licensed under <a href="${esc(credit.licenseUrl)}" target="_blank" rel="noopener noreferrer">${esc(credit.license)}</a>.</p><p>${esc(credit.modifications)}</p><h3>Your explorers</h3><p>Amy supplied Sophia’s walking character and Cora’s walking and waving animations. They welcome you together and explore side by side. Reduced motion keeps their poses still.</p><h3>The next animals</h3><p><a href="./animal-lab.html">Open the animal previews</a> to rotate and inspect the next models. These are early art tests; their anatomy and future movements still need review.</p></section>`;
 }
 function openGrownups(): void {
   openDialog(

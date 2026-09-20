@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import * as THREE from "three";
 import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
+import { CORA_CHARACTER } from "../../src/content/characters";
 import {
   createPlayer,
   createPlayerModel,
@@ -43,6 +44,16 @@ async function parseAsset() {
   );
 }
 
+async function parseCora() {
+  const bytes = readFileSync(
+    new URL("../../public/models/cora.glb", import.meta.url),
+  );
+  return new GLTFLoader().parseAsync(
+    new Uint8Array(bytes).buffer,
+    "http://localhost/models/",
+  );
+}
+
 function skinOf(root: THREE.Object3D): THREE.SkinnedMesh {
   let skin: THREE.SkinnedMesh | undefined;
   root.traverse((object) => {
@@ -71,6 +82,136 @@ function bonePosition(root: THREE.Object3D, name: string): THREE.Vector3 {
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
+});
+
+describe("Cora's supplied walking and greeting clips", () => {
+  it("plays the authored greeting in place without modifying the supplied tracks", async () => {
+    mockImageDecoder();
+    const [gltf, reference] = await Promise.all([parseCora(), parseCora()]);
+    expect(gltf.animations.map((clip) => clip.name).sort()).toEqual([
+      "Walking_Woman",
+      "Wave_for_Help_4",
+    ]);
+    const clip = gltf.animations.find(
+      (item) => item.name === CORA_CHARACTER.greetingAnimation,
+    )!;
+    expect(clip.duration).toBeGreaterThan(4);
+    expect(clip.tracks).toHaveLength(46);
+    const values = clip.tracks.map((track) => [...track.values]);
+    const player = createPlayerModel(
+      gltf.scene,
+      gltf.animations,
+      CORA_CHARACTER,
+    );
+    const referenceMixer = new THREE.AnimationMixer(reference.scene);
+    referenceMixer
+      .clipAction(
+        makeInPlaceClip(
+          reference.scene,
+          reference.animations.find(
+            (item) => item.name === CORA_CHARACTER.greetingAnimation,
+          )!,
+        ),
+      )
+      .play();
+    referenceMixer.update(0.75);
+    player.root.position.set(3, 0, -4);
+    player.animate(0.75, false, false, true);
+    expect(bonePose(player.root)).toEqual(bonePose(reference.scene));
+    const hips = bonePosition(player.root, "Hips");
+    for (let frame = 0; frame < 30; frame++) {
+      player.animate(0.2, false, false, true);
+      const floor = new THREE.Box3().setFromObject(player.root, true).min.y;
+      expect(floor).toBeGreaterThan(-0.025);
+      expect(floor).toBeLessThan(0.05);
+      expect(bonePosition(player.root, "Hips").x).toBeCloseTo(hips.x);
+      expect(bonePosition(player.root, "Hips").z).toBeCloseTo(hips.z);
+    }
+    expect(player.root.position.toArray()).toEqual([3, 0, -4]);
+    expect(clip.tracks.map((track) => [...track.values])).toEqual(values);
+    player.dispose();
+    referenceMixer.stopAllAction();
+    referenceMixer.uncacheRoot(reference.scene);
+    createPlayerModel(
+      reference.scene,
+      reference.animations,
+      CORA_CHARACTER,
+    ).dispose();
+  });
+
+  it("freezes a raised-hand authored frame and restores idle and clean walking with movement precedence", async () => {
+    mockImageDecoder();
+    const [a, b] = await Promise.all([parseCora(), parseCora()]);
+    const player = createPlayerModel(a.scene, a.animations, CORA_CHARACTER);
+    const clean = createPlayerModel(b.scene, b.animations, CORA_CHARACTER);
+    const standing = bonePose(player.root);
+    player.animate(0, false, true, true);
+    const greeting = bonePose(player.root);
+    expect(greeting).not.toEqual(standing);
+    expect(bonePosition(player.root, "RightHand").y).toBeGreaterThan(
+      bonePosition(player.root, "Head").y,
+    );
+    expect(new THREE.Box3().setFromObject(player.root, true).min.y).toBeCloseTo(
+      0,
+    );
+    player.animate(25, false, true, true);
+    expect(bonePose(player.root)).toEqual(greeting);
+    player.animate(0.25, true, false, true);
+    clean.animate(0.25, true, false);
+    expect(bonePose(player.root)).toEqual(bonePose(clean.root));
+    player.animate(1.2, false, false, true);
+    player.animate(0, false, false);
+    expect(bonePose(player.root)).toEqual(standing);
+    player.animate(0, false, true, true);
+    expect(bonePose(player.root)).toEqual(greeting);
+    player.animate(5, true, true, true);
+    expect(bonePose(player.root)).toEqual(standing);
+    player.dispose();
+    clean.dispose();
+  });
+
+  it("advances authored waves by elapsed time and disposes both animation actions and resources", async () => {
+    const bitmap = mockImageDecoder();
+    const [a, b] = await Promise.all([parseCora(), parseCora()]);
+    const smooth = createPlayerModel(a.scene, a.animations, CORA_CHARACTER);
+    const slow = createPlayerModel(b.scene, b.animations, CORA_CHARACTER);
+    for (let frame = 0; frame < 45; frame++)
+      smooth.animate(1 / 60, false, false, true);
+    slow.animate(0.75, false, false, true);
+    const slowPose = bonePose(slow.root);
+    bonePose(smooth.root).forEach((value, index) =>
+      expect(value).toBeCloseTo(slowPose[index], 5),
+    );
+    const skin = skinOf(smooth.root);
+    const skeleton = vi.spyOn(skin.skeleton, "dispose");
+    const geometry = vi.spyOn(skin.geometry, "dispose");
+    const stopActions = vi.spyOn(
+      THREE.AnimationMixer.prototype,
+      "stopAllAction",
+    );
+    const uncache = vi.spyOn(THREE.AnimationMixer.prototype, "uncacheRoot");
+    smooth.dispose();
+    smooth.dispose();
+    expect(skeleton).toHaveBeenCalledOnce();
+    expect(geometry).toHaveBeenCalledOnce();
+    expect(stopActions).toHaveBeenCalledOnce();
+    expect(uncache).toHaveBeenCalledExactlyOnceWith(a.scene);
+    expect(bitmap.close).toHaveBeenCalledOnce();
+    expect(() => smooth.animate(0.2, false, false, true)).not.toThrow();
+    slow.dispose();
+  });
+
+  it("rejects a configured greeting that is absent from the supplied model", async () => {
+    mockImageDecoder();
+    const gltf = await parseAsset();
+    expect(() =>
+      createPlayerModel(gltf.scene, gltf.animations, {
+        ...DEFAULT_PLAYER_CHARACTER,
+        greetingAnimation: "Missing wave",
+      }),
+    ).toThrow("Sophia's greeting animation is missing.");
+    createPlayerModel(gltf.scene, gltf.animations).dispose();
+  });
 });
 
 describe("Soph's supplied walking character", () => {

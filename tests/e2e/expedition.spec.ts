@@ -388,6 +388,70 @@ test("wrong answers stay friendly, the photo survives refresh, and reset needs c
   expect(errors).toEqual([]);
 });
 
+test("starting clears welcome proximity before the next animation frame", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const pending = new Map<number, FrameRequestCallback>();
+    let nextId = 1;
+    window.requestAnimationFrame = (callback) => {
+      const id = nextId++;
+      pending.set(id, callback);
+      return id;
+    };
+    window.cancelAnimationFrame = (id) => {
+      pending.delete(id);
+    };
+    Object.assign(window, {
+      advanceWelcomeFrame() {
+        const callbacks = [...pending.values()];
+        pending.clear();
+        callbacks.forEach((callback) => callback(performance.now() + 1000));
+      },
+    });
+  });
+  await page.goto("./");
+  await expect(page.locator("#start-button")).toBeEnabled();
+  await expect(page.locator("#world canvas")).toHaveAttribute(
+    "data-model-state",
+    "loaded",
+  );
+  const entry = await page.evaluate(
+    ({ position, encounterRadius }) => {
+      // Deliberately leave the last published status at the close welcome pose.
+      // Start and inspect synchronously: a later rAF must not repair this race.
+      (
+        window as unknown as { advanceWelcomeFrame(): void }
+      ).advanceWelcomeFrame();
+      const canvas =
+        document.querySelector<HTMLCanvasElement>("#world canvas")!;
+      const welcomeDistance = Math.hypot(
+        Number(canvas.dataset.explorerX) - position[0],
+        Number(canvas.dataset.explorerZ) - position[2],
+      );
+      document.querySelector<HTMLButtonElement>("#start-button")!.click();
+      const meet = document.querySelector<HTMLButtonElement>("#meet-button")!;
+      const disabled = meet.disabled;
+      // The handler also rejects a stale/programmatic activation outside range.
+      meet.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      return {
+        welcomeNearby: welcomeDistance <= encounterRadius,
+        disabled,
+        quizOpened: !!document.querySelector("[data-answer]"),
+        status: document.getElementById("animal-status-text")?.textContent,
+      };
+    },
+    {
+      position: zebra.spawn.position,
+      encounterRadius: zebra.behaviors.encounterRadius,
+    },
+  );
+  expect(entry.welcomeNearby).toBe(true);
+  expect(entry.disabled).toBe(true);
+  expect(entry.quizOpened).toBe(false);
+  expect(entry.status).toBe("Look for the zebra near the acacia tree.");
+});
+
 test("the essential expedition can be completed with keyboard input", async ({
   page,
 }) => {

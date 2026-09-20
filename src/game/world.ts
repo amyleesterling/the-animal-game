@@ -566,9 +566,14 @@ export function createWorld(
             Math.cos(yaw) * orbitDistance,
           ),
         );
-      cameraTarget
-        .copy(player.position)
-        .add(new THREE.Vector3(-Math.sin(yaw) * 3, 1.1, -Math.cos(yaw) * 3));
+      cameraTarget.copy(player.position).add(
+        new THREE.Vector3(
+          -Math.sin(yaw) * 3,
+          // Leave the portrait mission card above the walking pair.
+          camera.aspect < 0.85 ? 2.7 : 1.1,
+          -Math.cos(yaw) * 3,
+        ),
+      );
       camera.fov = 48;
       camera.zoom = 1;
     }
@@ -789,6 +794,15 @@ export function createWorld(
         : "explore";
     renderer.domElement.dataset.explorerX = String(player.position.x);
     renderer.domElement.dataset.explorerZ = String(player.position.z);
+    renderer.domElement.dataset.companionVisible = String(
+      characterCompanion?.root.visible ?? false,
+    );
+    renderer.domElement.dataset.companionX = String(
+      characterCompanion?.root.position.x ?? 0,
+    );
+    renderer.domElement.dataset.companionZ = String(
+      characterCompanion?.root.position.z ?? 0,
+    );
     renderer.render(scene, camera);
     if (time - lastStatusTime > 180) {
       updateStatus();
@@ -821,7 +835,12 @@ export function createWorld(
         );
       }
       if (value) hasExplored = true;
-      if (entering) updateCamera(true);
+      if (entering) {
+        updateCamera(true);
+        // The welcome figures stand near the zebra; starting moves Sophia
+        // back to the trail. Publish that distance before the mission renders.
+        updateStatus();
+      }
       player.visible = !photoMode;
       if (!value) {
         clearMovement();

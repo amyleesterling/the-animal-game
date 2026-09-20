@@ -1,5 +1,11 @@
 import type { PlayerCharacter } from "../game/player";
 
-// Enable the companion when Amy supplies Cora's own rigged character asset.
-// A missing model must not silently turn Cora into a second copy of Sophia.
-export const CORA_CHARACTER: PlayerCharacter | null = null;
+// Both authored clips share Cora's supplied mesh and skeleton.
+export const CORA_CHARACTER: PlayerCharacter = {
+  id: "cora",
+  name: "Cora",
+  assetPath: "/models/cora.glb",
+  walkAnimation: "Walking_Woman",
+  greetingAnimation: "Wave_for_Help_4",
+  height: 1.8,
+};

@@ -4,6 +4,66 @@
   "stage": "Seven-stop Sunset Safari playtest",
   "assets": [
     {
+      "id": "cora-walk-wave-v1",
+      "type": "glb-model",
+      "path": "public/models/cora.glb",
+      "title": "Cora walking and waving",
+      "provenance": "Walking and waving GLBs supplied by Amy on 2026-09-20 for the landing page and companion. No third-party creator or license is inferred.",
+      "sources": [
+        {
+          "file": "cora walking 3d.glb",
+          "bytes": 6015392,
+          "sha256": "c96a90ca6e804ff960370df12836f510fbd841e56c0f049be8873ec33fb9e13a",
+          "clip": "Walking_Woman"
+        },
+        {
+          "file": "cora character wave.glb",
+          "bytes": 6130092,
+          "sha256": "5adc7cbfb71d0b8838e612f5991f3e7889f609354946d02b4193b504c4d21ec0",
+          "clip": "Wave_for_Help_4"
+        }
+      ],
+      "bytes": 1217332,
+      "sha256": "375794c2a621b9c569f359a4c4c32ea87d159daea8702d3ae3a3eec2839b88f4",
+      "embeddedSkeleton": true,
+      "boneCount": 23,
+      "embeddedAnimations": ["Walking_Woman", "Wave_for_Help_4"],
+      "animations": [
+        {
+          "name": "Walking_Woman",
+          "startSeconds": 0,
+          "endSeconds": 1,
+          "durationSeconds": 1,
+          "channelCount": 46,
+          "samplerCount": 46,
+          "sampleSha256": "65516eaabfe6ceb2011145aef66b40b81f4dd264ad5dc15e3860b01b489843ea",
+          "sampleBytesPreserved": true
+        },
+        {
+          "name": "Wave_for_Help_4",
+          "startSeconds": 0,
+          "endSeconds": 4.791666507720947,
+          "durationSeconds": 4.791666507720947,
+          "channelCount": 46,
+          "samplerCount": 46,
+          "sampleSha256": "9a68e471a66ff0031d33bb6f9946c5a9402f85a6c3326ad30d6e39aec6b5d2dd",
+          "sampleBytesPreserved": true
+        }
+      ],
+      "textureSizes": ["1024 x 1024 base color"],
+      "modifications": "Combined compatible authored clips with a single mesh, skeleton and optimized texture. Original non-image buffers and animation sample bytes verified unchanged. Runtime normalizes height/orientation and removes horizontal root travel from clip copies.",
+      "preparationScript": "scripts/prepare-cora.py",
+      "preparationRecord": "docs/CORA_ASSET_PREPARATION.json",
+      "verification": {
+        "sourceNodesSkinsMeshesCompatible": true,
+        "sourceGeometryAndBindPoseBytesEqual": true,
+        "sourceTextureBytesEqual": true,
+        "bothClipsPreservedByteForByte": true,
+        "allOriginalNonImageBufferViewsPreserved": true,
+        "noDuplicateMeshesSkinsOrImages": true
+      }
+    },
+    {
       "id": "safari-land-cruiser-v1",
       "name": "Vintage safari Land Cruiser with roof rack",
       "file": "safari-jeep.glb",

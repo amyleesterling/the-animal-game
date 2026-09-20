@@ -8,22 +8,62 @@ async function loadedCharacter(
   await expect(canvas).toHaveAttribute("data-player-model-state", "loaded", {
     timeout: 30000,
   });
-  await expect(canvas).toHaveAttribute("data-character-count", "1");
+  await expect
+    .poll(
+      async () =>
+        (await canvas.getAttribute("data-companion-model-state")) ??
+        (await canvas.getAttribute("data-companion-state")),
+      { timeout: 30000 },
+    )
+    .toBe("loaded");
+  await expect(canvas).toHaveAttribute("data-character-count", "2");
   await expect(canvas).toHaveAttribute("data-character-mode", mode);
 }
 
 async function position(canvas: Locator) {
   return canvas.evaluate((element) => {
     const data = (element as HTMLCanvasElement).dataset;
-    if (data.explorerX === undefined || data.explorerZ === undefined)
+    if (
+      data.explorerX === undefined ||
+      data.explorerZ === undefined ||
+      data.companionX === undefined ||
+      data.companionZ === undefined
+    )
       throw new Error(
         "Character checks require actual world position diagnostics.",
       );
-    const point = { x: Number(data.explorerX), z: Number(data.explorerZ) };
-    if (!Number.isFinite(point.x) || !Number.isFinite(point.z))
+    const point = {
+      x: Number(data.explorerX),
+      z: Number(data.explorerZ),
+      coraX: Number(data.companionX),
+      coraZ: Number(data.companionZ),
+    };
+    if (!Object.values(point).every(Number.isFinite))
       throw new Error("Character world positions must be finite.");
     return point;
   });
+}
+
+async function pairVisible(canvas: Locator) {
+  await expect(canvas).toHaveAttribute("data-companion-visible", "true");
+  await expect
+    .poll(async () => {
+      const p = await position(canvas);
+      return Math.hypot(p.x - p.coraX, p.z - p.coraZ);
+    })
+    .toBeLessThan(2.8);
+  const p = await position(canvas);
+  expect(Math.hypot(p.x - p.coraX, p.z - p.coraZ)).toBeGreaterThanOrEqual(0.89);
+}
+
+async function pairStill(canvas: Locator) {
+  const before = await position(canvas);
+  await renderedFrames(canvas);
+  const after = await position(canvas);
+  expect(Math.hypot(after.x - before.x, after.z - before.z)).toBeLessThan(0.05);
+  expect(
+    Math.hypot(after.coraX - before.coraX, after.coraZ - before.coraZ),
+  ).toBeLessThan(0.05);
 }
 
 async function renderedFrames(canvas: Locator) {
@@ -40,7 +80,12 @@ async function renderedFrames(canvas: Locator) {
   });
 }
 
-async function move(page: Page, canvas: Locator, key = "s") {
+async function move(
+  page: Page,
+  canvas: Locator,
+  key = "s",
+  withCompanion = true,
+) {
   const before = await position(canvas);
   await page.keyboard.down(key);
   try {
@@ -56,6 +101,21 @@ async function move(page: Page, canvas: Locator, key = "s") {
   } finally {
     await page.keyboard.up(key);
   }
+  if (withCompanion) {
+    await expect
+      .poll(
+        async () => {
+          const after = await position(canvas);
+          return Math.hypot(
+            after.coraX - before.coraX,
+            after.coraZ - before.coraZ,
+          );
+        },
+        { timeout: 8000 },
+      )
+      .toBeGreaterThan(0.5);
+    await pairVisible(canvas);
+  }
 }
 
 async function welcomeDoesNotWalk(page: Page, canvas: Locator) {
@@ -67,6 +127,9 @@ async function welcomeDoesNotWalk(page: Page, canvas: Locator) {
     expect(Math.hypot(after.x - before.x, after.z - before.z)).toBeLessThan(
       0.001,
     );
+    expect(
+      Math.hypot(after.coraX - before.coraX, after.coraZ - before.coraZ),
+    ).toBeLessThan(0.001);
   } finally {
     await page.keyboard.up("w");
   }
@@ -120,7 +183,7 @@ async function readableWelcome(page: Page) {
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
 }
 
-test("Sophia welcomes without walking, then classic exploration and photo controls still work", async ({
+test("Sophia and Cora welcome without walking, then explore, pause and leave the photograph clear", async ({
   page,
 }, info) => {
   test.setTimeout(90000);
@@ -130,19 +193,31 @@ test("Sophia welcomes without walking, then classic exploration and photo contro
   await page.goto("./");
   const canvas = page.locator("#world canvas");
   await loadedCharacter(canvas, "welcome");
+  await pairVisible(canvas);
   await expect(page.locator("#start-button")).toBeEnabled();
   await welcomeDoesNotWalk(page, canvas);
   await readableWelcome(page);
   await renderedFrames(canvas);
   await page.screenshot({
-    path: info.outputPath("sophia-welcome-desktop.png"),
+    path: info.outputPath("sophia-cora-welcome-desktop.png"),
   });
   await page.locator("#start-button").click();
   await loadedCharacter(canvas, "explore");
+  await pairVisible(canvas);
   await move(page, canvas);
+  await page.locator("#settings-button").click();
+  await page.keyboard.down("w");
+  try {
+    await pairStill(canvas);
+  } finally {
+    await page.keyboard.up("w");
+  }
+  await page.keyboard.press("Escape");
+  await pairVisible(canvas);
+  await move(page, canvas, "w");
   await renderedFrames(canvas);
   await page.screenshot({
-    path: info.outputPath("sophia-classic-explore.png"),
+    path: info.outputPath("sophia-cora-classic-explore.png"),
   });
   await page.locator("#guide-button").click();
   await expect(page.locator("#meet-button")).toBeEnabled({ timeout: 15000 });
@@ -154,26 +229,32 @@ test("Sophia welcomes without walking, then classic exploration and photo contro
   await page.locator("#guide-button").click();
   await page.locator("#camera-button").click();
   await loadedCharacter(canvas, "photo");
+  await expect(canvas).toHaveAttribute("data-companion-visible", "false");
   await expect(page.locator("#shutter")).toBeEnabled({ timeout: 15000 });
+  await page.screenshot({
+    path: info.outputPath("classic-photo-without-companion.png"),
+  });
   await page.locator("#leave-photo").click();
   await loadedCharacter(canvas, "explore");
+  await pairVisible(canvas);
   await move(page, canvas);
   expect(errors).toEqual([]);
 });
 
-test.describe("phone welcome character", () => {
+test.describe("phone welcome pair", () => {
   test.use({
     viewport: { width: 390, height: 844 },
     isMobile: true,
     hasTouch: true,
   });
-  test("reduced-motion welcome remains stationary with reachable portrait and short landscape actions", async ({
+  test("reduced-motion pair stays stationary with reachable portrait and short landscape actions", async ({
     page,
   }, info) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("./");
     const canvas = page.locator("#world canvas");
     await loadedCharacter(canvas, "welcome");
+    await pairVisible(canvas);
     await expect(page.locator("html")).toHaveClass(/reduce-motion/);
     for (const [name, width, height] of [
       ["portrait", 390, 844],
@@ -185,7 +266,7 @@ test.describe("phone welcome character", () => {
       await readableWelcome(page);
       await renderedFrames(canvas);
       await page.screenshot({
-        path: info.outputPath(`sophia-welcome-${name}.png`),
+        path: info.outputPath(`sophia-cora-welcome-${name}.png`),
         fullPage: true,
       });
     }
@@ -196,6 +277,7 @@ test.describe("phone welcome character", () => {
     await loadedCharacter(canvas, "welcome");
     await page.locator("#start-button").tap();
     await loadedCharacter(canvas, "explore");
+    await pairVisible(canvas);
     const touch = await page.context().newCDPSession(page);
     const backward = page.getByRole("button", { name: "Walk backward" });
     const rect = await backward.boundingBox();
@@ -225,23 +307,41 @@ test.describe("phone welcome character", () => {
       await touch.detach();
     }
     await loadedCharacter(canvas, "explore");
+    await expect
+      .poll(
+        async () => {
+          const after = await position(canvas);
+          return Math.hypot(
+            after.coraX - before.coraX,
+            after.coraZ - before.coraZ,
+          );
+        },
+        { timeout: 8000 },
+      )
+      .toBeGreaterThan(0.5);
+    await pairVisible(canvas);
+    await renderedFrames(canvas);
+    await page.screenshot({
+      path: info.outputPath("sophia-cora-phone-explore.png"),
+    });
   });
 });
 
-test("the landing safari link keeps Sophia's walking, pause and jeep transitions functional", async ({
+test("the safari pair walks together, pauses, rides the jeep and stays out of the photo", async ({
   page,
 }, info) => {
+  test.setTimeout(120000);
   await page.goto("./");
   await loadedCharacter(page.locator("#world canvas"), "welcome");
   await page.locator(".safari-entry").click();
   await expect(page).toHaveURL(/\/safari\.html$/);
   const canvas = page.locator("#safari-world canvas");
   await loadedCharacter(canvas, "explore");
-  await expect(canvas).toHaveAttribute("data-companion-state", "absent");
   await page.locator("#begin-safari").click();
+  await pairVisible(canvas);
   await move(page, canvas);
-  const before = await position(canvas);
   await page.locator("#settings-button").click();
+  const before = await position(canvas);
   await page.keyboard.down("w");
   try {
     await renderedFrames(canvas);
@@ -249,19 +349,83 @@ test("the landing safari link keeps Sophia's walking, pause and jeep transitions
     expect(Math.hypot(after.x - before.x, after.z - before.z)).toBeLessThan(
       0.05,
     );
+    expect(
+      Math.hypot(after.coraX - before.coraX, after.coraZ - before.coraZ),
+    ).toBeLessThan(0.05);
   } finally {
     await page.keyboard.up("w");
   }
   await page.keyboard.press("Escape");
+  await pairVisible(canvas);
   await move(page, canvas, "w");
   await renderedFrames(canvas);
-  await page.screenshot({ path: info.outputPath("sophia-safari-explore.png") });
+  await page.screenshot({
+    path: info.outputPath("sophia-cora-safari-explore.png"),
+  });
   if (await page.locator("#return-jeep").isVisible())
     await page.locator("#return-jeep").click();
   await page.locator("#enter-jeep").click();
   await expect(canvas).toHaveAttribute("data-travel-mode", "driving");
+  await expect(canvas).toHaveAttribute("data-companion-visible", "false");
+  await move(page, canvas, "w", false);
+  await page.keyboard.down("Space");
+  try {
+    await expect
+      .poll(async () =>
+        Math.abs(Number(await canvas.getAttribute("data-vehicle-speed"))),
+      )
+      .toBeLessThan(0.05);
+  } finally {
+    await page.keyboard.up("Space");
+  }
+  await expect(canvas).toHaveAttribute("data-companion-visible", "false");
+  await expect(page.locator("#exit-jeep")).toBeEnabled();
   await page.locator("#exit-jeep").click();
   await expect(canvas).toHaveAttribute("data-travel-mode", "walking");
   await loadedCharacter(canvas, "explore");
+  await pairVisible(canvas);
   await move(page, canvas, "s");
+  await page.locator("#guide-animal").click();
+  await expect(page.locator("#encounter-dialog")).toBeVisible({
+    timeout: 20000,
+  });
+  await page.locator("#skip-animal").click();
+  await page.locator('[data-answer="grass"]').click();
+  await page.locator("#learn-clue").click();
+  await loadedCharacter(canvas, "photo");
+  await expect(canvas).toHaveAttribute("data-companion-visible", "false");
+  await expect(page.locator("#take-photo")).toBeEnabled({ timeout: 15000 });
+  await page.screenshot({
+    path: info.outputPath("safari-photo-without-companion.png"),
+  });
+  await page.locator("#leave-photo").click();
+  await loadedCharacter(canvas, "explore");
+  await pairVisible(canvas);
+});
+
+test("an unavailable Cora model remains hidden while Sophia can still explore", async ({
+  page,
+}) => {
+  await page.route("**/models/cora.glb", (route) => route.abort());
+  for (const safari of [false, true]) {
+    await page.goto(safari ? "./safari.html" : "./");
+    const canvas = page.locator(
+      safari ? "#safari-world canvas" : "#world canvas",
+    );
+    await expect(canvas).toHaveAttribute("data-player-model-state", "loaded", {
+      timeout: 30000,
+    });
+    await expect
+      .poll(
+        async () =>
+          (await canvas.getAttribute("data-companion-model-state")) ??
+          (await canvas.getAttribute("data-companion-state")),
+        { timeout: 30000 },
+      )
+      .toBe("fallback");
+    await expect(canvas).toHaveAttribute("data-companion-visible", "false");
+    await page.locator(safari ? "#begin-safari" : "#start-button").click();
+    await move(page, canvas, "s", false);
+    await expect(canvas).toHaveAttribute("data-companion-visible", "false");
+  }
 });

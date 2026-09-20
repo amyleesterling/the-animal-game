@@ -82,11 +82,11 @@ describe("optional character companion", () => {
     ]);
   });
 
-  it("keeps pace at both 60 and two frames per second and animates only actual travel", () => {
-    for (const fps of [60, 2]) {
+  it("keeps pace at 60, two, and one frame per second and animates only actual travel", () => {
+    for (const fps of [60, 2, 1]) {
       const { companion, visual } = fixture();
       companion.update(0, { x: 0, z: 0 }, 0, options, clear);
-      for (let frame = 1; frame <= fps; frame++) {
+      for (let frame = 1; frame <= fps * 5; frame++) {
         companion.update(
           1 / fps,
           { x: 0, z: (-4.2 * frame) / fps },
@@ -96,16 +96,34 @@ describe("optional character companion", () => {
         );
       }
       expect(companion.root.position.x).toBeCloseTo(1.25);
-      expect(companion.root.position.z).toBeCloseTo(-4.2);
+      expect(companion.root.position.z).toBeCloseTo(-21);
       expect(visual.animate).toHaveBeenLastCalledWith(
-        1 / fps,
+        Math.min(1 / fps, 0.5),
         true,
         false,
         false,
       );
-      companion.update(0.1, { x: 0, z: -4.2 }, 0, options, clear);
+      companion.update(0.1, { x: 0, z: -21 }, 0, options, clear);
       expect(visual.animate).toHaveBeenLastCalledWith(0.1, false, false, false);
     }
+  });
+
+  it("keeps collision substeps at one FPS rather than snapping through an obstacle to catch up", () => {
+    const { companion, visual } = fixture();
+    companion.update(0, { x: 0, z: 0 }, 0, options, clear);
+    const obstacle = circle(1.25, -2, 0.6);
+    for (let frame = 1; frame <= 5; frame++) {
+      companion.update(
+        1,
+        { x: 0, z: -4.2 * frame },
+        0,
+        { ...options, moving: true },
+        obstacle,
+      );
+      expect(companion.root.visible).toBe(true);
+      expect(companion.root.position.z).toBeGreaterThanOrEqual(-1.4 - 1e-9);
+    }
+    expect(visual.animate.mock.calls.some(([, moving]) => moving)).toBe(true);
   });
 
   it("picks the other side when the preferred formation slot is blocked", () => {

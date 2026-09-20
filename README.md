@@ -82,7 +82,11 @@ original procedural art. See the [asset credits](public/models/CREDITS.md)
 and [provenance manifest](public/assets-manifest.json).
 
 The explorer now uses Amy's supplied **Soph walking character**, with its
-embedded walking animation. [Preview the nine next animals](https://amyleesterling.github.io/the-animal-game/animal-lab.html)
+embedded walking animation. Sophia stands and waves on the landing page, with
+a still greeting when reduced motion is enabled. Companion movement is prepared
+for Cora; her own character file is still needed before she appears. See
+[character setup and current limits](docs/CHARACTERS.md).
+[Preview the nine next animals](https://amyleesterling.github.io/the-animal-game/animal-lab.html)
 in a separate rotatable gallery. All nine textured GLBs were generated through
 Meshy's API; they are static models, with seven species including the supplied
 zebra now featured in the story safari. The gallery

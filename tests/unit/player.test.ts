@@ -5,6 +5,7 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
 import {
   createPlayer,
   createPlayerModel,
+  DEFAULT_PLAYER_CHARACTER,
   loadPlayerVisual,
   makeInPlaceClip,
   PLAYER_ASSET_PATH,
@@ -56,6 +57,15 @@ function bonePose(root: THREE.Object3D): number[] {
     ...bone.position.toArray(),
     ...bone.quaternion.toArray(),
   ]);
+}
+
+function bonePosition(root: THREE.Object3D, name: string): THREE.Vector3 {
+  root.updateMatrixWorld(true);
+  const bone = skinOf(root).skeleton.bones.find(
+    (joint) => joint.name === `mixamorig${name}`,
+  );
+  if (!bone) throw new Error(`Missing joint ${name}`);
+  return bone.getWorldPosition(new THREE.Vector3());
 }
 
 afterEach(() => {
@@ -155,6 +165,115 @@ describe("Soph's supplied walking character", () => {
     slow.dispose();
   });
 
+  it("stands on both feet with lowered arms, then waves above the shoulder without moving the legs", async () => {
+    mockImageDecoder();
+    const gltf = await parseAsset();
+    const player = createPlayerModel(gltf.scene, gltf.animations);
+    const feet = [
+      bonePosition(player.root, "LeftFoot"),
+      bonePosition(player.root, "RightFoot"),
+    ];
+    expect(Math.abs(feet[0].y - feet[1].y)).toBeLessThan(0.01);
+    for (const side of ["Left", "Right"])
+      expect(
+        bonePosition(player.root, `${side}Arm`).y -
+          bonePosition(player.root, `${side}Hand`).y,
+      ).toBeGreaterThan(0.4);
+    const hips = bonePosition(player.root, "Hips");
+    const head = bonePosition(player.root, "Head");
+    player.animate(0.2, false, false, true);
+    expect(bonePosition(player.root, "RightHand").y).toBeGreaterThan(
+      head.y + 0.15,
+    );
+    expect(bonePosition(player.root, "RightForeArm").y).toBeGreaterThan(
+      bonePosition(player.root, "RightArm").y,
+    );
+    expect(
+      bonePosition(player.root, "RightHand").y -
+        bonePosition(player.root, "RightForeArm").y,
+    ).toBeGreaterThan(0.2);
+    expect(bonePosition(player.root, "Hips").distanceTo(hips)).toBeLessThan(
+      0.000001,
+    );
+    expect(bonePosition(player.root, "Head").distanceTo(head)).toBeLessThan(
+      0.000001,
+    );
+    expect(
+      bonePosition(player.root, "LeftFoot").distanceTo(feet[0]),
+    ).toBeLessThan(0.000001);
+    expect(
+      bonePosition(player.root, "RightFoot").distanceTo(feet[1]),
+    ).toBeLessThan(0.000001);
+    const greeting = bonePose(player.root);
+    player.animate(0.2, false, false, true);
+    expect(bonePose(player.root)).not.toEqual(greeting);
+    expect(player.root.position.toArray()).toEqual([0, 0, 0]);
+    expect(new THREE.Box3().setFromObject(player.root, true).min.y).toBeCloseTo(
+      0,
+    );
+    player.dispose();
+  });
+
+  it("freezes a welcome pose for reduced motion and restores a clean standing or walking pose", async () => {
+    mockImageDecoder();
+    const [a, b] = await Promise.all([parseAsset(), parseAsset()]);
+    const player = createPlayerModel(a.scene, a.animations);
+    const clean = createPlayerModel(b.scene, b.animations);
+    const standing = bonePose(player.root);
+    player.animate(0.3, false, false, true);
+    player.animate(10, false, true, true);
+    const frozenGreeting = bonePose(player.root);
+    expect(frozenGreeting).not.toEqual(standing);
+    player.animate(50, false, true, true);
+    expect(bonePose(player.root)).toEqual(frozenGreeting);
+    player.animate(0, false, true, false);
+    expect(bonePose(player.root)).toEqual(standing);
+    player.animate(0.4, false, false, true);
+    player.animate(0.25, true, false, true);
+    clean.animate(0.25, true, false);
+    expect(bonePose(player.root)).toEqual(bonePose(clean.root));
+    player.animate(0.2, false, false, true);
+    player.animate(0, false, false);
+    expect(bonePose(player.root)).toEqual(standing);
+    player.animate(Number.NaN, false, false, true);
+    player.animate(Number.POSITIVE_INFINITY, true, false);
+    expect(bonePose(player.root).every(Number.isFinite)).toBe(true);
+    player.dispose();
+    clean.dispose();
+  });
+
+  it("uses an explicit character's animation, height, and independent skeleton", async () => {
+    mockImageDecoder();
+    const [a, b] = await Promise.all([parseAsset(), parseAsset()]);
+    const fixture = {
+      id: "fixture",
+      name: "Fixture",
+      assetPath: "/models/fixture.glb",
+      walkAnimation: "Fixture walk",
+      height: 1.45,
+    };
+    a.animations[0].name = "Fixture walk";
+    const custom = createPlayerModel(a.scene, a.animations, fixture);
+    const defaultPlayer = createPlayerModel(b.scene, b.animations);
+    expect(custom.root.name).toBe("fixture-walking-visual");
+    custom.root.updateMatrixWorld(true);
+    expect(
+      new THREE.Box3()
+        .setFromObject(custom.root, true)
+        .getSize(new THREE.Vector3()).y,
+    ).toBeCloseTo(1.45);
+    expect(skinOf(custom.root).skeleton).not.toBe(
+      skinOf(defaultPlayer.root).skeleton,
+    );
+    const before = bonePose(defaultPlayer.root);
+    custom.animate(0.3, false, false, true);
+    expect(bonePose(defaultPlayer.root)).toEqual(before);
+    custom.dispose();
+    defaultPlayer.animate(0.2, true, false);
+    expect(bonePose(defaultPlayer.root)).not.toEqual(before);
+    defaultPlayer.dispose();
+  });
+
   it("releases its skeleton, mesh, textures, and decoded image exactly once", async () => {
     const bitmap = mockImageDecoder();
     const gltf = await parseAsset();
@@ -185,11 +304,15 @@ describe("Soph's supplied walking character", () => {
     const fallback = player.root.children[0];
     expect(state).toHaveBeenLastCalledWith("loading");
     player.root.position.set(2, 0, -6);
+    player.animate(0, false, true, true);
     await vi.waitFor(() => expect(state).toHaveBeenLastCalledWith("loaded"));
     expect(player.root.children).toHaveLength(1);
     expect(player.root.children[0]).not.toBe(fallback);
     expect(player.root.position.toArray()).toEqual([2, 0, -6]);
     expect(skinOf(player.root).skeleton.bones).toHaveLength(23);
+    expect(bonePosition(player.root, "RightHand").y).toBeGreaterThan(
+      bonePosition(player.root, "Head").y,
+    );
     player.dispose();
   });
 
@@ -202,6 +325,15 @@ describe("Soph's supplied walking character", () => {
     await vi.waitFor(() => expect(state).toHaveBeenLastCalledWith("fallback"));
     expect(player.root.children[0]).toBe(fallback);
     expect(() => player.animate(0.2, true, false)).not.toThrow();
+    player.animate(0.3, false, false, true);
+    const arm = player.root.getObjectByName("fallback-right-arm")!;
+    expect(arm.rotation.z).toBeLessThan(-2);
+    player.animate(0, false, true, true);
+    const frozen = arm.quaternion.clone();
+    player.animate(15, false, true, true);
+    expect(arm.quaternion.toArray()).toEqual(frozen.toArray());
+    player.animate(0, true, false);
+    expect(arm.rotation.z).toBeCloseTo(-0.12);
     player.dispose();
   });
 
@@ -237,10 +369,34 @@ describe("Soph's supplied walking character", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     await expect(
       loadPlayerVisual(new AbortController().signal),
-    ).rejects.toThrow("Soph's texture could not be decoded");
+    ).rejects.toThrow("Sophia's texture could not be decoded");
     expect(urls).toHaveBeenCalled();
     for (const result of urls.mock.results)
       expect(revoke).toHaveBeenCalledWith(result.value);
+  });
+
+  it("fetches a configured character's own project-relative asset and reports its failed load", async () => {
+    vi.stubGlobal("document", { baseURI: "https://example.test/animal-game/" });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response(null, { status: 404 })),
+    );
+    const character = {
+      ...DEFAULT_PLAYER_CHARACTER,
+      id: "fixture",
+      name: "Fixture",
+      assetPath: "/models/fixture.glb",
+    };
+    const state = vi.fn();
+    const player = createPlayer(state, character);
+    await vi.waitFor(() => expect(state).toHaveBeenLastCalledWith("fallback"));
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(
+      "https://example.test/animal-game/models/fixture.glb",
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(state.mock.calls).toEqual([["loading"], ["fallback"]]);
+    player.dispose();
   });
 
   it("disposes a parse completed after its owner closes, without replacing the fallback", async () => {

@@ -7,6 +7,8 @@ import type {
   SafariWorldOptions,
 } from "../safari-contracts";
 import { createPlayer } from "./player";
+import { CORA_CHARACTER } from "../content/characters";
+import { createCompanion } from "./companion";
 import { collectSafariEncounters, safariEncounterRange } from "./encounters";
 import {
   moveWithCollisions,
@@ -449,6 +451,14 @@ export function createSafariWorld(
     canvas.dataset.playerModelState = state;
   });
   scene.add(explorer.root);
+  canvas.dataset.companionState = CORA_CHARACTER ? "loading" : "absent";
+  canvas.dataset.characterCount = CORA_CHARACTER ? "2" : "1";
+  const companion = CORA_CHARACTER
+    ? createCompanion(CORA_CHARACTER, (state) => {
+        canvas.dataset.companionState = state;
+      })
+    : null;
+  if (companion) scene.add(companion.root);
   const jeep = new THREE.Group();
   let fallbackJeep: THREE.Group | undefined = createSafariJeepFallback();
   jeep.add(fallbackJeep);
@@ -462,6 +472,8 @@ export function createSafariWorld(
   let photoMode = false;
   let driving = false;
   let braking = false;
+  let companionNeedsReset = true;
+  let companionPaused = false;
   const vehicle: VehicleState = {
     x: 0,
     z: 0,
@@ -547,6 +559,8 @@ export function createSafariWorld(
     );
   }
   function diagnosticState() {
+    canvas.dataset.characterMode = photoMode ? "photo" : "explore";
+    canvas.dataset.companionVisible = String(companion?.root.visible ?? false);
     canvas.dataset.travelMode = driving ? "driving" : "walking";
     canvas.dataset.vehicleX = String(vehicle.x);
     canvas.dataset.vehicleZ = String(vehicle.z);
@@ -719,6 +733,7 @@ export function createSafariWorld(
     clearMovement();
     stopVehicle(vehicle);
     guide = null;
+    syncCompanion();
     diagnosticState();
   }
   function selectStop(id: string, keepPosition = false) {
@@ -740,7 +755,9 @@ export function createSafariWorld(
       vehicle.z = views.jeep.z;
       vehicle.heading = -0.12;
       syncVehicle();
+      companionNeedsReset = true;
     }
+    syncCompanion();
     canvas.dataset.stopId = stop.id;
     updateCamera(!keepPosition);
     updateStatus();
@@ -780,6 +797,23 @@ export function createSafariWorld(
         position.z = obstacle.z + Math.sin(angle) * (obstacle.radius + 0.3);
       }
     }
+  }
+  function syncCompanion(seconds = 0, moving = false) {
+    companion?.update(
+      seconds,
+      explorer.root.position,
+      explorer.root.rotation.y,
+      {
+        visible:
+          active && !photoMode && !driving && !document.hidden && !contextLost,
+        moving,
+        reducedMotion: settings.reducedMotion,
+        teleport: companionNeedsReset,
+        paused: companionPaused,
+      },
+      resolveCollisions,
+    );
+    if (!companionPaused) companionNeedsReset = false;
   }
   function setMovement(direction: Direction, pressed: boolean) {
     if (disposed || (!active && pressed) || (photoMode && pressed)) return;
@@ -852,12 +886,18 @@ export function createSafariWorld(
     dragging = false;
   };
   const onVisibility = () => {
+    companionPaused = document.hidden || !document.hasFocus();
     pauseTravel();
     updateStatus();
   };
   const onBlur = () => {
+    companionPaused = true;
     pauseTravel();
     updateStatus();
+  };
+  const onFocus = () => {
+    companionPaused = false;
+    syncCompanion();
   };
   const onContextLost = (event: Event) => {
     event.preventDefault();
@@ -871,6 +911,7 @@ export function createSafariWorld(
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
   window.addEventListener("blur", onBlur);
+  window.addEventListener("focus", onFocus);
   document.addEventListener("visibilitychange", onVisibility);
   canvas.addEventListener("pointerdown", onPointerDown);
   canvas.addEventListener("pointermove", onPointerMove);
@@ -999,15 +1040,14 @@ export function createSafariWorld(
       if (!driving && velocity.lengthSq() > 0)
         explorer.root.rotation.y = Math.atan2(-velocity.x, -velocity.z);
     }
-    explorer.animate(
-      seconds,
+    const explorerMoving =
       !driving &&
-        Math.hypot(
-          explorer.root.position.x - oldX,
-          explorer.root.position.z - oldZ,
-        ) > 0.00001,
-      settings.reducedMotion,
-    );
+      Math.hypot(
+        explorer.root.position.x - oldX,
+        explorer.root.position.z - oldZ,
+      ) > 0.00001;
+    explorer.animate(seconds, explorerMoving, settings.reducedMotion);
+    syncCompanion(seconds, explorerMoving);
     sun.position.set(
       explorer.root.position.x - 26,
       37,
@@ -1036,6 +1076,7 @@ export function createSafariWorld(
       driving = true;
       explorer.root.visible = false;
       syncVehicle();
+      syncCompanion();
       yaw = 0;
       pitch = 0.28;
       updateCamera(true);
@@ -1051,6 +1092,8 @@ export function createSafariWorld(
       explorer.root.position.set(exit.x, 0, exit.z);
       explorer.root.rotation.y = vehicle.heading - Math.PI / 2;
       explorer.root.visible = active;
+      companionNeedsReset = true;
+      syncCompanion();
       yaw = vehicle.heading - Math.PI / 2;
       pitch = 0.3;
       updateCamera(true);
@@ -1069,6 +1112,8 @@ export function createSafariWorld(
       pauseTravel();
       explorer.root.position.set(exit.x, 0, exit.z);
       explorer.root.rotation.y = vehicle.heading - Math.PI / 2;
+      companionNeedsReset = true;
+      syncCompanion();
       yaw = vehicle.heading - Math.PI / 2;
       updateCamera(true);
       updateStatus();
@@ -1085,15 +1130,19 @@ export function createSafariWorld(
         Math.abs(explorer.root.position.x - views.observation.x) > 2 ||
         explorer.root.position.z < views.observation.z ||
         explorer.root.position.z > views.arrival.z + 2
-      )
+      ) {
         explorer.root.position.copy(views.arrival);
+        companionNeedsReset = true;
+      }
       guide = views.observation.clone();
       if (settings.reducedMotion || photoMode) {
         explorer.root.position.copy(guide);
+        companionNeedsReset = true;
         guide = null;
         updateCamera(true);
         updateStatus();
       }
+      syncCompanion();
     },
     setActive(value) {
       if (disposed) return;
@@ -1103,6 +1152,7 @@ export function createSafariWorld(
       if (!value) {
         pauseTravel();
       }
+      syncCompanion();
       updateStatus();
     },
     setPhotoMode(value) {
@@ -1111,6 +1161,7 @@ export function createSafariWorld(
       clearMovement();
       guide = null;
       explorer.root.visible = active && !photoMode && !driving;
+      syncCompanion();
       updateCamera(true);
       updateStatus();
     },
@@ -1169,6 +1220,7 @@ export function createSafariWorld(
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
       window.removeEventListener("blur", onBlur);
+      window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisibility);
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("pointermove", onPointerMove);
@@ -1176,6 +1228,7 @@ export function createSafariWorld(
       canvas.removeEventListener("pointercancel", onPointerUp);
       canvas.removeEventListener("webglcontextlost", onContextLost);
       explorer.dispose();
+      companion?.dispose();
       animals.forEach((model) => model.dispose());
       jeepModel?.dispose();
       disposeModelResources(scene);

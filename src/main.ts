@@ -1,5 +1,6 @@
 import "./style.css";
 import { createWorld } from "./game/world";
+import { CORA_CHARACTER } from "./content/characters";
 import { createSpecimen } from "./game/specimen";
 import type { World, WorldStatus } from "./game/contracts";
 import { assets, zebra, roster } from "./content/species";
@@ -63,7 +64,7 @@ app.innerHTML = `
     <section class="welcome" id="welcome" aria-labelledby="welcome-title">
       <div class="eyebrow">${icon("compass")} YOUR FIRST EXPEDITION</div>
       <h1 id="welcome-title">A world of<br>little <em>wonders.</em></h1>
-      <p class="welcome-copy">Seven animals. Seven clues. Join Sophia’s Land Cruiser safari to discover what makes a savanna thrive.</p>
+      <p class="welcome-copy">Seven animals. Seven clues. Join ${CORA_CHARACTER ? "Sophia and Cora on a" : "Sophia’s"} Land Cruiser safari to discover what makes a savanna thrive.</p>
       <a class="primary start-button safari-entry" href="./safari.html">Start the story safari ${icon("arrow")}</a>
       <button class="primary start-button" id="start-button">Let’s explore ${icon("arrow")}</button>
       <p class="quiet start-note">Your original zebra adventure and field book are still here, too.</p>
@@ -71,7 +72,7 @@ app.innerHTML = `
       <div class="welcome-steps"><span>${icon("compass")} Explore</span><span>${icon("camera")} Discover</span><span>${icon("book")} Remember</span></div>
     </section>
     <section class="mission-card hidden" id="mission" aria-labelledby="mission-title"></section>
-    <div class="location-tag" id="location-tag"><span class="location-line"></span><div><span class="eyebrow">FIELD NOTES · 001</span><p>The grasslands are waking up.</p><span class="quiet">There’s a striped someone to meet.</span></div></div>
+    <div class="location-tag welcome-names" id="location-tag"><span class="location-line"></span><div><span class="eyebrow">${CORA_CHARACTER ? "YOUR SAFARI FRIENDS" : "YOUR SAFARI FRIEND"}</span><p>${CORA_CHARACTER ? "Sophia & Cora" : "Sophia"}</p></div></div>
     <div class="photo-overlay hidden" id="photo-overlay"><div class="viewfinder" aria-hidden="true"><i></i><i></i><i></i><i></i><span>+</span></div><div class="photo-controls"><div><strong id="frame-status">Find your striped friend</strong><span class="quiet">A little space keeps wildlife comfortable.</span></div><label class="zoom-label">Zoom <input id="zoom" type="range" min="1" max="2" step="0.05" value="1"></label><button class="primary" id="shutter">${icon("camera")} Take photo</button><button class="soft" id="leave-photo">Back</button></div></div>
     <div class="touch-controls hidden" id="touch-controls" aria-label="Movement controls"><button data-move="forward" aria-label="Walk forward">↑</button><button data-move="left" aria-label="Walk left">←</button><button data-move="backward" aria-label="Walk backward">↓</button><button data-move="right" aria-label="Walk right">→</button></div>
     <div id="subtitle" class="subtitle hidden" role="status" aria-live="polite"></div>

@@ -1,22 +1,55 @@
 {
   "version": 1,
   "lastReviewed": "2026-09-20",
-  "stage": "Meet the Zebra prototype",
+  "stage": "Seven-stop Sunset Safari playtest",
   "assets": [
+    {
+      "id": "safari-land-cruiser-v1",
+      "name": "Vintage safari Land Cruiser with roof rack",
+      "file": "safari-jeep.glb",
+      "status": "ready",
+      "bytes": 2152152,
+      "sha256": "c801f81b69d731581ca12ab9cf40c61f96db3438c3ff1de7533ee1de600b65c2",
+      "sourceBytes": 5468372,
+      "sourceSha256": "e470ebd9cef09c9fd17f3cc2eef9d42232905c8b4855b3020e0a1b692bfd1677",
+      "polygonCount": 25292,
+      "textures": [
+        {
+          "sourceSize": [2048, 2048],
+          "outputSize": [1024, 1024],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c01b-2e65-73c8-8463-58dc51335dac",
+      "referenceImage": "assets/references/safari-jeep.png",
+      "referenceSha256": "9283e52e694706c780fac98b6ecf68f8d9dfb1c62bf19b6f791c62a7dc90fba2",
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35529496947",
+      "reportedCredits": 30,
+      "modifications": "Embedded textures resized to 1024px. Every non-image buffer verified byte-identical.",
+      "type": "glb-model",
+      "path": "public/models/safari-jeep.glb",
+      "forwardAxis": "-x",
+      "provenance": "Created at Amy's request. OpenAI-generated FJ40 reference supplied to Meshy Image-to-3D. No third-party mesh was copied.",
+      "reviewStatus": "Reference and four cardinal renders visually inspected. Static vehicle used for instant travel between story stops."
+    },
     {
       "id": "meshy-savanna-test-animals-20260920",
       "type": "glb-model-batch",
       "path": "public/models/test-animals/manifest.json",
-      "title": "Nine savanna test animals",
+      "title": "Nine animal models, including three image-guided revisions",
       "count": 9,
-      "bytes": 5006456,
-      "reportedGenerationCredits": 135,
+      "bytes": 7976824,
+      "reportedGenerationCredits": 225,
       "source": "https://github.com/amyleesterling/the-animal-game/actions/runs/35526999078",
-      "provenance": "Text prompts generated nine species through Amy's Meshy API account at her explicit request. Meshy T2 geometry and Meshy 7.1 textures. Per-model task IDs, source and optimized hashes, sizes and geometry counts are recorded in the batch manifest. No account balance or credential is published.",
+      "provenance": "Initial nine text-generated models cost 135 credits. Lion, ostrich and hippo were replaced with reviewed OpenAI image references through Meshy Image-to-3D for 90 additional credits. Per-model source and output hashes and task IDs are retained in generation receipts.",
       "embeddedSkeleton": false,
       "embeddedAnimations": [],
       "preparationScript": "scripts/prepare-test-animals.py",
-      "reviewStatus": "Static AI-generated art tests available in the animal preview gallery. Species anatomy, animation, educational encounters and distribution terms still require their respective review; no license or scientific approval is inferred."
+      "reviewStatus": "Seven species including the supplied zebra are in the story safari. The three image-guided animal revisions are in the gallery. Reference images and four cardinal renders of each revision were visually inspected; all animal models remain static.",
+      "revisionSource": "https://github.com/amyleesterling/the-animal-game/actions/runs/35529496947"
     },
     {
       "id": "soph-walking-v1",

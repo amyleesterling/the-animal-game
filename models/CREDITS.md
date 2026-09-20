@@ -32,7 +32,7 @@ Source and shipped hashes are in `../assets-manifest.json`.
 
 # Nine savanna test animals
 
-The `test-animals/` models were generated at Amy's request using her Meshy API
+The initial `test-animals/` batch was generated at Amy's request using her Meshy API
 account on 2026-09-20. Geometry: Meshy T2 Smart Topology. Textures: Meshy 7.1.
 The batch used 135 credits and completed all nine requested roster species.
 The models contain no skeletons or animation clips. No source images were
@@ -45,3 +45,21 @@ Generation record: https://github.com/amyleesterling/the-animal-game/actions/run
 These are AI-generated art tests, with anatomy and animation review pending.
 No third-party creator credit, distribution license, or scientific approval
 is inferred from API access.
+
+# Image-guided animal revisions and safari Land Cruiser
+
+The shipped lion, common ostrich, and hippopotamus replace their initial
+text-only versions. Their reference images, plus the vintage FJ40 Land Cruiser
+with roof rack, were created with OpenAI image generation and supplied to Meshy
+Image-to-3D at Amy's request. The references and exact prompts are in the source
+repository's `assets/references/` directory.
+
+Meshy 7.1 standard generation produced four textured static models for 120
+credits: 90 for the three replacements and 30 for the vehicle. All four
+reference images and each model's front, rear, and side renders were inspected.
+Textures were optimized to 1024px; non-image buffers remain byte-identical.
+The jeep is `safari-jeep.glb` and is used as the story's expedition vehicle.
+
+Task IDs, checksums, geometry counts, and prompt provenance are recorded in
+`docs/SAFARI_ASSET_GENERATION.json` in the source repository.
+Generation record: https://github.com/amyleesterling/the-animal-game/actions/runs/35529496947

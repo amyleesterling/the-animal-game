@@ -1,15 +1,45 @@
 {
   "version": 1,
-  "lastReviewed": "2026-09-19",
+  "lastReviewed": "2026-09-20",
   "stage": "Meet the Zebra prototype",
   "assets": [
+    {
+      "id": "meshy-zebra-portrait-v1",
+      "type": "glb-model",
+      "path": "public/models/zebra.glb",
+      "title": "Zebra Portrait",
+      "creator": "amyleerobinson",
+      "source": "https://www.meshy.ai/s/fURUJE",
+      "sourceModelId": "01a0bc21-e20e-7118-80f8-f7c54372483c",
+      "license": "CC BY 4.0",
+      "licenseSource": "https://creativecommons.org/licenses/by/4.0/",
+      "provenance": "Amy supplied the textured GLB export from her Meshy model. Public share page credits amyleerobinson and lists CC BY 4.0. Source generation labels: Smart Topology + Meshy T2 + Meshy 7 (Texture).",
+      "sourceFilename": "Meshy_AI_Zebra_Portrait_0920021602_texture.glb",
+      "sourceBytes": 8780956,
+      "sourceSha256": "13e13d003a4051cc7fb9f85aaf80f882e508e34f95aa708e66ea9b703730e8b9",
+      "bytes": 1140112,
+      "sha256": "8f250e62026855a02311f9645aa5b6f539eaab313f65bf65a267114d0b8d0b7c",
+      "polygonCount": 4297,
+      "vertexCount": 3658,
+      "textureSizes": [
+        "1024 x 1024 base color",
+        "1024 x 1024 metallic/roughness",
+        "1024 x 1024 normal"
+      ],
+      "modifications": "Three embedded 2048 x 2048 JPEG textures resized to 1024 x 1024 and re-encoded at quality 90, 4:4:4. Geometry, indices and UVs preserved. Game normalizes scale/orientation and applies approximate procedural poses.",
+      "preparationScript": "scripts/optimize-zebra.py",
+      "preparationTool": "Python with Pillow 12.3.0",
+      "embeddedAnimations": [],
+      "embeddedSkeleton": false,
+      "reviewStatus": "AI-generated prototype supplied by creator; species anatomy and procedural motion require wildlife-expert review. Not a production animation rig."
+    },
     {
       "id": "procedural-zebra-v1",
       "type": "procedural-model",
       "implementation": "src/game/zebra.ts",
       "provenance": "Generated in this repository from Three.js primitive geometry and a procedural stripe texture. No third-party animal mesh or photograph is included.",
       "promptVersion": "Meet the Zebra vertical slice, rig v1",
-      "reviewStatus": "Stylized placeholder; anatomical and movement review pending",
+      "reviewStatus": "Stylized fallback while the GLB loads or if loading fails; anatomical and movement review pending",
       "animations": ["graze", "walk", "alert", "retreat", "tail-flick"],
       "polygonCount": "Generated at runtime; measure before release",
       "textureSizes": "Procedural canvas stripe texture; inspect implementation for dimensions",
@@ -32,7 +62,7 @@
     }
   ],
   "missingProductionAssets": [
-    "Scientifically reviewed, rigged plains-zebra GLB and level-of-detail models",
+    "Scientifically reviewed plains-zebra anatomy, production animation rig/clips and level-of-detail models",
     "Licensed, provenance-recorded plains-zebra calls",
     "Recorded narration and licensed ambience",
     "Reviewed species range map and size comparison",

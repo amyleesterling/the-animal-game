@@ -1,6 +1,127 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { zebra } from "../../src/content/species";
 
+test.describe("phone touch controls", () => {
+  test.use({
+    viewport: { width: 390, height: 844 },
+    isMobile: true,
+    hasTouch: true,
+  });
+
+  test("a touch expedition supports landscape quizzes and scrolling over the model", async ({
+    page,
+  }, testInfo) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("./");
+    await page.locator("#start-button").tap();
+    await expect(page.locator("#world canvas")).toHaveAttribute(
+      "data-model-state",
+      "loaded",
+    );
+    await page.locator("#guide-button").tap();
+    await expect(page.locator("#meet-button")).toBeEnabled();
+
+    const touch = await page.context().newCDPSession(page);
+    const back = await page
+      .getByRole("button", { name: "Walk backward" })
+      .boundingBox();
+    expect(back).not.toBeNull();
+    await touch.send("Input.dispatchTouchEvent", {
+      type: "touchStart",
+      touchPoints: [
+        { x: back!.x + back!.width / 2, y: back!.y + back!.height / 2 },
+      ],
+    });
+    try {
+      await expect(page.locator("#meet-button")).toBeDisabled({
+        timeout: 8_000,
+      });
+    } finally {
+      await touch.send("Input.dispatchTouchEvent", {
+        type: "touchEnd",
+        touchPoints: [],
+      });
+    }
+    await page.locator("#guide-button").tap();
+    await page.locator("#meet-button").tap();
+    await page.setViewportSize({ width: 667, height: 375 });
+    await expect
+      .poll(async () => (await page.locator("#mission").boundingBox())!.height)
+      .toBeGreaterThan(150);
+    await expectReadableLayout(page);
+    await page.screenshot({
+      path: testInfo.outputPath("phone-landscape-quiz.png"),
+      fullPage: true,
+    });
+    for (const question of zebra.quizzes) {
+      await page.locator(`[data-answer="${question.correctChoiceId}"]`).tap();
+      await page.locator("#next-question").tap();
+    }
+
+    await page.locator("#guide-button").tap();
+    await page.locator("#camera-button").tap();
+    await expect(page.locator("#shutter")).toBeEnabled();
+    for (const viewport of [
+      { width: 667, height: 375 },
+      { width: 568, height: 320 },
+    ]) {
+      await page.setViewportSize(viewport);
+      const frame = await page.locator(".viewfinder").boundingBox();
+      const controls = await page.locator(".photo-controls").boundingBox();
+      expect(frame!.height).toBeGreaterThan(140);
+      expect(frame!.x + frame!.width).toBeLessThanOrEqual(controls!.x);
+      await expectReadableLayout(page);
+    }
+    await page.screenshot({
+      path: testInfo.outputPath("phone-landscape-photo.png"),
+      fullPage: true,
+    });
+    await page.locator("#shutter").tap();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.locator("#specimen canvas")).toHaveAttribute(
+      "data-model-state",
+      "loaded",
+    );
+    await expect(page.locator("#book-count")).toHaveText("1 / 1");
+    await page.locator("#specimen canvas").scrollIntoViewIfNeeded();
+    const model = await page.locator("#specimen canvas").boundingBox();
+    expect(model).not.toBeNull();
+    const scrollBefore = await page
+      .locator("#dialog")
+      .evaluate((element) => element.scrollTop);
+    const x = model!.x + model!.width / 2;
+    const y = model!.y + model!.height * 0.8;
+    await touch.send("Input.dispatchTouchEvent", {
+      type: "touchStart",
+      touchPoints: [{ x, y }],
+    });
+    for (let step = 1; step <= 6; step++) {
+      await touch.send("Input.dispatchTouchEvent", {
+        type: "touchMove",
+        touchPoints: [{ x, y: y - step * 18 }],
+      });
+      await page.waitForTimeout(40);
+    }
+    await touch.send("Input.dispatchTouchEvent", {
+      type: "touchEnd",
+      touchPoints: [],
+    });
+    await expect
+      .poll(() =>
+        page.locator("#dialog").evaluate((element) => element.scrollTop),
+      )
+      .toBeGreaterThan(scrollBefore + 20);
+    await expectReadableLayout(page);
+    await page.screenshot({
+      path: testInfo.outputPath("phone-touch-field-book.png"),
+      fullPage: true,
+    });
+    await touch.detach();
+    await page.reload();
+    await expect(page.locator("#book-count")).toHaveText("1 / 1");
+  });
+});
+
 test("the guide reaches the zebra even at two frames per second", async ({
   page,
 }) => {
@@ -12,7 +133,7 @@ test("the guide reaches the zebra even at two frames per second", async ({
       window.setTimeout(() => callback(performance.now()), 500);
     window.cancelAnimationFrame = (id: number): void => window.clearTimeout(id);
   });
-  await page.goto("/");
+  await page.goto("./");
   await expect(page.locator("#start-button")).toBeEnabled({ timeout: 15_000 });
   await expect(page.locator("html")).not.toHaveClass(/reduce-motion/);
   await page.locator("#start-button").click();
@@ -39,10 +160,18 @@ async function keyboardActivate(page: Page, target: Locator): Promise<void> {
   throw new Error(`Keyboard could not reach ${await target.textContent()}`);
 }
 
-async function meetZebra(page: Page, keyboardOnly = false): Promise<void> {
+async function meetZebra(
+  page: Page,
+  keyboardOnly = false,
+  modelState = "loaded",
+): Promise<void> {
   const activate = (target: Locator) =>
     keyboardOnly ? keyboardActivate(page, target) : target.click();
   await activate(page.locator("#start-button"));
+  await expect(page.locator("#world canvas")).toHaveAttribute(
+    "data-model-state",
+    modelState,
+  );
   await activate(page.locator("#guide-button"));
   await expect(page.locator("#meet-button")).toBeEnabled({ timeout: 20_000 });
   await activate(page.locator("#meet-button"));
@@ -65,7 +194,11 @@ async function finishQuiz(page: Page, keyboardOnly = false): Promise<void> {
   await expect(page.locator("#camera-button")).toBeVisible();
 }
 
-async function takePhoto(page: Page, keyboardOnly = false): Promise<void> {
+async function takePhoto(
+  page: Page,
+  keyboardOnly = false,
+  modelState = "loaded",
+): Promise<void> {
   const activate = (target: Locator) =>
     keyboardOnly ? keyboardActivate(page, target) : target.click();
   await activate(page.locator("#guide-button"));
@@ -76,6 +209,10 @@ async function takePhoto(page: Page, keyboardOnly = false): Promise<void> {
   await expect(
     page.getByRole("heading", { name: "Plains zebra", exact: true }),
   ).toBeVisible();
+  await expect(page.locator("#specimen canvas")).toHaveAttribute(
+    "data-model-state",
+    modelState,
+  );
   const photo = page.getByRole("img", {
     name: "Your in-game photograph of the plains zebra in the savanna",
   });
@@ -89,6 +226,43 @@ async function takePhoto(page: Page, keyboardOnly = false): Promise<void> {
     )
     .toBe(true);
 }
+
+test("failed texture decoding keeps the visible striped fallback", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    window.createImageBitmap = async () => {
+      throw new Error("Simulated texture decode failure");
+    };
+  });
+  await page.goto("./");
+  await meetZebra(page, false, "fallback");
+  await finishQuiz(page);
+  await takePhoto(page, false, "fallback");
+  await expect(page.locator("#book-count")).toHaveText("1 / 1");
+});
+
+test("an unavailable zebra GLB still permits the whole discovery loop", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.route("**/models/zebra.glb", (route) =>
+    route.fulfill({ status: 503, body: "Asset unavailable" }),
+  );
+  await page.goto("./");
+  await meetZebra(page, false, "fallback");
+  await finishQuiz(page);
+  await takePhoto(page, false, "fallback");
+  await expect(page.locator("#book-count")).toHaveText("1 / 1");
+  await page.reload();
+  await page.locator("#book-button").click();
+  await expect(page.locator("#specimen canvas")).toHaveAttribute(
+    "data-model-state",
+    "fallback",
+  );
+  expect(errors).toEqual([]);
+});
 
 async function expectReadableLayout(page: Page): Promise<void> {
   const report = await page.evaluate(() => {
@@ -140,7 +314,7 @@ test("wrong answers stay friendly, the photo survives refresh, and reset needs c
 }, testInfo) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("/");
+  await page.goto("./");
   await expect(
     page.getByRole("heading", { name: /A world of.*little wonders/ }),
   ).toBeVisible();
@@ -217,23 +391,58 @@ test("wrong answers stay friendly, the photo survives refresh, and reset needs c
 test("the essential expedition can be completed with keyboard input", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("./");
   await meetZebra(page, true);
   await finishQuiz(page, true);
   await takePhoto(page, true);
-  await page.keyboard.press("Escape");
+  for (let visit = 0; visit < 3; visit++) {
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).not.toBeVisible();
+    await keyboardActivate(page, page.locator("#book-button"));
+    await expect(
+      page.getByRole("heading", { name: "Plains zebra", exact: true }),
+    ).toBeVisible();
+    await expect(page.locator("#specimen canvas")).toHaveAttribute(
+      "data-model-state",
+      "loaded",
+    );
+  }
+});
+
+test("resetting during a quiz resumes movement in the savanna", async ({
+  page,
+}) => {
+  // Reduced motion makes the guide arrive at its fixed observation spot before
+  // the quiz opens, so the retreat starts at the same distance on every device.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => {
+    // Manual walking must remain useful on the same slow devices as the guide.
+    window.requestAnimationFrame = (callback: FrameRequestCallback): number =>
+      window.setTimeout(() => callback(performance.now()), 500);
+    window.cancelAnimationFrame = (id: number): void => window.clearTimeout(id);
+  });
+  await page.goto("./");
+  await meetZebra(page);
+  await page.locator("#grownups-button").click();
+  await page.locator("#reset-confirm").click();
+  await page.locator("#reset-now").click();
   await expect(page.getByRole("dialog")).not.toBeVisible();
-  await keyboardActivate(page, page.locator("#book-button"));
-  await expect(
-    page.getByRole("heading", { name: "Plains zebra", exact: true }),
-  ).toBeVisible();
+  await expect(page.locator("#meet-button")).toBeEnabled();
+  await page.keyboard.down("s");
+  try {
+    await expect(page.locator("#meet-button")).toBeDisabled({ timeout: 8_000 });
+  } finally {
+    await page.keyboard.up("s");
+  }
+  await page.locator("#guide-button").click();
+  await expect(page.locator("#meet-button")).toBeEnabled({ timeout: 8_000 });
 });
 
 test("narrow layouts remain legible and accessibility preferences survive reload", async ({
   page,
 }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  await page.goto("./");
   await expect(page.locator("#start-button")).toBeEnabled();
   await expectReadableLayout(page);
   await page.screenshot({
@@ -273,7 +482,7 @@ test("narrow layouts remain legible and accessibility preferences survive reload
 test("an unsupported save is preserved until a grown-up explicitly replaces it", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("./");
   await expect(page.locator("#start-button")).toBeEnabled();
   await page.evaluate(async () => {
     await new Promise<void>((resolve, reject) => {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { existsSync, readFileSync } from "node:fs";
 import { assets, roster, zebra } from "../../src/content/species";
 import { validateContent } from "../../src/content/validate";
 
@@ -60,5 +61,110 @@ describe("reviewable species content", () => {
       /accessible description/,
     );
     expect(zebra.audio.callAssetId).toBeNull();
+  });
+
+  it("defines the attributed Meshy GLB with an explicit procedural fallback", () => {
+    expect(zebra.model).toMatchObject({
+      assetId: "meshy-zebra-portrait-v1",
+      assetPath: "/models/zebra.glb",
+      assetForwardAxis: "+z",
+      targetHeight: 2.25,
+      fallbackAssetId: "procedural-zebra-v1",
+    });
+    const primary = assets.find((asset) => asset.id === zebra.model.assetId);
+    expect(primary).toMatchObject({
+      kind: "glb",
+      rig: { skeletal: false, embeddedAnimationClips: 0 },
+      attribution: {
+        title: "Zebra Portrait",
+        creator: "amyleerobinson",
+        sourceUrl: "https://www.meshy.ai/s/fURUJE",
+        license: "CC BY 4.0",
+        licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
+      },
+    });
+    expect(
+      assets.find((asset) => asset.id === zebra.model.fallbackAssetId)?.kind,
+    ).toBe("procedural");
+  });
+
+  it.each([
+    "https://example.com/zebra.glb",
+    "//example.com/zebra.glb",
+    "/models/../zebra.glb",
+    "/models/%2e%2e/zebra.glb",
+    "/models/zebra.gltf",
+    "/models/zebra.glb?remote=true",
+  ])("rejects model paths outside the local GLB contract: %s", (path) => {
+    const broken = structuredClone(zebra);
+    broken.model.assetPath = path;
+    expect(validateContent([broken]).join("\n")).toMatch(
+      /local \/models\/ GLB path/,
+    );
+  });
+
+  it("rejects mismatched GLB paths, unsupported orientation, and nonexistent fallback models", () => {
+    const broken = structuredClone(zebra);
+    broken.model.assetPath = "/models/different.glb";
+    broken.model.assetForwardAxis =
+      "+y" as typeof broken.model.assetForwardAxis;
+    broken.model.fallbackAssetId = "missing-fallback";
+    const errors = validateContent([broken]).join("\n");
+    expect(errors).toMatch(/match its GLB asset definition/);
+    expect(errors).toMatch(/model forward axis/);
+    expect(errors).toMatch(/defined procedural asset/);
+  });
+
+  it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
+    "rejects an unusable model height: %s",
+    (height) => {
+      const broken = structuredClone(zebra);
+      broken.model.targetHeight = height;
+      expect(validateContent([broken]).join("\n")).toMatch(
+        /target height must be finite and positive/,
+      );
+    },
+  );
+
+  it("requires GLB attribution and source-rig metadata", () => {
+    const brokenAssets = structuredClone(assets);
+    const primary = brokenAssets.find((asset) => asset.kind === "glb")!;
+    if (primary.kind !== "glb") throw new Error("Expected a GLB fixture");
+    primary.attribution.creator = "";
+    primary.attribution.modifications = "";
+    primary.attribution.licenseUrl = "not-a-link";
+    primary.rig.embeddedAnimationClips = -1;
+    const errors = validateContent([zebra], brokenAssets).join("\n");
+    expect(errors).toMatch(
+      /missing GLB title, creator, license, or modification attribution/,
+    );
+    expect(errors).toMatch(/source and license need HTTPS links/);
+    expect(errors).toMatch(/source rig metadata/);
+  });
+
+  it("resolves model files and checks that source-rig metadata matches the bundled GLB", () => {
+    for (const asset of assets) {
+      if (asset.kind === "procedural") {
+        expect(
+          existsSync(new URL(`../../${asset.implementation}`, import.meta.url)),
+        ).toBe(true);
+      }
+      if (asset.kind !== "glb") continue;
+      const buffer = readFileSync(
+        new URL(`../../public${asset.assetPath}`, import.meta.url),
+      );
+      expect(buffer.readUInt32LE(0)).toBe(0x46546c67);
+      expect(buffer.readUInt32LE(4)).toBe(2);
+      expect(buffer.readUInt32LE(8)).toBe(buffer.length);
+      expect(buffer.readUInt32LE(16)).toBe(0x4e4f534a);
+      const jsonLength = buffer.readUInt32LE(12);
+      const model = JSON.parse(
+        buffer.subarray(20, 20 + jsonLength).toString("utf8"),
+      ) as { skins?: unknown[]; animations?: unknown[] };
+      expect(Boolean(model.skins?.length)).toBe(asset.rig.skeletal);
+      expect(model.animations?.length ?? 0).toBe(
+        asset.rig.embeddedAnimationClips,
+      );
+    }
   });
 });

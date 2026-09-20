@@ -8,7 +8,11 @@ import type {
   WorldStatus,
 } from "./contracts";
 import { createZebra, disposeScene } from "./zebra";
-import { stepToward } from "./movement";
+import {
+  moveWithCollisions,
+  stepToward,
+  type GroundPosition,
+} from "./movement";
 
 type Direction = "forward" | "backward" | "left" | "right";
 const UP = new THREE.Vector3(0, 1, 0);
@@ -349,7 +353,9 @@ export function createWorld(
     }
   }
 
-  const animal = createZebra();
+  const animal = createZebra(0, (state) => {
+    renderer.domElement.dataset.modelState = state;
+  });
   const spawn = new THREE.Vector3(...zebra.spawn.position);
   animal.root.position.copy(spawn);
   animal.root.rotation.y = -0.12;
@@ -501,6 +507,7 @@ export function createWorld(
     fps: 60,
   };
   const clearMovement = () => {
+    lastTime = performance.now();
     Object.keys(movement).forEach((key) => {
       movement[key as Direction] = false;
     });
@@ -525,6 +532,7 @@ export function createWorld(
     const direction = keys[event.code];
     if (!direction) return;
     event.preventDefault();
+    if (!Object.values(movement).some(Boolean)) lastTime = performance.now();
     movement[direction] = true;
     guideDestination = null;
   };
@@ -663,6 +671,28 @@ export function createWorld(
     settings.onStatus(status);
   }
 
+  function resolvePlayerCollisions(position: GroundPosition) {
+    position.x = THREE.MathUtils.clamp(position.x, -38, 38);
+    position.z = THREE.MathUtils.clamp(position.z, -55, 20);
+    for (const tree of trees) {
+      const dx = position.x - tree.x;
+      const dz = position.z - tree.z;
+      const distance = Math.hypot(dx, dz);
+      if (distance < tree.radius + 0.25 && distance > 0.001) {
+        position.x = tree.x + (dx / distance) * (tree.radius + 0.25);
+        position.z = tree.z + (dz / distance) * (tree.radius + 0.25);
+      }
+    }
+    // The water has a gentle shore boundary; the child stays on dry land.
+    const px = position.x - pondCenter.x;
+    const pz = position.z - pondCenter.y;
+    const pondDistance = Math.sqrt((px / 10.3) ** 2 + (pz / 7.5) ** 2);
+    if (pondDistance < 1 && pondDistance > 0) {
+      position.x = pondCenter.x + px / pondDistance;
+      position.z = pondCenter.y + pz / pondDistance;
+    }
+  }
+
   function animate(time: number) {
     if (disposed) return;
     frame = requestAnimationFrame(animate);
@@ -685,6 +715,7 @@ export function createWorld(
           guideDestination = null;
           velocity.set(0, 0, 0);
         }
+        resolvePlayerCollisions(player.position);
       } else {
         const forward = Number(movement.forward) - Number(movement.backward);
         const right = Number(movement.right) - Number(movement.left);
@@ -694,26 +725,12 @@ export function createWorld(
           -Math.cos(yaw) * forward - Math.sin(yaw) * right,
         );
         if (velocity.lengthSq() > 0) velocity.normalize().multiplyScalar(4.2);
-        player.position.addScaledVector(velocity, delta);
-      }
-      player.position.x = THREE.MathUtils.clamp(player.position.x, -38, 38);
-      player.position.z = THREE.MathUtils.clamp(player.position.z, -55, 20);
-      for (const tree of trees) {
-        const dx = player.position.x - tree.x;
-        const dz = player.position.z - tree.z;
-        const distance = Math.hypot(dx, dz);
-        if (distance < tree.radius + 0.25 && distance > 0.001) {
-          player.position.x = tree.x + (dx / distance) * (tree.radius + 0.25);
-          player.position.z = tree.z + (dz / distance) * (tree.radius + 0.25);
-        }
-      }
-      // The water has a gentle shore boundary; the child stays on dry land.
-      const px = player.position.x - pondCenter.x;
-      const pz = player.position.z - pondCenter.y;
-      const pondDistance = Math.sqrt((px / 10.3) ** 2 + (pz / 7.5) ** 2);
-      if (pondDistance < 1 && pondDistance > 0) {
-        player.position.x = pondCenter.x + px / pondDistance;
-        player.position.z = pondCenter.y + pz / pondDistance;
+        moveWithCollisions(
+          player.position,
+          velocity,
+          frameDuration,
+          resolvePlayerCollisions,
+        );
       }
       if (velocity.lengthSq() > 0)
         player.rotation.y = Math.atan2(-velocity.x, -velocity.z);
@@ -818,6 +835,8 @@ export function createWorld(
     },
     setMovement(direction, pressed) {
       if (active && !photoMode) {
+        if (pressed && !Object.values(movement).some(Boolean))
+          lastTime = performance.now();
         movement[direction] = pressed;
         if (pressed) guideDestination = null;
       }
@@ -898,6 +917,8 @@ export function createWorld(
         "webglcontextlost",
         onContextLost,
       );
+      animal.dispose();
+      companions.forEach((rig) => rig.dispose());
       disposeScene(scene);
       renderer.dispose();
       renderer.domElement.remove();

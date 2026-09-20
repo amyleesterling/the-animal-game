@@ -27,7 +27,9 @@ export function createSpecimen(
   const sun = new THREE.DirectionalLight(0xffe6c1, 3);
   sun.position.set(4, 6, 4);
   scene.add(sun);
-  const animal = createZebra();
+  const animal = createZebra(0, (state) => {
+    renderer.domElement.dataset.modelState = state;
+  });
   scene.add(animal.root);
   animal.root.rotation.y = -0.3;
   const base = new THREE.Mesh(
@@ -94,6 +96,7 @@ export function createSpecimen(
       renderer.domElement.removeEventListener("pointerup", onUp);
       renderer.domElement.removeEventListener("pointercancel", onUp);
       renderer.domElement.removeEventListener("keydown", onKey);
+      animal.dispose();
       disposeScene(scene);
       renderer.dispose();
       renderer.domElement.remove();

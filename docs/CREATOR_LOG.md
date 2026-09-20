@@ -30,6 +30,19 @@ Testing caught mobile photograph cropping and a reset/save timing bug. The
 team corrected both and retained regression coverage. These are engineering
 observations, not evidence of child playtesting or wildlife-expert approval.
 
+## 2026-09-20 — Amy supplies the zebra model
+
+Amy shared her Meshy **Zebra Portrait** model and then provided its textured
+GLB export when the browser download was blocked. The export contains one
+mesh with 4,297 triangles, three textures, and no skeleton or animation clips.
+
+The Codex team reduced the embedded textures from 2048 to 1024 pixels, keeping
+the geometry and UVs unchanged. This reduced the file from 8.8 MB to 1.14 MB.
+The team integrated asynchronous loading with the original zebra as a fallback
+and added approximate procedural poses. Source, license, changes, and checksums
+are recorded in the asset manifest and credits. This is still prototype anatomy
+and motion, not evidence of a wildlife review or a child's approval.
+
 ## Next entry — Sophia's first playtest
 
 After a real playtest, record the date, what Sophia tried, where she hesitated,

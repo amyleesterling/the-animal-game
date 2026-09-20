@@ -1,4 +1,23 @@
-type GroundPosition = { x: number; z: number };
+export type GroundPosition = { x: number; z: number };
+
+/** Consume visible elapsed time without stepping over a small solid obstacle. */
+export function moveWithCollisions(
+  position: GroundPosition,
+  velocity: GroundPosition,
+  seconds: number,
+  resolveCollision: (position: GroundPosition) => void,
+): void {
+  const distance = Math.hypot(velocity.x, velocity.z) * seconds;
+  if (!Number.isFinite(distance) || distance <= 0) return;
+  // The smallest tree exclusion radius is greater than 0.6 world units.
+  const steps = Math.ceil(distance / 0.2);
+  const stepSeconds = seconds / steps;
+  for (let step = 0; step < steps; step++) {
+    position.x += velocity.x * stepSeconds;
+    position.z += velocity.z * stepSeconds;
+    resolveCollision(position);
+  }
+}
 
 /** Advance an assisted walk using visible elapsed time, including slow frames. */
 export function stepToward(

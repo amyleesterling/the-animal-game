@@ -61,6 +61,10 @@ export interface Species {
   sources: SourceRecord[];
   model: {
     assetId: string;
+    assetPath: string;
+    assetForwardAxis: "+x" | "-x" | "+z" | "-z";
+    targetHeight: number;
+    fallbackAssetId: string;
     bodyColor: number;
     stripeColor: number;
     scale: number;
@@ -95,10 +99,30 @@ export interface RosterEntry {
   symbol: string;
 }
 
-export interface AssetDefinition {
+export interface AssetAttribution {
+  title: string;
+  creator: string;
+  sourceUrl: string;
+  license: string;
+  licenseUrl: string;
+  modifications: string;
+}
+
+interface AssetBase {
   id: string;
-  kind: "procedural" | "audio";
-  implementation?: string;
   status: "prototype" | "reviewed";
   alt: string;
 }
+
+export type AssetDefinition = AssetBase &
+  (
+    | { kind: "procedural"; implementation: string }
+    | { kind: "audio"; assetPath: string }
+    | {
+        kind: "glb";
+        assetPath: string;
+        attribution: AssetAttribution;
+        rig: { skeletal: boolean; embeddedAnimationClips: number };
+        reviewNote: string;
+      }
+  );

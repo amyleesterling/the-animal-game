@@ -2,7 +2,7 @@ import "./style.css";
 import { createWorld } from "./game/world";
 import { createSpecimen } from "./game/specimen";
 import type { World, WorldStatus } from "./game/contracts";
-import { zebra, roster } from "./content/species";
+import { assets, zebra, roster } from "./content/species";
 import { assertValidContent } from "./content/validate";
 import {
   newProgress,
@@ -123,7 +123,16 @@ function button(id: string, handler: () => void): void {
   $(id)?.addEventListener("click", handler);
 }
 function closeDialog(): void {
+  if (!dialog.open) return;
+  // Finish the old preview before another dialog can open. Native `close`
+  // events are queued and must not later dispose a new preview or steal focus.
+  specimen?.dispose();
+  specimen = undefined;
   dialog.close();
+  world?.setActive(started && mode !== "quiz");
+  stopNarration();
+  lastFocus?.focus();
+  lastFocus = null;
 }
 function openDialog(html: string): void {
   lastFocus = document.activeElement as HTMLElement;
@@ -135,12 +144,9 @@ function openDialog(html: string): void {
     .querySelectorAll("[data-close]")
     .forEach((el) => el.addEventListener("click", closeDialog));
 }
-dialog.addEventListener("close", () => {
-  specimen?.dispose();
-  specimen = undefined;
-  world?.setActive(started && mode !== "quiz");
-  stopNarration();
-  lastFocus?.focus();
+dialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeDialog();
 });
 const closeButton = `<button class="icon-button dialog-close" data-close aria-label="Close">${icon("close")}</button>`;
 
@@ -338,9 +344,15 @@ function openSettings(): void {
     (id) => $(id).addEventListener("change", update),
   );
 }
+function modelCredits(): string {
+  const asset = assets.find((entry) => entry.id === zebra.model.assetId);
+  if (asset?.kind !== "glb") return "";
+  const credit = asset.attribution;
+  return `<section class="model-credits"><h3>Our zebra model</h3><p><a href="${esc(credit.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(credit.title)}</a> by ${esc(credit.creator)}, created with Meshy and supplied by Amy. Licensed under <a href="${esc(credit.licenseUrl)}" target="_blank" rel="noopener noreferrer">${esc(credit.license)}</a>.</p><p>${esc(credit.modifications)}</p></section>`;
+}
 function openGrownups(): void {
   openDialog(
-    `<div class="settings-page grownups">${closeButton}<div class="eyebrow">BEHIND THE ADVENTURE</div><h2 id="dialog-title">A small creator.<br>A big imagination.</h2><p>Created by Sophia, age 7, with AI and help from her mom.</p><p>Sophia supplies the idea and creative direction. Amy, Cora, and AI help turn those ideas into a game through research, building, testing, and revision.</p><h3>About this first expedition</h3><p>Meet the Zebra is a playable prototype: one animal, three questions, an in-game photograph, and a field-book page. Its animal and habitat models are original procedural placeholders.</p><h3>Saved on this browser</h3><p>Photographs and progress stay in this browser’s storage. There are no accounts, real-world camera access, ads, or analytics in this build. Clearing browser data will clear your field book. Read-aloud uses an available local device voice.</p><h3>Our field references</h3><p>Animal facts are checked against the sources below. Specialist review and child playtesting are still needed before a public release.</p><ul>${zebra.sources.map((s) => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a></li>`).join("")}</ul><h3>A fresh notebook</h3><p>Starting over removes this browser’s zebra discovery and photo.</p><button class="soft" id="reset-confirm">Start a new field book…</button></div>`,
+    `<div class="settings-page grownups">${closeButton}<div class="eyebrow">BEHIND THE ADVENTURE</div><h2 id="dialog-title">A small creator.<br>A big imagination.</h2><p>Created by Sophia, age 7, with AI and help from her mom.</p><p>Sophia supplies the idea and creative direction. Amy, Cora, and AI help turn those ideas into a game through research, building, testing, and revision.</p><h3>About this first expedition</h3><p>Meet the Zebra is a playable prototype: one animal, three questions, an in-game photograph, and a field-book page. Its zebra model was supplied by Amy. The habitat and the backup zebra are original procedural art. The anatomy and movements are still being refined.</p>${modelCredits()}<h3>Saved on this browser</h3><p>Photographs and progress stay in this browser’s storage. There are no accounts, real-world camera access, ads, or analytics in this build. Clearing browser data will clear your field book. Read-aloud uses an available local device voice.</p><h3>Our field references</h3><p>Animal facts are checked against the sources below. Specialist review and child playtesting are still needed before a public release.</p><ul>${zebra.sources.map((s) => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a></li>`).join("")}</ul><h3>A fresh notebook</h3><p>Starting over removes this browser’s zebra discovery and photo.</p><button class="soft" id="reset-confirm">Start a new field book…</button></div>`,
   );
   button("reset-confirm", () => {
     $("reset-confirm").outerHTML =
@@ -370,9 +382,11 @@ function openGrownups(): void {
         return;
       }
       updateCount();
-      closeDialog();
       mode = "explore";
       world?.setPhotoMode(false);
+      closeDialog();
+      // Reset may finish after the dialog was already dismissed during saving.
+      world?.setActive(started && !dialog.open && !document.hidden);
       $("notice").classList.add("hidden");
       $("photo-overlay").classList.add("hidden");
       if (started) $("mission").classList.remove("hidden");

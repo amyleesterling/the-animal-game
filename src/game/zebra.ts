@@ -1,14 +1,83 @@
 import * as THREE from "three";
 import { zebra } from "../content/species";
 import type { AnimalBehavior } from "./contracts";
+import {
+  disposeModelResources,
+  loadZebraVisual,
+  type ModelState,
+  type ModelVisual,
+} from "./zebra-model";
 
 export interface AnimalRig {
   root: THREE.Group;
   animate(time: number, behavior: AnimalBehavior, reducedMotion: boolean): void;
+  dispose(): void;
 }
 
-/** A deliberately stylized, original placeholder. Shared by the world and field book. */
-export function createZebra(seed = 0): AnimalRig {
+/** Immediate fallback plus independently owned imported visual in every renderer. */
+export function createZebra(
+  seed = 0,
+  onModelState?: (state: ModelState) => void,
+): AnimalRig {
+  const root = new THREE.Group();
+  root.name = "plains-zebra";
+  let visual: ModelVisual = createProceduralZebra(seed);
+  root.add(visual.root);
+  const controller = new AbortController();
+  let disposed = false;
+  let lastPose: [number, AnimalBehavior, boolean] = [0, "alert", false];
+  const setState = (state: ModelState) => {
+    root.userData.modelState = state;
+    onModelState?.(state);
+  };
+  setState("loading");
+  void loadZebraVisual(
+    zebra.model.assetPath,
+    zebra.model.assetForwardAxis,
+    zebra.model.targetHeight * zebra.model.scale,
+    controller.signal,
+  )
+    .then((loaded) => {
+      if (disposed) {
+        disposeModelResources(loaded.root);
+        return;
+      }
+      try {
+        loaded.animate(...lastPose);
+      } catch (error) {
+        disposeModelResources(loaded.root);
+        throw error;
+      }
+      const fallback = visual;
+      visual = loaded;
+      root.add(visual.root);
+      root.remove(fallback.root);
+      disposeModelResources(fallback.root);
+      setState("loaded");
+    })
+    .catch(() => {
+      if (!disposed) setState("fallback");
+    });
+  return {
+    root,
+    animate(time, behavior, reducedMotion) {
+      if (disposed) return;
+      lastPose = [time, behavior, reducedMotion];
+      visual.animate(time, behavior, reducedMotion);
+    },
+    dispose() {
+      if (disposed) return;
+      disposed = true;
+      controller.abort();
+      root.removeFromParent();
+      disposeModelResources(root);
+      root.clear();
+    },
+  };
+}
+
+/** Original placeholder remains playable while loading and on asset failure. */
+function createProceduralZebra(seed: number): ModelVisual {
   const root = new THREE.Group();
   const cream = new THREE.MeshStandardMaterial({
     color: zebra.model.bodyColor,
@@ -211,23 +280,4 @@ export function createZebra(seed = 0): AnimalRig {
   };
 }
 
-export function disposeScene(scene: THREE.Object3D) {
-  const geometries = new Set<THREE.BufferGeometry>();
-  const materials = new Set<THREE.Material>();
-  const textures = new Set<THREE.Texture>();
-  scene.traverse((object) => {
-    if (!(object instanceof THREE.Mesh)) return;
-    geometries.add(object.geometry);
-    (Array.isArray(object.material)
-      ? object.material
-      : [object.material]
-    ).forEach((material) => {
-      materials.add(material);
-      const mapped = material as THREE.MeshStandardMaterial;
-      if (mapped.map) textures.add(mapped.map);
-    });
-  });
-  geometries.forEach((item) => item.dispose());
-  materials.forEach((item) => item.dispose());
-  textures.forEach((item) => item.dispose());
-}
+export { disposeModelResources as disposeScene } from "./zebra-model";

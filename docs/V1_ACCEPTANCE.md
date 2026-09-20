@@ -8,8 +8,10 @@ species is the next product milestone. The first slice must still carry its
 one animal through the entire experience: explore, meet, learn, photograph,
 save, and revisit.
 
-Stylized procedural animal and world art are prototype assets. They are not
-final licensed animal models, scientifically reviewed anatomy, or evidence
+The world and backup zebra use stylized procedural art. The primary zebra is
+Amy's supplied Meshy GLB, with recorded CC BY 4.0 attribution and optimized
+textures. It has no embedded skeleton or clips; game poses are approximate.
+These remain prototype assets, not scientifically reviewed anatomy or evidence
 that the eventual photoreal art direction is complete.
 
 ## Architecture decision

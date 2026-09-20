@@ -10,6 +10,18 @@ export function validateContent(
   const seen = new Set<string>();
   const text = (value: unknown): boolean =>
     typeof value === "string" && value.trim().length > 0;
+  const localModelPath = (value: unknown): boolean =>
+    typeof value === "string" &&
+    /^\/models\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.glb$/.test(value);
+  const httpsUrl = (value: unknown): boolean => {
+    if (typeof value !== "string") return false;
+    try {
+      const url = new URL(value);
+      return url.protocol === "https:" && Boolean(url.hostname);
+    } catch {
+      return false;
+    }
+  };
   const date = (value: unknown): boolean =>
     typeof value === "string" &&
     /^\d{4}-\d{2}-\d{2}$/.test(value) &&
@@ -30,6 +42,35 @@ export function validateContent(
       errors.push(`${asset.id}: missing accessible description`);
     if (asset.kind === "procedural" && !text(asset.implementation))
       errors.push(`${asset.id}: missing procedural implementation reference`);
+    if (asset.kind === "glb") {
+      if (!localModelPath(asset.assetPath))
+        errors.push(
+          `${asset.id}: model path must be a local /models/ GLB path`,
+        );
+      const attribution = asset.attribution;
+      if (
+        !attribution ||
+        !text(attribution.title) ||
+        !text(attribution.creator) ||
+        !text(attribution.license) ||
+        !text(attribution.modifications)
+      )
+        errors.push(
+          `${asset.id}: missing GLB title, creator, license, or modification attribution`,
+        );
+      if (
+        !httpsUrl(attribution?.sourceUrl) ||
+        !httpsUrl(attribution?.licenseUrl)
+      )
+        errors.push(`${asset.id}: GLB source and license need HTTPS links`);
+      if (
+        !asset.rig ||
+        typeof asset.rig.skeletal !== "boolean" ||
+        !Number.isInteger(asset.rig.embeddedAnimationClips) ||
+        asset.rig.embeddedAnimationClips < 0
+      )
+        errors.push(`${asset.id}: missing or invalid source rig metadata`);
+    }
   }
   for (const species of speciesList) {
     id(species.id, "species");
@@ -108,6 +149,42 @@ export function validateContent(
     if (!assetIds.has(species.model.assetId))
       errors.push(
         `${species.id}: undefined model asset ${species.model.assetId}`,
+      );
+    const primaryAsset = assetList.find(
+      (asset) => asset.id === species.model.assetId,
+    );
+    if (!localModelPath(species.model.assetPath))
+      errors.push(
+        `${species.id}: model path must be a local /models/ GLB path`,
+      );
+    if (
+      primaryAsset?.kind !== "glb" ||
+      primaryAsset.assetPath !== species.model.assetPath
+    )
+      errors.push(
+        `${species.id}: primary model path must match its GLB asset definition`,
+      );
+    if (!["+x", "-x", "+z", "-z"].includes(species.model.assetForwardAxis))
+      errors.push(
+        `${species.id}: model forward axis must be +x, -x, +z, or -z`,
+      );
+    if (
+      !Number.isFinite(species.model.targetHeight) ||
+      species.model.targetHeight <= 0
+    )
+      errors.push(
+        `${species.id}: model target height must be finite and positive`,
+      );
+    const fallbackAsset = assetList.find(
+      (asset) => asset.id === species.model.fallbackAssetId,
+    );
+    if (
+      !fallbackAsset ||
+      fallbackAsset.kind !== "procedural" ||
+      species.model.fallbackAssetId === species.model.assetId
+    )
+      errors.push(
+        `${species.id}: fallback model must reference a defined procedural asset`,
       );
     if (species.audio.callAssetId && !assetIds.has(species.audio.callAssetId))
       errors.push(

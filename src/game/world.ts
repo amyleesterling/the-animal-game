@@ -349,7 +349,9 @@ export function createWorld(
     }
   }
 
-  const animal = createZebra();
+  const animal = createZebra(0, (state) => {
+    renderer.domElement.dataset.modelState = state;
+  });
   const spawn = new THREE.Vector3(...zebra.spawn.position);
   animal.root.position.copy(spawn);
   animal.root.rotation.y = -0.12;
@@ -898,6 +900,8 @@ export function createWorld(
         "webglcontextlost",
         onContextLost,
       );
+      animal.dispose();
+      companions.forEach((rig) => rig.dispose());
       disposeScene(scene);
       renderer.dispose();
       renderer.domElement.remove();

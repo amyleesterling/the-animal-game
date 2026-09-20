@@ -1,5 +1,8 @@
 # Meet the Zebra — QA report
 
+This is the original slice's historical verification record. For the
+2026-09-20 Meshy-model integration, see [Zebra asset QA](ZEBRA_ASSET_QA.md).
+
 Date: 2026-09-19. Scope: the first complete zebra expedition, not the future
 ten-species public release. The record includes the initial integrated-tree
 checks and the subsequent low-frame-rate regression investigation.

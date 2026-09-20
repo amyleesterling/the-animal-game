@@ -19,6 +19,25 @@ function fact(id: string, text: string, sourceIds: string[]): NarratedFact {
 
 export const assets: AssetDefinition[] = [
   {
+    id: "meshy-zebra-portrait-v1",
+    kind: "glb",
+    assetPath: "/models/zebra.glb",
+    status: "prototype",
+    alt: "A textured zebra with black and white stripes, an upright mane, four legs, and a tufted tail.",
+    attribution: {
+      title: "Zebra Portrait",
+      creator: "amyleerobinson",
+      sourceUrl: "https://www.meshy.ai/s/fURUJE",
+      license: "CC BY 4.0",
+      licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
+      modifications:
+        "Textures resized and compressed for faster loading. The game adjusts scale and orientation and adds approximate procedural poses. The supplied model has no skeleton or animation clips.",
+    },
+    rig: { skeletal: false, embeddedAnimationClips: 0 },
+    reviewNote:
+      "User-supplied Meshy model. Anatomical accuracy and runtime movement review are pending.",
+  },
+  {
     id: "procedural-zebra-v1",
     kind: "procedural",
     implementation: "src/game/zebra.ts",
@@ -208,7 +227,11 @@ export const zebra: Species = {
     },
   ],
   model: {
-    assetId: "procedural-zebra-v1",
+    assetId: "meshy-zebra-portrait-v1",
+    assetPath: "/models/zebra.glb",
+    assetForwardAxis: "+z",
+    targetHeight: 2.25,
+    fallbackAssetId: "procedural-zebra-v1",
     bodyColor: 0xf3eee0,
     stripeColor: 0x24282b,
     scale: 1,

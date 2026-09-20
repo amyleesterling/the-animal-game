@@ -38,8 +38,12 @@ IndexedDB. There are no accounts or backend services.
 
 The ten-animal savanna remains the next milestone. Only the plains zebra is
 playable in this slice; the field book labels the other nine as future content.
-Procedural animals and scenery are original prototype art, with provenance
-in [public/assets-manifest.json](public/assets-manifest.json).
+The zebra uses Amy's supplied Meshy model, **Zebra Portrait** by
+**amyleerobinson**, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+Its textures are optimized for the game; the source has no skeleton or animation clips.
+The game adds approximate procedural poses. The scenery and backup zebra remain
+original procedural art. See the [asset credits](public/models/CREDITS.md)
+and [provenance manifest](public/assets-manifest.json).
 
 ### Run locally
 
@@ -113,7 +117,7 @@ must add explicit migrations instead of silently interpreting newer data.
 | `src/main.ts`, `src/style.css` | Accessible DOM interface and flow coordination |
 | `src/game/contracts.ts` | Boundary between the UI and the world |
 | `src/game/world.ts` | Habitat, player, proximity, animal behavior, photo framing |
-| `src/game/zebra.ts`, `specimen.ts` | Original procedural animal and field-book preview |
+| `src/game/zebra.ts`, `zebra-model.ts`, `specimen.ts` | GLB loading, procedural poses/fallback, resource cleanup and field-book preview |
 | `src/content/` | Species, sources, quizzes, asset identifiers, spawn and behavior data |
 | `src/state/progress.ts` | Explicit encounter/photo progression and save validation |
 | `src/state/save.ts` | Versioned IndexedDB storage and failure reporting |
@@ -133,13 +137,21 @@ reviewed model, reusable world integration, and encounter tests.
 
 ### Current asset and performance budgets
 
-- No downloaded animal models, textures, fonts, or audio are required at runtime.
+- The self-contained zebra GLB is served locally from `public/models/zebra.glb`:
+  1,140,112 bytes, 4,297 triangles, 3,658 vertices and three 1024 × 1024 textures.
+  No Meshy request or account is needed to play. A procedural zebra keeps the
+  expedition usable while loading or if the asset is unavailable.
+- The uploaded 8,780,956-byte export was prepared with
+  `python scripts/optimize-zebra.py /path/to/original.glb` (Python + Pillow 12.3.0).
+  Geometry and UVs are preserved; texture resizing/compression reduced the
+  model download by about 87%. Source and output hashes are in the manifest.
+  Python is only needed to regenerate the asset, not to build or play the game.
 - Vegetation is instanced or merged; device pixel ratio is capped at 1.75, or
   1 in simple graphics mode. Simple graphics also reduces vegetation/shadows.
 - Captures are actual 960 × 720 JPEG scene renders. The save validator limits
   image payload size and accepts only supported image data URLs.
 - Target compressed JavaScript: under 200 kB for this first slice; production
-  build measured about 144 kB gzip before final verification.
+  build with the GLB loader measures about 173 kB gzip.
 - Target frame rate: 30 FPS on an agreed school device. Actual Chromebook
   performance, startup on a school connection, and mobile battery use have
   **not** been measured. Simple graphics is manual in this slice.

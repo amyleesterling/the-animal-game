@@ -50,9 +50,9 @@ const LOW_SUN = new THREE.Color(0xffb257);
 const HIGH_SUN = new THREE.Color(0xfff0cf);
 
 const DRY_GRASS = new THREE.Color(0xc2ad72);
-const LUSH_GRASS = new THREE.Color(0x5f8f3f);
+const LUSH_GRASS = new THREE.Color(0x76a44b);
 const DRY_EARTH = new THREE.Color(0xada96d);
-const WET_EARTH = new THREE.Color(0x6f6845);
+const WET_EARTH = new THREE.Color(0x8a7c50);
 
 function lerpColor(
   out: THREE.Color,
@@ -203,8 +203,8 @@ export function createEnvironmentVisuals(
 
       // Fog closes in during a storm and opens up on a clear dry day.
       fog.color.copy(skyColor);
-      fog.near = THREE.MathUtils.lerp(34, 6, state.stormIntensity);
-      fog.far = THREE.MathUtils.lerp(125, 46, state.stormIntensity);
+      fog.near = THREE.MathUtils.lerp(60, 10, state.stormIntensity);
+      fog.far = THREE.MathUtils.lerp(330, 95, state.stormIntensity);
 
       // Sun, placed by the real solar position for this date and latitude.
       const altitude = state.sunAltitude;

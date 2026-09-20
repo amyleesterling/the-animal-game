@@ -60,7 +60,7 @@ const visuals = createEnvironmentVisuals({
   camera,
   sun: savanna.sun,
   hemisphere: savanna.hemisphere,
-  grassMaterials: [savanna.grassMaterial],
+  grassMaterials: savanna.grassMaterials,
   groundMaterials: [savanna.groundMaterial],
   water: savanna.water,
   sunDisc: savanna.sunDisc,
@@ -130,6 +130,7 @@ declare global {
       state: () => ReturnType<typeof environment.state>;
       skyColor: () => string;
       raindrops: () => number;
+      blades: () => number;
     };
   }
 }
@@ -141,4 +142,5 @@ window.weatherLab = {
       ? `#${scene.background.getHexString()}`
       : "",
   raindrops: () => visuals.raindrops(),
+  blades: () => savanna.bladeCount(),
 };

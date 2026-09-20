@@ -1,0 +1,38 @@
+name: Generate requested image-guided safari assets
+on:
+  push:
+    tags: [meshy-safari-image-assets-20260920-v1]
+permissions:
+  contents: read
+concurrency:
+  group: meshy-safari-image-assets-20260920-v1
+  cancel-in-progress: false
+jobs:
+  generate:
+    # Keep this tag immutable. Reruns must not start a second paid batch.
+    if: github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    environment: MESHY_API_KEY
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Validate all four committed references without API access
+        run: node scripts/generate-safari-assets.mjs --dry-run
+      - name: Generate four image-guided models and review thumbnails
+        timeout-minutes: 65
+        env:
+          MESHY_API_KEY: ${{ secrets.MESHY_API_KEY }}
+        run: node scripts/generate-safari-assets.mjs
+      - name: Preserve models, thumbnails, receipts, and resumable task IDs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: meshy-safari-image-assets
+          path: generated/safari-assets/
+          retention-days: 30
+          if-no-files-found: warn

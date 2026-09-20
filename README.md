@@ -41,6 +41,14 @@ Follow the direction arrow between discoveries, or use the optional quick jump.
 Sophia walks with her supplied animation; animal models and vehicle wheels
 currently hold static poses.
 
+Walk or drive close to any animal to open its discovery prompt, even if the
+route points somewhere else. Type a common name such as **elephant**, or choose
+**Skip · tell me the name** to fill it in and continue the quiz. The name starts
+a field-book page immediately; completing the question and photo adds its clue.
+**Keep exploring** dismisses the prompt until you leave the animal and approach
+again. Completed animals do not interrupt you. Existing story saves upgrade
+without losing photographs. See [encounter verification](docs/ENCOUNTERS_QA.md).
+
 The jeep stops for trees, animals, water and the edge of the play area. Settings,
 switching tabs and losing focus stop it and release its controls. Story progress
 and photographs are saved; refreshing places Sophia and the jeep at the current

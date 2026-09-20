@@ -7,10 +7,13 @@ import {
   answerSafari,
   createSafariStore,
   discoveredCount,
+  encounterStop,
+  identifySafari,
   isSafariProgress,
   isStopUnlocked,
   learnSafariClue,
   newSafari,
+  nextSafariStop,
   photographSafari,
   retrySafariAnswer,
   SAFARI_KEY,
@@ -22,6 +25,31 @@ import { newProgress } from "../../src/state/progress";
 const PHOTO =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/ZAAAAABJRU5ErkJggg==";
 const NOW = "2026-09-20T18:00:00.000Z";
+function identifyCurrent(p: ReturnType<typeof newSafari>) {
+  return identifySafari(p, "", true);
+}
+function finishCurrent(p: ReturnType<typeof newSafari>) {
+  const stop = safariStops.find((stop) => stop.id === p.currentStopId)!;
+  return photographSafari(
+    learnSafariClue(answerSafari(identifyCurrent(p), stop.question.correctId)),
+    PHOTO,
+    NOW,
+  );
+}
+/** A real old-format snapshot, with no v2 identification properties. */
+function legacySnapshot(p: ReturnType<typeof newSafari>) {
+  return {
+    ...structuredClone(p),
+    schemaVersion: 1,
+    entries: Object.fromEntries(
+      Object.entries(p.entries).map(([id, entry]) => {
+        const { identification: _identification, ...legacy } =
+          structuredClone(entry);
+        return [id, legacy];
+      }),
+    ),
+  };
+}
 async function rawPut(factory: IDBFactory, name: string, value: unknown) {
   const db = await new Promise<IDBDatabase>((resolve, reject) => {
     const r = factory.open(name, 1);
@@ -36,6 +64,25 @@ async function rawPut(factory: IDBFactory, name: string, value: unknown) {
     tx.onabort = () => reject(tx.error);
   });
   db.close();
+}
+async function rawRead(factory: IDBFactory, name: string): Promise<unknown> {
+  const db = await new Promise<IDBDatabase>((resolve, reject) => {
+    const request = factory.open(name, 1);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(SAFARI_STORE, "readonly");
+    const request = tx.objectStore(SAFARI_STORE).get(SAFARI_KEY);
+    tx.oncomplete = () => {
+      db.close();
+      resolve(request.result);
+    };
+    tx.onabort = () => {
+      db.close();
+      reject(tx.error);
+    };
+  });
 }
 afterEach(() => {
   vi.restoreAllMocks();
@@ -79,6 +126,8 @@ describe("seven-stop story content and progression", () => {
     expect(() => visitStop(p, "african-elephant")).toThrow();
     expect(() => learnSafariClue(p)).toThrow();
     expect(() => photographSafari(p, PHOTO)).toThrow();
+    expect(() => answerSafari(p, "fish")).toThrow("Name this animal first");
+    p = identifyCurrent(p);
     p = answerSafari(p, "fish");
     expect(() => answerSafari(p, "grass")).toThrow();
     expect(isSafariProgress(p)).toBe(true);
@@ -96,7 +145,7 @@ describe("seven-stop story content and progression", () => {
   it("finishes all seven stops, permits revisits and keeps the completion date", () => {
     let p = newSafari();
     for (const s of safariStops) {
-      p = visitStop(p, s.id);
+      p = identifyCurrent(visitStop(p, s.id));
       p = photographSafari(
         learnSafariClue(answerSafari(p, s.question.correctId)),
         PHOTO,
@@ -105,11 +154,76 @@ describe("seven-stop story content and progression", () => {
       expect(isSafariProgress(p)).toBe(true);
     }
     expect(discoveredCount(p)).toBe(7);
+    expect(nextSafariStop(p)).toBeUndefined();
     expect(p.completedAt).toBe(NOW);
     p = visitStop(p, "plains-zebra");
     expect(p.entries["plains-zebra"].visits).toBe(2);
     expect(photographSafari(p, PHOTO).completedAt).toBe(NOW);
     expect(discoveredCount(p)).toBe(7);
+  });
+  it("keeps a valid typed identification and makes help explicit", () => {
+    const initial = newSafari();
+    expect(() => identifySafari(initial, "zebra")).toThrow("Come closer");
+    const visited = encounterStop(initial, "plains-zebra");
+    expect(() => identifySafari(visited, "giraffe")).toThrow(
+      "Take another look",
+    );
+    expect(visited.entries["plains-zebra"].identification).toBeNull();
+    const named = identifySafari(visited, "  ZEBRAS!  ");
+    expect(named.entries["plains-zebra"].identification).toEqual({
+      name: "ZEBRAS!",
+      skipped: false,
+    });
+    expect(identifySafari(named, "something else", true)).toBe(named);
+    expect(isSafariProgress(named)).toBe(true);
+    const elephant = identifyCurrent(encounterStop(named, "african-elephant"));
+    expect(elephant.entries["african-elephant"].identification).toEqual({
+      name: "African savanna elephant",
+      skipped: true,
+    });
+    expect(elephant.entries["plains-zebra"]).toEqual(
+      named.entries["plains-zebra"],
+    );
+  });
+  it("supports an elephant-first encounter, visited route jumps and all seven discoveries", () => {
+    let p = newSafari();
+    expect(() => visitStop(p, "african-elephant")).toThrow();
+    expect(() => encounterStop(p, "lion")).toThrow();
+    p = finishCurrent(encounterStop(p, "african-elephant"));
+    expect(isSafariProgress(p)).toBe(true);
+    expect(discoveredCount(p)).toBe(1);
+    expect(p.completedAt).toBeNull();
+    expect(isStopUnlocked(p, "african-elephant")).toBe(true);
+    expect(isStopUnlocked(p, "giraffe")).toBe(false);
+    expect(nextSafariStop(p)?.id).toBe("plains-zebra");
+    p = visitStop(p, "african-elephant");
+    expect(p.entries["african-elephant"].visits).toBe(2);
+    for (let next = nextSafariStop(p); next; next = nextSafariStop(p)) {
+      expect(isStopUnlocked(p, next.id)).toBe(true);
+      p = finishCurrent(visitStop(p, next.id));
+      expect(isSafariProgress(p)).toBe(true);
+    }
+    expect(discoveredCount(p)).toBe(7);
+    expect(p.completedAt).toBe(NOW);
+  });
+  it("allows several encounters without erasing partial names, quiz feedback or photos", () => {
+    let p = identifySafari(
+      encounterStop(newSafari(), "spotted-hyena"),
+      "hyaena",
+    );
+    p = answerSafari(p, "grass");
+    const before = structuredClone(p.entries["spotted-hyena"]);
+    p = finishCurrent(encounterStop(p, "cheetah"));
+    p = encounterStop(p, "giraffe");
+    expect(isStopUnlocked(p, "giraffe")).toBe(true);
+    expect(isStopUnlocked(p, "spotted-hyena")).toBe(true);
+    expect(isSafariProgress(p)).toBe(true);
+    p = visitStop(p, "spotted-hyena");
+    expect(p.entries["spotted-hyena"]).toEqual({
+      ...before,
+      visits: before.visits + 1,
+    });
+    expect(p.entries["cheetah"].photo?.dataUrl).toBe(PHOTO);
   });
   it("rejects forged unlocks, invalid dates, missing entries and unsafe settings", () => {
     const p = newSafari();
@@ -135,6 +249,52 @@ describe("seven-stop story content and progression", () => {
       (v: typeof p) => {
         v.completedAt = NOW;
       },
+      (v: typeof p) => {
+        v.entries["plains-zebra"].identification = {
+          name: "zebra",
+          skipped: false,
+        };
+      },
+    ]) {
+      const bad = structuredClone(p);
+      mutate(bad);
+      expect(isSafariProgress(bad)).toBe(false);
+    }
+  });
+  it("rejects mismatched names, fabricated skip names, answers before naming and invalid photos", () => {
+    const p = finishCurrent(encounterStop(newSafari(), "african-elephant"));
+    for (const mutate of [
+      (v: typeof p) => {
+        v.entries["african-elephant"].identification = null;
+      },
+      (v: typeof p) => {
+        v.entries["african-elephant"].identification = {
+          name: "giraffe",
+          skipped: false,
+        };
+      },
+      (v: typeof p) => {
+        v.entries["african-elephant"].identification = {
+          name: "elephant",
+          skipped: true,
+        };
+      },
+      (v: typeof p) => {
+        v.entries["african-elephant"].visits = 0;
+      },
+      (v: typeof p) => {
+        v.entries["african-elephant"].attempts = 0;
+      },
+      (v: typeof p) => {
+        v.entries["african-elephant"].photo!.capturedAt = "yesterday";
+      },
+      (v: typeof p) => {
+        v.entries["african-elephant"].photo!.dataUrl =
+          "https://example.com/elephant.jpg";
+      },
+      (v: typeof p) => {
+        v.completedAt = NOW;
+      },
     ]) {
       const bad = structuredClone(p);
       mutate(bad);
@@ -144,6 +304,119 @@ describe("seven-stop story content and progression", () => {
 });
 
 describe("story IndexedDB saves", () => {
+  it("resumes an off-route name, wrong answer and another animal’s photograph", async () => {
+    const factory = new IDBFactory();
+    const store = createSafariStore(factory, "off-route");
+    let p = finishCurrent(
+      encounterStop(
+        newSafari({ volume: 0.4, reducedMotion: true }),
+        "african-elephant",
+      ),
+    );
+    p = identifySafari(encounterStop(p, "spotted-hyena"), "  Hyaena! ");
+    p = answerSafari(p, "fruit");
+    await store.save(p);
+    const resumed = await createSafariStore(factory, "off-route").load();
+    expect(resumed).toEqual(p);
+    expect(resumed?.entries["spotted-hyena"].identification).toEqual({
+      name: "Hyaena!",
+      skipped: false,
+    });
+    expect(resumed?.entries["african-elephant"].photo?.dataUrl).toBe(PHOTO);
+    expect(resumed?.currentStopId).toBe("spotted-hyena");
+    expect(nextSafariStop(resumed!)?.id).toBe("plains-zebra");
+  });
+  it("migrates a strict v1 photograph and pending answer, and only writes v2 on a normal save", async () => {
+    const factory = new IDBFactory();
+    let p = finishCurrent(
+      visitStop(newSafari({ volume: 0.35, lowQuality: true }), "plains-zebra"),
+    );
+    p = answerSafari(identifyCurrent(visitStop(p, "african-elephant")), "ears");
+    const legacy = legacySnapshot(p);
+    await rawPut(factory, "legacy", legacy);
+    const store = createSafariStore(factory, "legacy");
+    const migrated = (await store.load())!;
+    expect(migrated.schemaVersion).toBe(2);
+    expect(isSafariProgress(migrated)).toBe(true);
+    expect(legacySnapshot(migrated)).toEqual(legacy);
+    expect(migrated.entries["plains-zebra"].identification).toEqual({
+      name: "Plains zebra",
+      skipped: true,
+    });
+    expect(migrated.entries["african-elephant"].identification).toEqual({
+      name: "African savanna elephant",
+      skipped: true,
+    });
+    expect(migrated.entries.giraffe.identification).toBeNull();
+    expect(await rawRead(factory, "legacy")).toEqual(legacy);
+    await store.save(migrated);
+    expect(await rawRead(factory, "legacy")).toEqual(migrated);
+    expect(await createSafariStore(factory, "legacy").load()).toEqual(migrated);
+  });
+  it("migrates a v1 retry without inventing an identification and preserves its attempts", async () => {
+    const factory = new IDBFactory();
+    const p = retrySafariAnswer(
+      answerSafari(
+        identifyCurrent(visitStop(newSafari(), "plains-zebra")),
+        "fish",
+      ),
+    );
+    await rawPut(factory, "legacy-retry", legacySnapshot(p));
+    const migrated = (await createSafariStore(factory, "legacy-retry").load())!;
+    expect(migrated.entries["plains-zebra"].identification).toBeNull();
+    expect(migrated.entries["plains-zebra"].attempts).toBe(1);
+    expect(isSafariProgress(migrated)).toBe(true);
+    expect(() => answerSafari(migrated, "grass")).toThrow(
+      "Name this animal first",
+    );
+    const next = answerSafari(identifySafari(migrated, "zebra"), "grass");
+    expect(next.entries["plains-zebra"].attempts).toBe(2);
+  });
+  it("migrates both a never-started v1 save and a complete revisited field book", async () => {
+    const factory = new IDBFactory();
+    await rawPut(factory, "legacy-new", legacySnapshot(newSafari()));
+    expect(await createSafariStore(factory, "legacy-new").load()).toEqual(
+      newSafari(),
+    );
+    let p = newSafari();
+    for (const stop of safariStops) p = finishCurrent(visitStop(p, stop.id));
+    p = visitStop(p, "plains-zebra");
+    await rawPut(factory, "legacy-complete", legacySnapshot(p));
+    const migrated = (await createSafariStore(
+      factory,
+      "legacy-complete",
+    ).load())!;
+    expect(legacySnapshot(migrated)).toEqual(legacySnapshot(p));
+    expect(discoveredCount(migrated)).toBe(7);
+    expect(migrated.completedAt).toBe(NOW);
+    expect(migrated.entries["plains-zebra"].visits).toBe(2);
+    expect(nextSafariStop(migrated)).toBeUndefined();
+  });
+  it("does not migrate an old out-of-order save that only the new schema would allow", async () => {
+    const factory = new IDBFactory();
+    const p = finishCurrent(encounterStop(newSafari(), "african-elephant"));
+    expect(isSafariProgress(p)).toBe(true);
+    const legacy = legacySnapshot(p);
+    await rawPut(factory, "legacy-corrupt", legacy);
+    const store = createSafariStore(factory, "legacy-corrupt");
+    await expect(store.load()).rejects.toMatchObject({ code: "corrupt" });
+    await expect(store.save(newSafari())).rejects.toMatchObject({
+      code: "read-failed",
+    });
+    expect(await rawRead(factory, "legacy-corrupt")).toEqual(legacy);
+  });
+  it("preserves invalid v2 identifications rather than silently resetting them", async () => {
+    const factory = new IDBFactory();
+    const bad = finishCurrent(encounterStop(newSafari(), "african-elephant"));
+    bad.entries["african-elephant"].identification!.name = "Giraffe";
+    await rawPut(factory, "bad-name", bad);
+    const store = createSafariStore(factory, "bad-name");
+    await expect(store.load()).rejects.toMatchObject({ code: "corrupt" });
+    await expect(store.save(newSafari())).rejects.toMatchObject({
+      code: "read-failed",
+    });
+    expect(await rawRead(factory, "bad-name")).toEqual(bad);
+  });
   it("resumes feedback, photos, current stop and settings without modifying the classic save", async () => {
     const factory = new IDBFactory();
     const classic = createSaveStore(factory);
@@ -151,7 +424,9 @@ describe("story IndexedDB saves", () => {
     await classic.save(original);
     const store = createSafariStore(factory);
     let p = answerSafari(
-      visitStop(newSafari({ reducedMotion: true }), "plains-zebra"),
+      identifyCurrent(
+        visitStop(newSafari({ reducedMotion: true }), "plains-zebra"),
+      ),
       "fish",
     );
     await store.save(p);
@@ -182,7 +457,7 @@ describe("story IndexedDB saves", () => {
     const factory = new IDBFactory();
     await rawPut(factory, "future-schema", {
       ...newSafari(),
-      schemaVersion: 2,
+      schemaVersion: 3,
     });
     await expect(
       createSafariStore(factory, "future-schema").load(),

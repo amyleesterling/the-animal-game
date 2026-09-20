@@ -10,8 +10,12 @@ async function ready(page: Page) {
 async function meet(page: Page) {
   await ready(page);
   await page.locator("#guide-animal").click();
-  await expect(page.locator("#discover-clue")).toBeEnabled({ timeout: 15000 });
-  await page.locator("#discover-clue").click();
+  await expect(page.locator("#encounter-dialog")).toBeVisible({
+    timeout: 15000,
+  });
+  await page.locator("#skip-animal").click();
+  await expect(page.locator("#encounter-dialog")).not.toBeVisible();
+  await expect(page.locator("[data-answer]")).toHaveCount(3);
 }
 test("seven-stop story saves real photographs, resumes feedback, finishes and revisits", async ({
   page,

@@ -5,6 +5,7 @@ import {
   safariContentReviewedAt,
 } from "./content/safari";
 import { createSafariWorld } from "./game/safari-world";
+import { matchesAnimalName } from "./content/animal-names";
 import {
   narrate,
   setNarrationVolume,
@@ -14,9 +15,12 @@ import {
   answerSafari,
   createSafariStore,
   discoveredCount,
+  encounterStop,
+  identifySafari,
   isStopUnlocked,
   learnSafariClue,
   newSafari,
+  nextSafariStop,
   photographSafari,
   retrySafariAnswer,
   visitStop,
@@ -50,11 +54,13 @@ app.innerHTML = `
       <div id="walking-vehicle"><p class="eyebrow">Your Land Cruiser</p><button id="enter-jeep" class="primary" disabled>Get in the jeep</button><button id="return-jeep" hidden>Return to the jeep</button><p id="vehicle-hint" class="secondary">Getting the jeep ready…</p></div>
       <div id="driving-vehicle" hidden><div class="drive-heading"><span class="eyebrow">At the wheel</span><span id="drive-speed" class="speed">0 km/h</span></div><div class="drive-destination"><span id="drive-compass" aria-hidden="true">↑</span><div><strong id="drive-destination"></strong><p id="drive-distance" class="secondary"></p></div></div><button id="exit-jeep">Park & get out</button><p id="exit-hint" class="secondary">Brake to a stop, then step out to explore.</p></div>
       <p id="vehicle-feedback" class="secondary" role="status"></p>
+      <button id="nearby-encounter" class="primary" hidden>Discover nearby animal</button>
     </section>
     <section id="story-panel" class="story-panel" aria-labelledby="story-title" aria-busy="true"><p class="eyebrow">Preparing your field book</p><h1 id="story-title">A little adventure awaits.</h1><p>Loading your saved story…</p></section>
   </main>
   <footer class="safari-footer"><span id="save-status" role="status">Opening your field book…</span><span>Created by Sophia, age 7, with AI and help from her mom.</span></footer>
-  <dialog id="book-dialog" aria-labelledby="book-title"><div class="dialog-top"><div><p class="eyebrow">Your expedition</p><h2 id="book-title">Route & field book</h2></div><button data-close aria-label="Close field book">Close</button></div><p class="dialog-intro">Seven stops, seven clues. Revisit any stop you have reached.</p><ol id="route-list" class="route-list"></ol><div id="book-pages" class="book-pages"></div></dialog>
+  <dialog id="encounter-dialog" aria-labelledby="encounter-title" aria-describedby="encounter-intro"><div class="dialog-top"><div><p class="eyebrow">A wildlife discovery</p><h2 id="encounter-title">What animal did you find?</h2></div><button id="encounter-later" data-close>Keep exploring</button></div><p id="encounter-intro" class="dialog-intro">Look at your nearby neighbor. Type its name, or skip and we’ll help you.</p><form id="name-animal"><div id="animal-name-field"><label for="animal-name">Animal name</label><input id="animal-name" name="animal" type="text" maxlength="60" autocomplete="off" autocapitalize="none" placeholder="Type an animal name" aria-describedby="name-feedback" required></div><p id="name-feedback" role="status" aria-live="polite"></p><div class="actions"><button id="confirm-animal" class="primary" type="submit">Continue to quiz</button><button id="skip-animal" type="button">Skip · tell me the name</button></div></form><p id="encounter-driving-note" class="secondary" hidden>The jeep is paused. We’ll step out when you continue.</p></dialog>
+  <dialog id="book-dialog" aria-labelledby="book-title"><div class="dialog-top"><div><p class="eyebrow">Your expedition</p><h2 id="book-title">Route & field book</h2></div><button data-close aria-label="Close field book">Close</button></div><p class="dialog-intro">Seven animals, seven clues. Meet them in any order. Revisit a discovery or follow the suggested route.</p><ol id="route-list" class="route-list"></ol><div id="book-pages" class="book-pages"></div></dialog>
   <dialog id="settings-dialog" aria-labelledby="settings-title"><div class="dialog-top"><h2 id="settings-title">Make it yours</h2><button data-close aria-label="Close settings">Close</button></div><div class="settings-fields"><label><span>Read the story aloud</span><input id="narration-setting" type="checkbox"></label><label class="volume"><span>Narration volume</span><input id="volume-setting" type="range" min="0" max="1" step="0.05"></label><label><span>Reduce motion</span><input id="motion-setting" type="checkbox"></label><label><span>Lighter graphics</span><input id="quality-setting" type="checkbox"></label></div><p class="secondary">Narration uses an available local English voice. Every instruction also appears on screen.</p><details><summary>About this safari</summary><p class="secondary">An imagined savanna adventure with sourced natural history. Animal models and poses are prototypes. Sources are listed beside each discovery in your field book.</p></details><button id="restart-button" class="danger">Restart this story</button><p class="secondary">This replaces only the story safari. Your classic zebra encounter stays separate.</p></dialog>
   <p id="announcement" class="sr-only" aria-live="polite"></p>`;
 
@@ -67,6 +73,7 @@ let progress = newSafari({
 });
 let world: SafariWorld | null = null;
 let status: SafariStatus = {
+  encounters: [],
   nearby: false,
   photoReady: false,
   animalLoaded: false,
@@ -88,6 +95,10 @@ let readFailed = false;
 let disposed = false;
 let saveRevision = 0;
 let busy = false;
+let pendingEncounterId: string | null = null;
+let encounterTransition = false;
+let encounterCheckQueued = false;
+const dismissedEncounters = new Set<string>();
 const disabledBeforeBusy = new Map<
   HTMLButtonElement | HTMLInputElement,
   boolean
@@ -188,12 +199,15 @@ function deriveMode(): Mode {
   if (entry().photo) return "success";
   if (entry().learned) return "photo";
   if (entry().answer) return "question";
+  if (entry().identification) return "question";
   return "explore";
 }
 function render(announce = true) {
   const animal = stop();
   const discovery = entry();
   const index = safariStops.indexOf(animal);
+  const nextStop = nextSafariStop(progress);
+  const clueCount = discoveredCount(progress);
   $("clue-count").textContent = `${discoveredCount(progress)}/7`;
   $("scene-chapter").textContent =
     mode === "intro" ? "Base camp" : `${index + 1} / 7 · ${animal.name}`;
@@ -214,7 +228,7 @@ function render(announce = true) {
       "Help Sophia find seven clues about a healthy savanna before sunset. Travel by jeep, meet seven animals, and photograph your discoveries. Take your time. The sunset will wait for you.";
   } else if (mode === "explore") {
     body = `<p class="eyebrow">Stop ${index + 1} · ${animal.chapter}</p><h1 id="story-title" tabindex="-1">${animal.name}</h1><p>${animal.story}</p><p class="mission">${animal.mission}</p><div class="actions">${button("guide-animal", "Guide Sophia closer")}${discovery.learned ? button("resume-photo", "Photograph this discovery", true) : button("discover-clue", "Discover the clue", true)}</div><p id="approach-status" class="secondary" role="status"></p>`;
-    narration = `${animal.story} ${animal.mission} Use Guide Sophia closer, or walk with the arrow buttons. Then choose Discover the clue.`;
+    narration = `${animal.story} ${animal.mission} Walk or drive toward an animal to begin a discovery. You can also use Guide Sophia closer.`;
   } else if (mode === "question") {
     if (!discovery.answer) {
       body = `<p class="eyebrow">A little discovery</p><h1 id="story-title" tabindex="-1">${animal.question.prompt}</h1><div class="choices">${animal.question.choices.map((c, i) => `<button data-answer="${c.id}"><span aria-hidden="true">${i + 1}</span>${c.text}</button>`).join("")}</div>`;
@@ -228,13 +242,17 @@ function render(announce = true) {
     body = `<p class="eyebrow">Add a picture to your field book</p><h1 id="story-title" tabindex="-1">Photograph the ${animal.name.toLowerCase()}</h1><p id="photo-status" role="status">Preparing your view…</p><div class="actions">${button("frame-animal", "Help me frame it")}${button("take-photo", "Take photo", true)}</div>${button("leave-photo", "Back to exploring")}`;
     narration = `Photograph the ${animal.name.toLowerCase()}. Choose Help me frame it, then Take photo when your view is ready.`;
   } else if (mode === "success") {
-    body = `<div class="discovery-top"><img class="photo-thumb" src="${discovery.photo!.dataUrl}" alt="Your photograph of the ${animal.name.toLowerCase()}"><div><p class="eyebrow">Clue ${index + 1} collected</p><h1 id="story-title" tabindex="-1">${animal.clue}</h1></div></div><p>${animal.facts[0]}</p>${index < safariStops.length - 1 ? button("drive-next-stop", "Back to jeep & drive →", true) : ""}<div class="actions">${button("retake-photo", "Retake photo")}${index < safariStops.length - 1 ? button("next-stop", "Quick jump to next stop") : button("finish-safari", "See our seven clues →", true)}</div><p class="secondary">${index < safariStops.length - 1 ? `Next stop: ${safariStops[index + 1].name}. Drive there, or take a quick jump.` : "The field book is ready. Let’s bring it all together."}</p>`;
-    narration = `Clue ${index + 1} collected. ${animal.clue}. ${animal.facts[0]} ${index < 6 ? `Back to the jeep. Next stop: ${safariStops[index + 1].name}.` : "All seven clues are ready. Let’s bring them together."}`;
+    body = `<div class="discovery-top"><img class="photo-thumb" src="${discovery.photo!.dataUrl}" alt="Your photograph of the ${animal.name.toLowerCase()}"><div><p class="eyebrow">${clueCount} of 7 clues collected</p><h1 id="story-title" tabindex="-1">${animal.clue}</h1></div></div><p>${animal.facts[0]}</p>${nextStop ? button("drive-next-stop", "Back to jeep & drive →", true) : ""}<div class="actions">${button("retake-photo", "Retake photo")}${nextStop ? button("next-stop", "Quick jump to next stop") : button("finish-safari", "See our seven clues →", true)}</div><p class="secondary">${nextStop ? `Suggested next stop: ${nextStop.name}. Drive there, or take a quick jump.` : "The field book is ready. Let’s bring it all together."}</p>`;
+    narration = `${clueCount} of 7 clues collected. ${animal.clue}. ${animal.facts[0]} ${nextStop ? `Back to the jeep. Suggested next stop: ${nextStop.name}.` : "All seven clues are ready. Let’s bring them together."}`;
   } else {
     body = `<p class="eyebrow">Your sunset field book · 7 of 7</p><h1 id="story-title" tabindex="-1">One connected home.</h1><p>${safariEnding}</p><div class="clue-pills">${safariStops.map((s) => `<span>${s.clue}</span>`).join("")}</div><div class="actions">${button("open-finished-book", "Open my field book", true)}${button("revisit-route", "Explore again")}</div>`;
     narration = safariEnding;
   }
-  panel.innerHTML = `${body}<div class="panel-bottom">${button("repeat-story", "Read it aloud")}<span class="secondary">Look closely. Leave room.</span></div>`;
+  const identity =
+    mode === "question" && discovery.identification
+      ? `<p id="identified-name" class="identified-name">Name recorded: <strong>${escape(animal.name)}</strong></p>`
+      : "";
+  panel.innerHTML = `${identity}${body}<div class="panel-bottom">${button("repeat-story", "Read it aloud")}<span class="secondary">Look closely. Leave room.</span></div>`;
   panel.setAttribute("aria-busy", "false");
   $("repeat-story").onclick = () => {
     setNarrationVolume(progress.settings.volume);
@@ -254,8 +272,7 @@ function render(announce = true) {
   bind("guide-animal", () => world?.guideToAnimal());
   bind("discover-clue", () => {
     if (status.driving || !status.nearby || !status.animalLoaded) return;
-    mode = "question";
-    render();
+    beginEncounter(progress.currentStopId);
   });
   panel.querySelectorAll<HTMLButtonElement>("[data-answer]").forEach(
     (el) =>
@@ -307,8 +324,12 @@ function render(announce = true) {
     render();
     world?.guideToAnimal();
   });
-  bind("next-stop", () => travel(safariStops[index + 1].id));
-  bind("drive-next-stop", () => driveToNextStop(safariStops[index + 1].id));
+  bind("next-stop", () => {
+    if (nextStop) travel(nextStop.id);
+  });
+  bind("drive-next-stop", () => {
+    if (nextStop) driveToNextStop(nextStop.id);
+  });
   bind("finish-safari", () => {
     mode = "ending";
     render();
@@ -350,6 +371,7 @@ function updateStatus() {
   if (photoStatus && photoStatus.textContent !== photoMessage)
     photoStatus.textContent = photoMessage;
   updateVehicleControls();
+  queueEncounterCheck();
 }
 function updateVehicleControls() {
   const driving = status.driving;
@@ -360,6 +382,11 @@ function updateVehicleControls() {
   $("driving-vehicle").hidden = !driving;
   $("drive-controls").hidden = !driving;
   $("movement").hidden = driving || mode !== "explore";
+  $("nearby-encounter").hidden =
+    !nearbyDiscovery() ||
+    mode === "question" ||
+    mode === "photo" ||
+    !progress.started;
   $<HTMLButtonElement>("enter-jeep").disabled = busy || !status.canEnterJeep;
   $("return-jeep").hidden = driving || status.canEnterJeep;
   $<HTMLButtonElement>("exit-jeep").disabled = busy || !status.canExitJeep;
@@ -384,6 +411,148 @@ function updateVehicleControls() {
     ? "W / ↑: go · S / ↓: reverse · A D / ← →: steer · Space: brake · E: get out"
     : "Walk: W A S D or arrow keys · E: get in · Look: drag";
 }
+function nearbyDiscovery() {
+  return status.encounters.find(
+    (animal) =>
+      animal.distance <= animal.range && !progress.entries[animal.id]?.photo,
+  );
+}
+// World status can arrive during render/setActive. Defer modal transitions so
+// a status callback never recursively changes the world that produced it.
+function queueEncounterCheck() {
+  if (encounterCheckQueued) return;
+  encounterCheckQueued = true;
+  queueMicrotask(() => {
+    encounterCheckQueued = false;
+    for (const animal of status.encounters) {
+      if (animal.distance > animal.range + 4)
+        dismissedEncounters.delete(animal.id);
+    }
+    if (
+      busy ||
+      disposed ||
+      !world ||
+      !progress.started ||
+      encounterTransition ||
+      pendingEncounterId ||
+      document.hidden ||
+      document.querySelector("dialog[open]") ||
+      mode === "question" ||
+      mode === "photo"
+    )
+      return;
+    const animal = nearbyDiscovery();
+    if (animal && !dismissedEncounters.has(animal.id))
+      beginEncounter(animal.id);
+  });
+}
+function beginEncounter(id: string) {
+  if (
+    busy ||
+    !world ||
+    encounterTransition ||
+    pendingEncounterId ||
+    document.querySelector("dialog[open]")
+  )
+    return;
+  const animal = safariStops.find((s) => s.id === id);
+  const proximity = status.encounters.find((s) => s.id === id);
+  if (
+    !animal ||
+    !proximity ||
+    proximity.distance > proximity.range ||
+    progress.entries[id].photo
+  )
+    return;
+  pendingEncounterId = id;
+  dismissedEncounters.add(id);
+  const identification = progress.entries[id].identification;
+  const dialog = $<HTMLDialogElement>("encounter-dialog");
+  dialog.dataset.animalId = id;
+  $("encounter-title").textContent = identification
+    ? "Continue your discovery"
+    : "What animal did you find?";
+  $("encounter-intro").textContent = identification
+    ? `You’ve already named the ${animal.name.toLowerCase()}. Pick up where you left off.`
+    : "Look at your nearby neighbor. Type its name, or skip and we’ll help you.";
+  $("animal-name-field").hidden = Boolean(identification);
+  const input = $<HTMLInputElement>("animal-name");
+  input.value = identification?.name ?? "";
+  input.disabled = Boolean(identification);
+  input.removeAttribute("aria-invalid");
+  $("name-feedback").textContent = "";
+  $("skip-animal").hidden = Boolean(identification);
+  $("confirm-animal").textContent = identification
+    ? "Continue discovery"
+    : "Continue to quiz";
+  $("encounter-driving-note").hidden = !status.driving;
+  openDialog("encounter-dialog");
+  if (identification) $("confirm-animal").focus();
+  else input.focus();
+  $("announcement").textContent = identification
+    ? "A nearby discovery is ready to continue."
+    : "An animal is nearby. What animal did you find?";
+}
+function finishEncounter(skipped: boolean) {
+  const id = pendingEncounterId;
+  if (busy || !world || !id || encounterTransition) return;
+  const animal = safariStops.find((s) => s.id === id)!;
+  const input = $<HTMLInputElement>("animal-name");
+  if (
+    !progress.entries[id].identification &&
+    !skipped &&
+    !matchesAnimalName(id, input.value)
+  ) {
+    input.setAttribute("aria-invalid", "true");
+    $("name-feedback").textContent =
+      "Have another look and try again. You can also choose Skip and we’ll tell you the name.";
+    input.focus();
+    return;
+  }
+  encounterTransition = true;
+  try {
+    let next = encounterStop(progress, id);
+    if (!next.entries[id].identification)
+      next = identifySafari(next, input.value, skipped);
+    if (status.driving) {
+      // Opening the prompt already braked the jeep. Exit only through the
+      // world's safe-exit check, never place Sophia inside an obstacle.
+      world.setActive(true);
+      if (!world.exitJeep()) {
+        world.setActive(false);
+        $("name-feedback").textContent =
+          "There isn’t room to step out here. Choose Keep exploring, park in an open spot, then try again.";
+        return;
+      }
+    }
+    if (skipped) input.value = animal.name;
+    update(next);
+    mode = entry().learned ? "photo" : "question";
+    pendingEncounterId = null;
+    closeDialog($<HTMLDialogElement>("encounter-dialog"));
+    world.setStop(id, true);
+    render();
+    if (mode === "photo") world.guideToAnimal();
+    if (matchMedia("(max-width: 700px)").matches)
+      panel.scrollIntoView({ block: "start", behavior: "instant" });
+  } catch (error) {
+    $("name-feedback").textContent =
+      error instanceof Error
+        ? error.message
+        : "Please try again, or choose Skip.";
+  } finally {
+    encounterTransition = false;
+  }
+}
+$("name-animal").addEventListener("submit", (event) => {
+  event.preventDefault();
+  finishEncounter(false);
+});
+$("skip-animal").onclick = () => finishEncounter(true);
+$("nearby-encounter").onclick = () => {
+  const animal = nearbyDiscovery();
+  if (animal) beginEncounter(animal.id);
+};
 function enterJeep() {
   if (
     busy ||
@@ -489,8 +658,19 @@ function openDialog(id: string) {
 function closeDialogs() {
   document
     .querySelectorAll<HTMLDialogElement>("dialog[open]")
-    .forEach((d) => d.close());
-  world?.setActive(mode !== "question");
+    .forEach(closeDialog);
+}
+function resumeAfterDialog(dialog: HTMLDialogElement) {
+  // Native close events are queued. An earlier close must not clear a newly
+  // opened encounter, and button dismissal must resume before the next keydown.
+  if (dialog.open) return;
+  if (dialog.id === "encounter-dialog") pendingEncounterId = null;
+  if (!busy && !document.querySelector("dialog[open]"))
+    world?.setActive(mode !== "question");
+}
+function closeDialog(dialog: HTMLDialogElement) {
+  dialog.close();
+  resumeAfterDialog(dialog);
 }
 function openBook() {
   $("route-list").innerHTML = safariStops
@@ -499,10 +679,18 @@ function openBook() {
         `<li><button data-visit="${s.id}" ${!isStopUnlocked(progress, s.id) || !progress.started ? "disabled" : ""} ${s.id === progress.currentStopId ? 'aria-current="step"' : ""}><span class="route-number">${progress.entries[s.id].photo ? "✓" : i + 1}</span><span>${s.name}<small>${progress.entries[s.id].photo ? s.clue : isStopUnlocked(progress, s.id) ? "Your next discovery" : "Further along the route"}</small></span></button></li>`,
     )
     .join("");
-  const pages = safariStops.filter((s) => progress.entries[s.id].photo);
+  const pages = safariStops.filter(
+    (s) =>
+      progress.entries[s.id].identification || progress.entries[s.id].photo,
+  );
   $("book-pages").innerHTML = pages.length
-    ? `<h3>Your photographs</h3>${pages.map((s) => `<article class="book-page"><img src="${progress.entries[s.id].photo!.dataUrl}" alt="Your photograph of the ${s.name.toLowerCase()}"><h3>${s.name}</h3><p class="secondary"><i>${s.scientificName}</i></p><p>${s.facts[0]}</p><details><summary>Fact sources</summary><ul>${s.sources.map((source) => `<li><a href="${source.url}" target="_blank" rel="noopener noreferrer">${escape(source.title)}</a></li>`).join("")}</ul><p class="secondary">Sources checked ${safariContentReviewedAt}.</p></details></article>`).join("")}`
-    : `<p class="empty-book">Your first page is waiting for a photograph.</p>`;
+    ? `<h3>Animals you’ve met</h3>${pages
+        .map((s) => {
+          const saved = progress.entries[s.id];
+          return `<article class="book-page" data-animal-id="${s.id}">${saved.photo ? `<img src="${saved.photo.dataUrl}" alt="Your photograph of the ${s.name.toLowerCase()}">` : `<div class="pending-photo">Name recorded. Finish this discovery to add a photograph.</div>`}<h3>${s.name}</h3><p class="secondary"><i>${s.scientificName}</i></p>${saved.identification ? `<p class="secondary">${saved.identification.skipped ? "Name supplied" : "You named it"}: ${escape(saved.identification.name)}</p>` : ""}<p>${s.facts[0]}</p><details><summary>Fact sources</summary><ul>${s.sources.map((source) => `<li><a href="${source.url}" target="_blank" rel="noopener noreferrer">${escape(source.title)}</a></li>`).join("")}</ul><p class="secondary">Sources checked ${safariContentReviewedAt}.</p></details></article>`;
+        })
+        .join("")}`
+    : `<p class="empty-book">Walk or drive near an animal to name it and start your first page.</p>`;
   $("route-list")
     .querySelectorAll<HTMLButtonElement>("[data-visit]")
     .forEach((b) => (b.onclick = () => travel(b.dataset.visit!)));
@@ -521,11 +709,13 @@ $("settings-button").onclick = () => {
   openDialog("settings-dialog");
 };
 document.querySelectorAll<HTMLDialogElement>("dialog").forEach((d) => {
-  d.querySelector<HTMLButtonElement>("[data-close]")!.onclick = () => d.close();
-  d.addEventListener("close", () => {
-    if (!busy && !document.querySelector("dialog[open]"))
-      world?.setActive(mode !== "question");
+  d.querySelector<HTMLButtonElement>("[data-close]")!.onclick = () =>
+    closeDialog(d);
+  d.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    closeDialog(d);
   });
+  d.addEventListener("close", () => resumeAfterDialog(d));
 });
 for (const id of [
   "narration-setting",
@@ -565,6 +755,8 @@ $("restart-button").onclick = async () => {
     readFailed = false;
     dirty = false;
     progress = fresh;
+    dismissedEncounters.clear();
+    pendingEncounterId = null;
     $("save-banner").hidden = true;
     $("save-status").textContent = "New story saved on this device";
     closeDialogs();

@@ -72,7 +72,7 @@ export interface Species {
     bodyHeight: number;
     bodyWidth: number;
   };
-  audio: { narration: "browser-speech"; callAssetId: string | null };
+  audio: { narration: "recorded-guide"; callAssetId: string | null };
   spawn: {
     position: [number, number, number];
     herdOffsets: [number, number, number][];

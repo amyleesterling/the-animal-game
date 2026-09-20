@@ -239,7 +239,7 @@ export const zebra: Species = {
     bodyHeight: 0.86,
     bodyWidth: 0.7,
   },
-  audio: { narration: "browser-speech", callAssetId: null },
+  audio: { narration: "recorded-guide", callAssetId: null },
   spawn: {
     position: [0, 0, -18],
     herdOffsets: [

@@ -1,0 +1,96 @@
+name: Generate Tanzanian English narration
+run-name: Elimu narration (${{ inputs.mode || 'full' }})
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Generate a separate voice sample or the complete authored catalog
+        required: true
+        type: choice
+        default: sample
+        options: [sample, full]
+  push:
+    tags: [narration-elimu-20260920-v1]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: narration-elimu-20260920-v1
+  cancel-in-progress: false
+jobs:
+  generate:
+    if: github.run_attempt == 1
+    name: Synthesize narration (${{ inputs.mode || 'full' }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    env:
+      NARRATION_MODE: ${{ inputs.mode || 'full' }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Validate bounded catalog without synthesis
+        run: node scripts/generate-narration.mjs --dry-run
+      - name: Check credential presence before any API call
+        env:
+          AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
+          AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { endpoint } from './scripts/generate-narration.mjs';
+          const key = process.env.AZURE_SPEECH_KEY;
+          if (!key || key.trim().length < 16 || /[\r\n]/.test(key)) throw new Error('Add a valid repository Actions secret AZURE_SPEECH_KEY. No synthesis requests sent.');
+          endpoint(process.env.AZURE_SPEECH_REGION);
+          console.log('Required Azure credential names are configured. Values are not printed.');
+          NODE
+      - name: Refuse another paid attempt for this sample or full batch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'NODE'
+          const api = async path => {
+            const response = await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/${path}`, {
+              headers: { Authorization: `Bearer ${process.env.GH_TOKEN}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
+              redirect: 'error', signal: AbortSignal.timeout(30000)
+            });
+            if (!response.ok) throw new Error(`Cannot verify prior attempts (HTTP ${response.status}); refusing paid synthesis.`);
+            return response.json();
+          };
+          const runs = await api('actions/workflows/generate-narration.yml/runs?per_page=100');
+          if (runs.total_count > 100) throw new Error('More than 100 prior runs require manual receipt review. No synthesis attempted.');
+          for (const run of runs.workflow_runs) {
+            if (String(run.id) === process.env.GITHUB_RUN_ID) continue;
+            const jobs = await api(`actions/runs/${run.id}/jobs?filter=all&per_page=100`);
+            if (jobs.total_count > 100) throw new Error('Prior job history exceeds the review bound. No synthesis attempted.');
+            for (const job of jobs.jobs) {
+              if (job.name !== `Synthesize narration (${process.env.NARRATION_MODE})`) continue;
+              if (job.steps?.some(step => step.name === 'Synthesize narration (paid request)' && step.started_at && step.conclusion !== 'skipped'))
+                throw new Error(`A previous ${process.env.NARRATION_MODE} synthesis step started in run ${run.id}. Download its receipts and resume locally; do not submit a duplicate batch.`);
+            }
+          }
+          console.log('No previous paid attempt for this mode found.');
+          NODE
+      - name: Synthesize narration (paid request)
+        timeout-minutes: 65
+        env:
+          AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
+          AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
+        run: |
+          if [ "$NARRATION_MODE" = "sample" ]; then
+            node scripts/generate-narration.mjs --sample
+          else
+            node scripts/generate-narration.mjs
+          fi
+      - name: Preserve recordings and generation receipts, including failed batches
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: elimu-narration-${{ inputs.mode || 'full' }}
+          path: generated/narration/
+          retention-days: 30
+          if-no-files-found: warn

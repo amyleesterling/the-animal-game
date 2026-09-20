@@ -3,6 +3,13 @@ import { createWorld } from "./game/world";
 import { createSpecimen } from "./game/specimen";
 import type { World, WorldStatus } from "./game/contracts";
 import { assets, zebra, roster } from "./content/species";
+import {
+  classicNarration,
+  classicQuestionNarration,
+  classicFeedbackNarration,
+  classicFieldBookNarration,
+  narratorSample,
+} from "./content/narration";
 import { assertValidContent } from "./content/validate";
 import {
   newProgress,
@@ -19,6 +26,7 @@ import {
   narrate,
   stopNarration,
   setNarrationVolume,
+  getNarratorDescription,
 } from "./accessibility/narration";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
@@ -89,9 +97,47 @@ function notice(message: string): void {
 }
 function speak(text: string, force = false): void {
   speechText = text;
-  if ((progress.settings.narration || force) && !narrate(text) && force)
-    notice(
-      "A local English voice is not available on this device. All instructions are also written on screen.",
+  if (!progress.settings.narration && !force) return;
+  let reported = false;
+  const report = (message: string) => {
+    reported = true;
+    if (dialog.open) {
+      let feedback = $("narration-feedback");
+      if (!feedback) {
+        feedback = document.createElement("p");
+        feedback.id = "narration-feedback";
+        feedback.className = "quiet";
+        feedback.setAttribute("role", "status");
+        if ($("read-summary")) $("read-summary").after(feedback);
+        else $("dialog-content").append(feedback);
+      }
+      feedback.textContent = message;
+    } else {
+      const id =
+        mode === "photo"
+          ? "photo-narration-feedback"
+          : "mission-narration-feedback";
+      let feedback = $(id);
+      if (!feedback) {
+        feedback = document.createElement(mode === "photo" ? "span" : "p");
+        feedback.id = id;
+        feedback.className = "quiet";
+        feedback.setAttribute("role", "status");
+        if (mode === "photo") $("frame-status").parentElement?.append(feedback);
+        else $("mission").append(feedback);
+      }
+      feedback.textContent = message;
+    }
+  };
+  for (const id of [
+    "narration-feedback",
+    "mission-narration-feedback",
+    "photo-narration-feedback",
+  ])
+    if ($(id)) $(id).textContent = "";
+  if (!narrate(text, report) && !reported)
+    report(
+      "Guide audio is unavailable right now. All instructions are also written on screen.",
     );
 }
 function persist(): Promise<boolean> {
@@ -174,21 +220,30 @@ function renderMission(focus = false): void {
       .get(q.id)!
       .map((id) => q.choices.find((c) => c.id === id)!);
     mission.innerHTML = `<div class="card-heading"><span class="eyebrow">LITTLE DISCOVERY ${progress.quiz.questionIndex + 1} OF 3</span><button id="repeat" class="icon-button" aria-label="Read question and answers aloud">${icon("sound")}</button></div><div class="quiz-progress">${zebra.quizzes.map((_, i) => `<span class="${i <= progress.quiz.questionIndex ? "filled" : ""}"></span>`).join("")}</div><h2 id="mission-title" tabindex="-1">${esc(q.prompt)}</h2>${answer ? `<div class="feedback ${answer.correct ? "correct" : ""}" role="status"><strong>${answer.correct ? "You spotted it!" : "A little clue for you…"}</strong><p>${esc(answer.explanation)}</p></div><div class="action-row">${!answer.correct ? '<button class="soft" id="retry">Try again</button>' : ""}<button class="primary" id="next-question">${progress.quiz.questionIndex === 2 ? "Ready for a photo" : "Keep discovering"} ${icon("arrow")}</button></div>` : `<div class="answers">${choices.map((c, i) => `<button class="answer" data-answer="${esc(c.id)}"><span class="answer-letter">${String.fromCharCode(65 + i)}</span>${esc(c.text)}</button>`).join("")}</div>`}<button class="text-button" id="pause-quiz">Explore for a while</button>`;
-    const narration = `${q.narration} ${choices.map((c) => c.narration).join(". ")}`;
-    button("repeat", () => speak(answer?.explanation ?? narration, true));
+    const narration = classicQuestionNarration(
+      q.id,
+      choices.map((c) => c.id),
+    );
+    button("repeat", () =>
+      speak(
+        answer ? classicFeedbackNarration(q.id, answer.correct) : narration,
+        true,
+      ),
+    );
     mission.querySelectorAll<HTMLButtonElement>("[data-answer]").forEach((el) =>
       el.addEventListener("click", () => {
         const result = submitAnswer(progress, q.id, el.dataset.answer!);
         progress = result.progress;
         persist();
         renderMission(true);
-        speak(result.explanation);
+        speak(classicFeedbackNarration(q.id, result.correct));
       }),
     );
     button("retry", () => {
       progress = retryAnswer(progress);
       persist();
       renderMission(true);
+      speakCurrentQuestion();
     });
     button("next-question", () => {
       progress = continueAfterAnswer(progress);
@@ -199,9 +254,7 @@ function renderMission(focus = false): void {
       if (mode === "quiz") speakCurrentQuestion();
       else {
         world?.setActive(true);
-        speak(
-          "You’re ready to take a photograph. Open your camera and give your zebra a little space.",
-        );
+        speak(classicNarration.photoReady);
       }
     });
     button("pause-quiz", () => {
@@ -216,13 +269,13 @@ function renderMission(focus = false): void {
     button("mission-book", openBook);
     button("guide-button", () => {
       world?.guideToAnimal();
-      speak("Let’s find a comfortable spot to watch.");
+      speak(classicNarration.guideToView);
     });
   } else {
     mission.innerHTML = `<div class="card-heading"><span class="eyebrow">YOUR FIRST FIELD NOTE</span>${icon("compass")}</div><h2 id="mission-title" tabindex="-1">Who’s wearing stripes?</h2><p>Follow the path to your striped neighbor. Move gently, and see what you notice.</p><div class="animal-status"><span class="live-dot"></span><span id="animal-status-text">Look for the zebra near the acacia tree.</span></div><button class="primary" id="meet-button" ${status.nearby ? "" : "disabled"}>${progress.quiz.questionIndex > 0 || progress.quiz.lastAnswer ? "Continue discovering" : "Meet the zebra"} ${icon("arrow")}</button><button class="soft" id="guide-button">${icon("compass")} Guide me to the zebra</button><button class="text-button" id="repeat">${icon("sound")} Read my mission</button>`;
     button("guide-button", () => {
       world?.guideToAnimal();
-      speak("Let’s take a gentle walk to the zebra.");
+      speak(classicNarration.guideToZebra);
     });
     button("meet-button", () => {
       mode = "quiz";
@@ -230,19 +283,22 @@ function renderMission(focus = false): void {
       renderMission(true);
       speakCurrentQuestion();
     });
-    button("repeat", () =>
-      speak(
-        "Follow the path to your striped neighbor. Move with the arrow keys, or choose Guide me to the zebra. When you’re close enough, choose Meet the zebra.",
-        true,
-      ),
-    );
+    button("repeat", () => speak(classicNarration.mission, true));
   }
   if (focus) $("mission-title")?.focus({ preventScroll: true });
 }
 function speakCurrentQuestion(): void {
   const q = zebra.quizzes[progress.quiz.questionIndex];
-  if (q)
-    speak(`${q.narration} ${q.choices.map((c) => c.narration).join(". ")}`);
+  if (!q) return;
+  const answer = progress.quiz.lastAnswer;
+  if (answer) {
+    speak(classicFeedbackNarration(q.id, answer.correct));
+    return;
+  }
+  const renderedChoiceIds = [
+    ...$("mission").querySelectorAll<HTMLButtonElement>("[data-answer]"),
+  ].map((choice) => choice.dataset.answer!);
+  speak(classicQuestionNarration(q.id, renderedChoiceIds));
 }
 function enterPhoto(): void {
   mode = "photo";
@@ -252,9 +308,10 @@ function enterPhoto(): void {
   world?.setPhotoMode(true);
   world?.setActive(true);
   $("shutter").focus();
-  speak("Frame your zebra. When the view is ready, choose Take photo.");
+  speak(classicNarration.photo);
 }
 function leavePhoto(): void {
+  stopNarration();
   mode = "explore";
   world?.setPhotoMode(false);
   $("photo-overlay").classList.add("hidden");
@@ -304,12 +361,7 @@ function openBook(): void {
       $("specimen").innerHTML =
         '<p class="quiet">The 3D preview is unavailable on this device. Your photograph and field notes are here.</p>';
     }
-    button("read-summary", () =>
-      speak(
-        `${zebra.pronunciation}. ${zebra.summary.narration} ${zebra.stats.map((f) => `${f.label}. ${f.narration}`).join(" ")} ${zebra.adaptations.map((f) => f.narration).join(" ")} ${zebra.ecologicalRole.map((f) => f.narration).join(" ")}`,
-        true,
-      ),
-    );
+    button("read-summary", () => speak(classicFieldBookNarration(), true));
     button("replay-quiz", () => {
       progress = replayQuiz(progress);
       persist();
@@ -324,9 +376,13 @@ function openBook(): void {
 }
 function openSettings(): void {
   openDialog(
-    `<div class="settings-page">${closeButton}<div class="eyebrow">MAKE YOURSELF COMFORTABLE</div><h2 id="dialog-title">Your way to explore.</h2><p>Change these whenever you like.</p><label class="setting"><span><strong>Read aloud</strong><small>Use an available local English device voice.</small></span><input type="checkbox" id="narration-toggle" ${progress.settings.narration ? "checked" : ""}></label><label class="setting"><span><strong>Voice volume</strong></span><input type="range" id="volume" min="0" max="1" step="0.1" value="${progress.settings.volume}"></label><label class="setting"><span><strong>Reduced motion</strong><small>Calmer camera movements and still previews.</small></span><input type="checkbox" id="motion-toggle" ${progress.settings.reducedMotion ? "checked" : ""}></label><label class="setting"><span><strong>Simple graphics</strong><small>A lighter world for smaller computers.</small></span><input type="checkbox" id="quality-toggle" ${progress.settings.lowQuality ? "checked" : ""}></label><div class="controls-help"><h3>Find your feet</h3><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys to walk. Drag the landscape to look around. On a touchscreen, use the arrow buttons.</p><p>“Guide me” takes you to a comfortable viewing spot. You can complete the whole adventure with buttons.</p></div><button class="primary" data-close>Ready to explore ${icon("arrow")}</button></div>`,
+    `<div class="settings-page">${closeButton}<div class="eyebrow">MAKE YOURSELF COMFORTABLE</div><h2 id="dialog-title">Your way to explore.</h2><p>Change these whenever you like.</p><label class="setting"><span><strong>Read aloud</strong><small id="narrator-description">${esc(getNarratorDescription())}</small></span><input type="checkbox" id="narration-toggle" ${progress.settings.narration ? "checked" : ""}></label><button class="soft" id="hear-guide">${icon("sound")} Hear the guide</button><p id="narration-feedback" class="quiet" role="status"></p><label class="setting"><span><strong>Voice volume</strong></span><input type="range" id="volume" min="0" max="1" step="0.1" value="${progress.settings.volume}"></label><label class="setting"><span><strong>Reduced motion</strong><small>Calmer camera movements and still previews.</small></span><input type="checkbox" id="motion-toggle" ${progress.settings.reducedMotion ? "checked" : ""}></label><label class="setting"><span><strong>Simple graphics</strong><small>A lighter world for smaller computers.</small></span><input type="checkbox" id="quality-toggle" ${progress.settings.lowQuality ? "checked" : ""}></label><div class="controls-help"><h3>Find your feet</h3><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys to walk. Drag the landscape to look around. On a touchscreen, use the arrow buttons.</p><p>“Guide me” takes you to a comfortable viewing spot. You can complete the whole adventure with buttons.</p></div><button class="primary" data-close>Ready to explore ${icon("arrow")}</button></div>`,
   );
-  const update = () => {
+  button("hear-guide", () => {
+    $("narrator-description").textContent = getNarratorDescription();
+    speak(narratorSample, true);
+  });
+  const update = (event: Event) => {
     progress.settings = {
       narration: $<HTMLInputElement>("narration-toggle").checked,
       volume: Number($<HTMLInputElement>("volume").value),
@@ -335,7 +391,11 @@ function openSettings(): void {
     };
     setNarrationVolume(progress.settings.volume);
     world?.setOptions(progress.settings);
-    if (!progress.settings.narration) stopNarration();
+    if (
+      (event.target as HTMLElement).id === "narration-toggle" &&
+      !progress.settings.narration
+    )
+      stopNarration();
     document.documentElement.classList.toggle(
       "reduce-motion",
       progress.settings.reducedMotion,
@@ -354,7 +414,7 @@ function modelCredits(): string {
 }
 function openGrownups(): void {
   openDialog(
-    `<div class="settings-page grownups">${closeButton}<div class="eyebrow">BEHIND THE ADVENTURE</div><h2 id="dialog-title">A small creator.<br>A big imagination.</h2><p>Created by Sophia, age 7, with AI and help from her mom.</p><p>Sophia supplies the idea and creative direction. Amy, Cora, and AI help turn those ideas into a game through research, building, testing, and revision.</p><h3>About this first expedition</h3><p>Meet the Zebra is a playable prototype: one animal, three questions, an in-game photograph, and a field-book page. Its zebra model was supplied by Amy. The habitat and the backup zebra are original procedural art. The anatomy and movements are still being refined.</p>${modelCredits()}<h3>Saved on this browser</h3><p>Photographs and progress stay in this browser’s storage. There are no accounts, real-world camera access, ads, or analytics in this build. Clearing browser data will clear your field book. Read-aloud uses an available local device voice.</p><h3>Our field references</h3><p>Animal facts are checked against the sources below. Specialist review and child playtesting are still needed before a public release.</p><ul>${zebra.sources.map((s) => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a></li>`).join("")}</ul><h3>A fresh notebook</h3><p>Starting over removes this browser’s zebra discovery and photo.</p><button class="soft" id="reset-confirm">Start a new field book…</button></div>`,
+    `<div class="settings-page grownups">${closeButton}<div class="eyebrow">BEHIND THE ADVENTURE</div><h2 id="dialog-title">A small creator.<br>A big imagination.</h2><p>Created by Sophia, age 7, with AI and help from her mom.</p><p>Sophia supplies the idea and creative direction. Amy, Cora, and AI help turn those ideas into a game through research, building, testing, and revision.</p><h3>About this first expedition</h3><p>Meet the Zebra is a playable prototype: one animal, three questions, an in-game photograph, and a field-book page. Its zebra model was supplied by Amy. The habitat and the backup zebra are original procedural art. The anatomy and movements are still being refined.</p>${modelCredits()}<h3>Saved on this browser</h3><p>Photographs and progress stay in this browser’s storage. There are no accounts, real-world camera access, ads, or analytics in this build. Clearing browser data will clear your field book. ${esc(getNarratorDescription())}</p><h3>Our field references</h3><p>Animal facts are checked against the sources below. Specialist review and child playtesting are still needed before a public release.</p><ul>${zebra.sources.map((s) => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a></li>`).join("")}</ul><h3>A fresh notebook</h3><p>Starting over removes this browser’s zebra discovery and photo.</p><button class="soft" id="reset-confirm">Start a new field book…</button></div>`,
   );
   button("reset-confirm", () => {
     $("reset-confirm").outerHTML =
@@ -411,8 +471,8 @@ function start(): void {
   renderMission(true);
   speak(
     progress.encounterCompleted
-      ? "Welcome back to the savanna. Your field book is waiting."
-      : "Welcome, explorer. Follow the path to your striped neighbor, or choose Guide me to the zebra.",
+      ? classicNarration.welcomeBack
+      : classicNarration.welcome,
   );
 }
 button("start-button", start);

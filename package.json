@@ -11,7 +11,10 @@
     "test:e2e": "playwright test",
     "check": "tsc --noEmit",
     "format": "prettier --write src tests *.ts *.json index.html .github/workflows/ci.yml",
-    "format:check": "prettier --check src tests *.ts *.json index.html .github/workflows/ci.yml"
+    "format:check": "prettier --check src tests *.ts *.json index.html .github/workflows/ci.yml",
+    "narration:plan": "node scripts/generate-narration.mjs --dry-run",
+    "narration:sample": "node scripts/generate-narration.mjs --sample",
+    "narration:generate": "node scripts/generate-narration.mjs"
   },
   "dependencies": {
     "three": "^0.180.0"

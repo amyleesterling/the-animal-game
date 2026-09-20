@@ -4,11 +4,17 @@ import {
   safariEnding,
   safariContentReviewedAt,
 } from "./content/safari";
+import {
+  narratorSample,
+  safariNarration,
+  safariStopNarration,
+} from "./content/narration";
 import { createSafariWorld } from "./game/safari-world";
 import {
   narrate,
   setNarrationVolume,
   stopNarration,
+  getNarratorDescription,
 } from "./accessibility/narration";
 import {
   answerSafari,
@@ -31,6 +37,7 @@ app.innerHTML = `
     <nav aria-label="Safari tools"><button id="route-button">Route & field book <span id="clue-count">0/7</span></button><button id="settings-button" aria-label="Settings">Settings</button></nav>
   </header>
   <div id="save-banner" class="notice" role="alert" hidden></div>
+  <div id="audio-notice" class="notice" role="status" hidden></div>
   <main class="safari-stage">
     <div class="scene-area">
       <div id="safari-world" aria-label="Savanna scene with Sophia, her jeep, and the current animal"></div>
@@ -46,7 +53,7 @@ app.innerHTML = `
   </main>
   <footer class="safari-footer"><span id="save-status" role="status">Opening your field book…</span><span>Created by Sophia, age 7, with AI and help from her mom.</span></footer>
   <dialog id="book-dialog" aria-labelledby="book-title"><div class="dialog-top"><div><p class="eyebrow">Your expedition</p><h2 id="book-title">Route & field book</h2></div><button data-close aria-label="Close field book">Close</button></div><p class="dialog-intro">Seven stops, seven clues. Revisit any stop you have reached.</p><ol id="route-list" class="route-list"></ol><div id="book-pages" class="book-pages"></div></dialog>
-  <dialog id="settings-dialog" aria-labelledby="settings-title"><div class="dialog-top"><h2 id="settings-title">Make it yours</h2><button data-close aria-label="Close settings">Close</button></div><div class="settings-fields"><label><span>Read the story aloud</span><input id="narration-setting" type="checkbox"></label><label class="volume"><span>Narration volume</span><input id="volume-setting" type="range" min="0" max="1" step="0.05"></label><label><span>Reduce motion</span><input id="motion-setting" type="checkbox"></label><label><span>Lighter graphics</span><input id="quality-setting" type="checkbox"></label></div><p class="secondary">Narration uses an available local English voice. Every instruction also appears on screen.</p><details><summary>About this safari</summary><p class="secondary">An imagined savanna adventure with sourced natural history. Animal models and poses are prototypes. Sources are listed beside each discovery in your field book.</p></details><button id="restart-button" class="danger">Restart this story</button><p class="secondary">This replaces only the story safari. Your classic zebra encounter stays separate.</p></dialog>
+  <dialog id="settings-dialog" aria-labelledby="settings-title"><div class="dialog-top"><h2 id="settings-title">Make it yours</h2><button data-close aria-label="Close settings">Close</button></div><div class="settings-fields"><label><span>Read the story aloud</span><input id="narration-setting" type="checkbox"></label><label class="volume"><span>Narration volume</span><input id="volume-setting" type="range" min="0" max="1" step="0.05"></label><label><span>Reduce motion</span><input id="motion-setting" type="checkbox"></label><label><span>Lighter graphics</span><input id="quality-setting" type="checkbox"></label></div><p id="narrator-description" class="secondary"></p><button id="hear-guide">Hear the guide</button><p id="narration-feedback" class="secondary" role="status"></p><p class="secondary">Every instruction also appears on screen.</p><details><summary>About this safari</summary><p class="secondary">An imagined savanna adventure with sourced natural history. Animal models and poses are prototypes. Sources are listed beside each discovery in your field book.</p></details><button id="restart-button" class="danger">Restart this story</button><p class="secondary">This replaces only the story safari. Your classic zebra encounter stays separate.</p></dialog>
   <p id="announcement" class="sr-only" aria-live="polite"></p>`;
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) =>
@@ -67,6 +74,7 @@ let status: SafariStatus = {
 type Mode = "intro" | "explore" | "question" | "photo" | "success" | "ending";
 let mode: Mode = "intro";
 let currentNarration = "";
+let narrationDialog: HTMLDialogElement | null = null;
 let dirty = false;
 let readFailed = false;
 let disposed = false;
@@ -162,7 +170,27 @@ function say(text: string) {
   currentNarration = text;
   $("announcement").textContent = text;
   stopNarration();
-  if (progress.settings.narration) narrate(text);
+  if (progress.settings.narration) playGuide(text);
+}
+function playGuide(text: string) {
+  narrationDialog = document.querySelector<HTMLDialogElement>("dialog[open]");
+  let reported = false;
+  const report = (message: string) => {
+    reported = true;
+    if ($<HTMLDialogElement>("settings-dialog").open)
+      $("narration-feedback").textContent = message;
+    else {
+      $("audio-notice").hidden = false;
+      $("audio-notice").textContent = message;
+    }
+  };
+  $("narration-feedback").textContent = "";
+  $("audio-notice").hidden = true;
+  setNarrationVolume(progress.settings.volume);
+  if (!narrate(text, report) && !reported)
+    report(
+      "Guide audio is unavailable right now. All the story text is on screen.",
+    );
 }
 function button(id: string, text: string, primary = false) {
   return `<button id="${id}" class="${primary ? "primary" : ""}">${text}</button>`;
@@ -194,37 +222,36 @@ function render(announce = true) {
   let narration = "";
   if (mode === "intro") {
     body = `<p class="eyebrow">A seven-stop story</p><h1 id="story-title" tabindex="-1">Before the sun<br>sets on the savanna.</h1><p>Help Sophia find seven clues about a healthy savanna. Travel by jeep, meet the animals, and fill your field book with discoveries.</p><p class="secondary">Take your time. The sunset will wait for you.</p>${button("begin-safari", "Let’s go on safari →", true)}`;
-    narration =
-      "Help Sophia find seven clues about a healthy savanna before sunset. Travel by jeep, meet seven animals, and photograph your discoveries. Take your time. The sunset will wait for you.";
+    narration = safariNarration.intro;
   } else if (mode === "explore") {
     body = `<p class="eyebrow">Stop ${index + 1} · ${animal.chapter}</p><h1 id="story-title" tabindex="-1">${animal.name}</h1><p>${animal.story}</p><p class="mission">${animal.mission}</p><div class="actions">${button("guide-animal", "Guide Sophia closer")}${button("discover-clue", "Discover the clue", true)}</div><p id="approach-status" class="secondary" role="status"></p>`;
-    narration = `${animal.story} ${animal.mission} Use Guide Sophia closer, or walk with the arrow buttons. Then choose Discover the clue.`;
+    narration = safariStopNarration(animal, "explore");
   } else if (mode === "question") {
     if (!discovery.answer) {
       body = `<p class="eyebrow">A little discovery</p><h1 id="story-title" tabindex="-1">${animal.question.prompt}</h1><div class="choices">${animal.question.choices.map((c, i) => `<button data-answer="${c.id}"><span aria-hidden="true">${i + 1}</span>${c.text}</button>`).join("")}</div>`;
-      narration = `${animal.question.prompt} ${animal.question.choices.map((c, i) => `${i + 1}. ${c.text}.`).join(" ")}`;
+      narration = safariStopNarration(animal, "question");
     } else {
       const correct = discovery.answer === animal.question.correctId;
       body = `<p class="eyebrow">${correct ? "You spotted it" : "Let’s discover it together"}</p><h1 id="story-title" tabindex="-1">${animal.clue}</h1><p>${animal.question.explanation}</p><div class="actions">${!correct ? button("retry-answer", "Try again") : ""}${button("learn-clue", "I’ve got it · Take a photo", true)}</div>`;
-      narration = `${correct ? "You spotted it!" : "Let’s discover it together."} ${animal.question.explanation} When you’re ready, choose I’ve got it to take a photo.`;
+      narration = safariStopNarration(
+        animal,
+        correct ? "correct" : "incorrect",
+      );
     }
   } else if (mode === "photo") {
     body = `<p class="eyebrow">Add a picture to your field book</p><h1 id="story-title" tabindex="-1">Photograph the ${animal.name.toLowerCase()}</h1><p id="photo-status" role="status">Preparing your view…</p><div class="actions">${button("frame-animal", "Help me frame it")}${button("take-photo", "Take photo", true)}</div>`;
-    narration = `Photograph the ${animal.name.toLowerCase()}. Choose Help me frame it, then Take photo when your view is ready.`;
+    narration = safariStopNarration(animal, "photo");
   } else if (mode === "success") {
     body = `<div class="discovery-top"><img class="photo-thumb" src="${discovery.photo!.dataUrl}" alt="Your photograph of the ${animal.name.toLowerCase()}"><div><p class="eyebrow">Clue ${index + 1} collected</p><h1 id="story-title" tabindex="-1">${animal.clue}</h1></div></div><p>${animal.facts[0]}</p><div class="actions">${button("retake-photo", "Retake photo")}${index < safariStops.length - 1 ? button("next-stop", "Back to the jeep →", true) : button("finish-safari", "See our seven clues →", true)}</div><p class="secondary">${index < safariStops.length - 1 ? `Jump to our next stop: ${safariStops[index + 1].name}.` : "The field book is ready. Let’s bring it all together."}</p>`;
-    narration = `Clue ${index + 1} collected. ${animal.clue}. ${animal.facts[0]} ${index < 6 ? `Back to the jeep. Next stop: ${safariStops[index + 1].name}.` : "All seven clues are ready. Let’s bring them together."}`;
+    narration = safariStopNarration(animal, "success");
   } else {
     body = `<p class="eyebrow">Your sunset field book · 7 of 7</p><h1 id="story-title" tabindex="-1">One connected home.</h1><p>${safariEnding}</p><div class="clue-pills">${safariStops.map((s) => `<span>${s.clue}</span>`).join("")}</div><div class="actions">${button("open-finished-book", "Open my field book", true)}${button("revisit-route", "Explore again")}</div>`;
-    narration = safariEnding;
+    narration = safariNarration.ending;
   }
   panel.innerHTML = `${body}<div class="panel-bottom">${button("repeat-story", "Read it aloud")}<span class="secondary">Look closely. Leave room.</span></div>`;
   panel.setAttribute("aria-busy", "false");
   $("repeat-story").onclick = () => {
-    setNarrationVolume(progress.settings.volume);
-    if (!narrate(currentNarration))
-      $("announcement").textContent =
-        "A local English voice is not available. All the story text is on screen.";
+    playGuide(currentNarration);
   };
   const bind = (id: string, action: () => void) => {
     const el = document.getElementById(id);
@@ -359,6 +386,7 @@ function openBook() {
 }
 $("route-button").onclick = openBook;
 $("settings-button").onclick = () => {
+  $("narrator-description").textContent = getNarratorDescription();
   $<HTMLInputElement>("narration-setting").checked =
     progress.settings.narration;
   $<HTMLInputElement>("volume-setting").value = String(
@@ -369,9 +397,18 @@ $("settings-button").onclick = () => {
   $<HTMLInputElement>("quality-setting").checked = progress.settings.lowQuality;
   openDialog("settings-dialog");
 };
+$("hear-guide").onclick = () => {
+  $("narrator-description").textContent = getNarratorDescription();
+  playGuide(narratorSample);
+};
 document.querySelectorAll<HTMLDialogElement>("dialog").forEach((d) => {
   d.querySelector<HTMLButtonElement>("[data-close]")!.onclick = () => d.close();
   d.addEventListener("close", () => {
+    // A queued old close event must not cancel the next stop's newer story line.
+    if (narrationDialog === d) {
+      stopNarration();
+      narrationDialog = null;
+    }
     if (!busy && !document.querySelector("dialog[open]"))
       world?.setActive(mode !== "question");
   });
@@ -393,7 +430,8 @@ for (const id of [
       },
     });
     setNarrationVolume(progress.settings.volume);
-    stopNarration();
+    if (id === "narration-setting" && !progress.settings.narration)
+      stopNarration();
     world?.setOptions(progress.settings);
   };
 $("restart-button").onclick = async () => {
@@ -458,6 +496,10 @@ window.addEventListener("pagehide", () => {
 });
 window.addEventListener("pageshow", (event) => {
   if (event.persisted) location.reload();
+});
+window.addEventListener("blur", stopNarration);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopNarration();
 });
 
 async function start() {

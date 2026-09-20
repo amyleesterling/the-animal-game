@@ -1,7 +1,7 @@
 {
-  "purpose": "Sophia and Cora use their supplied waving and walking animations",
+  "purpose": "Sophia and Cora centered together with alternating ambient standing and authored waves",
   "sourceBranch": "codex/sophia-cora-companions",
-  "publishedAt": "2026-09-20T22:57:19.3345498Z",
-  "builtAt": "2026-09-20T22:51:09.6287220Z",
-  "sourceCommit": "91a9696b173e60791af7d1f3e4f0e28c229fe5a8"
+  "sourceCommit": "13ec41740d347bb50bdb8c9eaca9e34d7756b877",
+  "builtAt": "2026-09-20T23:22:22.2037804Z",
+  "publishedAt": "2026-09-20T23:28:48.7141176Z"
 }

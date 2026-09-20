@@ -13,6 +13,7 @@ import {
 } from "../../src/game/safari-world";
 import { disposeModelResources } from "../../src/game/zebra-model";
 import { stepToward } from "../../src/game/movement";
+import { VEHICLE_ENTRY_RANGE, VEHICLE_FOOTPRINT } from "../../src/game/vehicle";
 
 function assetBytes(path: string) {
   return new Uint8Array(
@@ -111,6 +112,12 @@ describe("seven-stop safari world", () => {
       );
       expect(views.observation.x).toBe(stop.position[0]);
       expect(Math.abs(views.jeep.x - views.observation.x)).toBeGreaterThan(3);
+      expect(views.jeep.distanceTo(views.arrival)).toBeLessThanOrEqual(
+        VEHICLE_ENTRY_RANGE,
+      );
+      expect(views.jeep.distanceTo(views.observation)).toBeLessThanOrEqual(
+        VEHICLE_ENTRY_RANGE,
+      );
       const player = views.arrival.clone();
       let arrived = false;
       for (let i = 0; i < 5; i++)
@@ -135,6 +142,8 @@ describe("seven-stop safari world", () => {
     expect(jeep.size.x).toBeLessThan(5.5);
     expect(jeep.size.z).toBeGreaterThan(1.7);
     expect(jeep.size.z).toBeLessThan(2.2);
+    expect(jeep.size.x).toBeLessThanOrEqual(VEHICLE_FOOTPRINT.halfLength * 2);
+    expect(jeep.size.z).toBeLessThanOrEqual(VEHICLE_FOOTPRINT.halfWidth * 2);
     jeep.dispose();
   });
 
@@ -224,6 +233,8 @@ describe("seven-stop safari world", () => {
     expect(bounds.min.y).toBeGreaterThanOrEqual(0);
     expect(size.x).toBeGreaterThan(4);
     expect(size.z).toBeGreaterThan(2);
+    expect(size.x).toBeLessThanOrEqual(VEHICLE_FOOTPRINT.halfLength * 2);
+    expect(size.z).toBeLessThanOrEqual(VEHICLE_FOOTPRINT.halfWidth * 2);
     expect(bounds.max.y).toBeGreaterThan(2.6);
     expect(jeep.children.length).toBeGreaterThan(30);
     disposeModelResources(jeep);

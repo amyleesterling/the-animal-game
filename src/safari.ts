@@ -40,8 +40,17 @@ app.innerHTML = `
       <div id="movement" aria-label="Move Sophia" hidden>
         <button data-move="forward" aria-label="Walk forward">↑</button><button data-move="left" aria-label="Walk left">←</button><button data-move="backward" aria-label="Walk backward">↓</button><button data-move="right" aria-label="Walk right">→</button>
       </div>
-      <p class="scene-keyboard">Walk: W A S D or arrow keys · Look: drag the scene</p>
+      <div id="drive-controls" aria-label="Drive the jeep" hidden>
+        <div class="drive-steering"><button data-drive="left" aria-label="Steer left"><span aria-hidden="true">←</span>Left</button><button data-drive="right" aria-label="Steer right"><span aria-hidden="true">→</span>Right</button></div>
+        <div class="drive-pedals"><button data-drive="forward" aria-label="Accelerate"><span aria-hidden="true">↑</span>Go</button><button data-drive="backward" aria-label="Reverse"><span aria-hidden="true">↓</span>Reverse</button><button id="brake-jeep" aria-label="Brake"><span aria-hidden="true">■</span>Brake</button></div>
+      </div>
+      <p id="scene-keyboard" class="scene-keyboard">Walk: W A S D or arrow keys · E: get in · Look: drag</p>
     </div>
+    <section id="vehicle-card" class="vehicle-card" aria-label="Safari jeep" hidden>
+      <div id="walking-vehicle"><p class="eyebrow">Your Land Cruiser</p><button id="enter-jeep" class="primary" disabled>Get in the jeep</button><button id="return-jeep" hidden>Return to the jeep</button><p id="vehicle-hint" class="secondary">Getting the jeep ready…</p></div>
+      <div id="driving-vehicle" hidden><div class="drive-heading"><span class="eyebrow">At the wheel</span><span id="drive-speed" class="speed">0 km/h</span></div><div class="drive-destination"><span id="drive-compass" aria-hidden="true">↑</span><div><strong id="drive-destination"></strong><p id="drive-distance" class="secondary"></p></div></div><button id="exit-jeep">Park & get out</button><p id="exit-hint" class="secondary">Brake to a stop, then step out to explore.</p></div>
+      <p id="vehicle-feedback" class="secondary" role="status"></p>
+    </section>
     <section id="story-panel" class="story-panel" aria-labelledby="story-title" aria-busy="true"><p class="eyebrow">Preparing your field book</p><h1 id="story-title">A little adventure awaits.</h1><p>Loading your saved story…</p></section>
   </main>
   <footer class="safari-footer"><span id="save-status" role="status">Opening your field book…</span><span>Created by Sophia, age 7, with AI and help from her mom.</span></footer>
@@ -63,6 +72,13 @@ let status: SafariStatus = {
   animalLoaded: false,
   jeepLoaded: false,
   distance: Infinity,
+  driving: false,
+  canEnterJeep: false,
+  canExitJeep: false,
+  speedKph: 0,
+  jeepDistance: Infinity,
+  destinationDistance: Infinity,
+  destinationBearing: 0,
 };
 type Mode = "intro" | "explore" | "question" | "photo" | "success" | "ending";
 let mode: Mode = "intro";
@@ -183,7 +199,7 @@ function render(announce = true) {
     mode === "intro" ? "Base camp" : `${index + 1} / 7 · ${animal.name}`;
   $("scene-hint").textContent =
     mode === "intro" ? "The jeep is packed. Let’s explore." : animal.chapter;
-  $("movement").hidden = mode !== "explore";
+  $("movement").hidden = mode !== "explore" || status.driving;
   $("photo-frame").hidden = mode !== "photo";
   document.body.dataset.mode = mode;
   world?.setPhotoMode(mode === "photo");
@@ -197,7 +213,7 @@ function render(announce = true) {
     narration =
       "Help Sophia find seven clues about a healthy savanna before sunset. Travel by jeep, meet seven animals, and photograph your discoveries. Take your time. The sunset will wait for you.";
   } else if (mode === "explore") {
-    body = `<p class="eyebrow">Stop ${index + 1} · ${animal.chapter}</p><h1 id="story-title" tabindex="-1">${animal.name}</h1><p>${animal.story}</p><p class="mission">${animal.mission}</p><div class="actions">${button("guide-animal", "Guide Sophia closer")}${button("discover-clue", "Discover the clue", true)}</div><p id="approach-status" class="secondary" role="status"></p>`;
+    body = `<p class="eyebrow">Stop ${index + 1} · ${animal.chapter}</p><h1 id="story-title" tabindex="-1">${animal.name}</h1><p>${animal.story}</p><p class="mission">${animal.mission}</p><div class="actions">${button("guide-animal", "Guide Sophia closer")}${discovery.learned ? button("resume-photo", "Photograph this discovery", true) : button("discover-clue", "Discover the clue", true)}</div><p id="approach-status" class="secondary" role="status"></p>`;
     narration = `${animal.story} ${animal.mission} Use Guide Sophia closer, or walk with the arrow buttons. Then choose Discover the clue.`;
   } else if (mode === "question") {
     if (!discovery.answer) {
@@ -209,10 +225,10 @@ function render(announce = true) {
       narration = `${correct ? "You spotted it!" : "Let’s discover it together."} ${animal.question.explanation} When you’re ready, choose I’ve got it to take a photo.`;
     }
   } else if (mode === "photo") {
-    body = `<p class="eyebrow">Add a picture to your field book</p><h1 id="story-title" tabindex="-1">Photograph the ${animal.name.toLowerCase()}</h1><p id="photo-status" role="status">Preparing your view…</p><div class="actions">${button("frame-animal", "Help me frame it")}${button("take-photo", "Take photo", true)}</div>`;
+    body = `<p class="eyebrow">Add a picture to your field book</p><h1 id="story-title" tabindex="-1">Photograph the ${animal.name.toLowerCase()}</h1><p id="photo-status" role="status">Preparing your view…</p><div class="actions">${button("frame-animal", "Help me frame it")}${button("take-photo", "Take photo", true)}</div>${button("leave-photo", "Back to exploring")}`;
     narration = `Photograph the ${animal.name.toLowerCase()}. Choose Help me frame it, then Take photo when your view is ready.`;
   } else if (mode === "success") {
-    body = `<div class="discovery-top"><img class="photo-thumb" src="${discovery.photo!.dataUrl}" alt="Your photograph of the ${animal.name.toLowerCase()}"><div><p class="eyebrow">Clue ${index + 1} collected</p><h1 id="story-title" tabindex="-1">${animal.clue}</h1></div></div><p>${animal.facts[0]}</p><div class="actions">${button("retake-photo", "Retake photo")}${index < safariStops.length - 1 ? button("next-stop", "Back to the jeep →", true) : button("finish-safari", "See our seven clues →", true)}</div><p class="secondary">${index < safariStops.length - 1 ? `Jump to our next stop: ${safariStops[index + 1].name}.` : "The field book is ready. Let’s bring it all together."}</p>`;
+    body = `<div class="discovery-top"><img class="photo-thumb" src="${discovery.photo!.dataUrl}" alt="Your photograph of the ${animal.name.toLowerCase()}"><div><p class="eyebrow">Clue ${index + 1} collected</p><h1 id="story-title" tabindex="-1">${animal.clue}</h1></div></div><p>${animal.facts[0]}</p>${index < safariStops.length - 1 ? button("drive-next-stop", "Back to jeep & drive →", true) : ""}<div class="actions">${button("retake-photo", "Retake photo")}${index < safariStops.length - 1 ? button("next-stop", "Quick jump to next stop") : button("finish-safari", "See our seven clues →", true)}</div><p class="secondary">${index < safariStops.length - 1 ? `Next stop: ${safariStops[index + 1].name}. Drive there, or take a quick jump.` : "The field book is ready. Let’s bring it all together."}</p>`;
     narration = `Clue ${index + 1} collected. ${animal.clue}. ${animal.facts[0]} ${index < 6 ? `Back to the jeep. Next stop: ${safariStops[index + 1].name}.` : "All seven clues are ready. Let’s bring them together."}`;
   } else {
     body = `<p class="eyebrow">Your sunset field book · 7 of 7</p><h1 id="story-title" tabindex="-1">One connected home.</h1><p>${safariEnding}</p><div class="clue-pills">${safariStops.map((s) => `<span>${s.clue}</span>`).join("")}</div><div class="actions">${button("open-finished-book", "Open my field book", true)}${button("revisit-route", "Explore again")}</div>`;
@@ -237,7 +253,7 @@ function render(announce = true) {
   });
   bind("guide-animal", () => world?.guideToAnimal());
   bind("discover-clue", () => {
-    if (!status.nearby || !status.animalLoaded) return;
+    if (status.driving || !status.nearby || !status.animalLoaded) return;
     mode = "question";
     render();
   });
@@ -259,6 +275,15 @@ function render(announce = true) {
     world?.guideToAnimal();
   });
   bind("frame-animal", () => world?.guideToAnimal());
+  bind("leave-photo", () => {
+    mode = "explore";
+    render();
+  });
+  bind("resume-photo", () => {
+    mode = "photo";
+    render();
+    world?.guideToAnimal();
+  });
   bind("take-photo", () => {
     if (!status.photoReady || !status.animalLoaded) return;
     try {
@@ -283,6 +308,7 @@ function render(announce = true) {
     world?.guideToAnimal();
   });
   bind("next-stop", () => travel(safariStops[index + 1].id));
+  bind("drive-next-stop", () => driveToNextStop(safariStops[index + 1].id));
   bind("finish-safari", () => {
     mode = "ending";
     render();
@@ -299,11 +325,15 @@ function updateStatus() {
   const discover = document.getElementById(
     "discover-clue",
   ) as HTMLButtonElement | null;
-  if (discover) discover.disabled = !status.nearby || !status.animalLoaded;
+  if (discover)
+    discover.disabled =
+      status.driving || !status.nearby || !status.animalLoaded;
   const capture = document.getElementById(
     "take-photo",
   ) as HTMLButtonElement | null;
-  if (capture) capture.disabled = !status.photoReady || !status.animalLoaded;
+  if (capture)
+    capture.disabled =
+      status.driving || !status.photoReady || !status.animalLoaded;
   const approach = document.getElementById("approach-status");
   const message = !status.animalLoaded
     ? "Getting your animal ready…"
@@ -319,7 +349,125 @@ function updateStatus() {
       : "Choose Help me frame it for a clear view.";
   if (photoStatus && photoStatus.textContent !== photoMessage)
     photoStatus.textContent = photoMessage;
+  updateVehicleControls();
 }
+function updateVehicleControls() {
+  const driving = status.driving;
+  document.body.dataset.driving = String(driving);
+  panel.hidden = driving;
+  $("vehicle-card").hidden = !world || mode === "question" || mode === "photo";
+  $("walking-vehicle").hidden = driving;
+  $("driving-vehicle").hidden = !driving;
+  $("drive-controls").hidden = !driving;
+  $("movement").hidden = driving || mode !== "explore";
+  $<HTMLButtonElement>("enter-jeep").disabled = busy || !status.canEnterJeep;
+  $("return-jeep").hidden = driving || status.canEnterJeep;
+  $<HTMLButtonElement>("exit-jeep").disabled = busy || !status.canExitJeep;
+  $("vehicle-hint").textContent = status.canEnterJeep
+    ? "Hop in and explore. E on a keyboard works too."
+    : "Walk back to your parked jeep, or choose Return to the jeep.";
+  $("drive-speed").textContent =
+    `${Math.round(Math.abs(status.speedKph))} km/h${status.speedKph < -0.5 ? " · R" : ""}`;
+  $("drive-destination").textContent = stop().name;
+  $("drive-distance").textContent =
+    status.destinationDistance < 17
+      ? "You’re close. Park a little way from the animal."
+      : `${Math.round(status.destinationDistance)} m to your story stop`;
+  $("drive-compass").style.transform =
+    `rotate(${status.destinationBearing}rad)`;
+  $("exit-hint").textContent = status.canExitJeep
+    ? "Step out to discover your clue."
+    : Math.abs(status.speedKph) > 2.8
+      ? "Hold Brake or Space to stop before getting out."
+      : "Move to an open spot so there is room to get out.";
+  $("scene-keyboard").textContent = driving
+    ? "W / ↑: go · S / ↓: reverse · A D / ← →: steer · Space: brake · E: get out"
+    : "Walk: W A S D or arrow keys · E: get in · Look: drag";
+}
+function enterJeep() {
+  if (
+    busy ||
+    !world ||
+    !status.canEnterJeep ||
+    mode === "question" ||
+    mode === "photo"
+  )
+    return;
+  if (!progress.started) {
+    update(visitStop(progress, progress.currentStopId));
+    mode = deriveMode();
+    render(false);
+  }
+  if (world.enterJeep()) {
+    stopNarration();
+    $("vehicle-feedback").textContent =
+      "Hold Go to drive. Use Left and Right to steer.";
+    $("exit-jeep").focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
+}
+function exitJeep() {
+  if (busy || !world || !status.driving) return;
+  if (!world.exitJeep()) {
+    $("vehicle-feedback").textContent =
+      "Brake to a stop in an open spot before getting out.";
+    return;
+  }
+  $("vehicle-feedback").textContent =
+    "You’re back on foot. Your jeep will wait here.";
+  mode = deriveMode();
+  render(false);
+  $($("vehicle-card").hidden ? "story-title" : "enter-jeep").focus({
+    preventScroll: true,
+  });
+}
+function driveToNextStop(id: string) {
+  if (busy || !world) return;
+  world.returnToJeep();
+  if (!world.enterJeep()) {
+    $("vehicle-feedback").textContent =
+      "The jeep needs a clear boarding spot. Try Get in the jeep.";
+    return;
+  }
+  update(visitStop(progress, id));
+  world.setStop(id, true);
+  // A revisited destination may have a saved question/photo in progress.
+  // Keep its controls available during the drive; resume that step on exit.
+  mode = "explore";
+  $("world-banner").hidden = true;
+  stopNarration();
+  render(false);
+  $("vehicle-feedback").textContent =
+    "Follow the arrow to your next story stop. Take your time.";
+  $("exit-jeep").focus({ preventScroll: true });
+  window.scrollTo({ top: 0, behavior: "instant" });
+}
+$("enter-jeep").onclick = enterJeep;
+$("exit-jeep").onclick = exitJeep;
+$("return-jeep").onclick = () => {
+  if (busy || !world) return;
+  world.returnToJeep();
+  $("vehicle-feedback").textContent =
+    "Back beside your jeep. Ready for another drive?";
+};
+window.addEventListener("keydown", (event) => {
+  if (
+    event.code !== "KeyE" ||
+    event.repeat ||
+    event.altKey ||
+    event.ctrlKey ||
+    event.metaKey ||
+    busy ||
+    document.querySelector("dialog[open]") ||
+    (event.target as HTMLElement | null)?.closest(
+      'input, textarea, select, [contenteditable="true"]',
+    )
+  )
+    return;
+  event.preventDefault();
+  if (status.driving) exitJeep();
+  else enterJeep();
+});
 function travel(id: string) {
   closeDialogs();
   update(visitStop(progress, id));
@@ -333,6 +481,9 @@ function travel(id: string) {
 function openDialog(id: string) {
   stopNarration();
   world?.setActive(false);
+  document
+    .querySelectorAll("#drive-controls .held")
+    .forEach((control) => control.classList.remove("held"));
   $<HTMLDialogElement>(id).showModal();
 }
 function closeDialogs() {
@@ -444,6 +595,52 @@ document.querySelectorAll<HTMLButtonElement>("[data-move]").forEach((b) => {
   };
   b.onkeyup = () => world?.setMovement(direction, false);
   b.onblur = () => world?.setMovement(direction, false);
+});
+document
+  .querySelectorAll<HTMLButtonElement>("[data-drive], #brake-jeep")
+  .forEach((control) => {
+    const direction = control.dataset.drive as
+      "forward" | "backward" | "left" | "right" | undefined;
+    const press = (pressed: boolean) => {
+      control.classList.toggle("held", pressed);
+      if (direction) world?.setMovement(direction, pressed);
+      else world?.setBrake(pressed);
+    };
+    control.onpointerdown = (event) => {
+      if (busy || !status.driving) return;
+      event.preventDefault();
+      control.setPointerCapture(event.pointerId);
+      press(true);
+    };
+    for (const type of [
+      "pointerup",
+      "pointercancel",
+      "lostpointercapture",
+      "blur",
+    ])
+      control.addEventListener(type, () => press(false));
+    control.onkeydown = (event) => {
+      if (event.key !== " " && event.key !== "Enter") return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.repeat && !control.classList.contains("held")) return;
+      if (!busy && status.driving) press(true);
+    };
+    control.onkeyup = (event) => {
+      if (event.key !== " " && event.key !== "Enter") return;
+      event.preventDefault();
+      event.stopPropagation();
+      press(false);
+    };
+  });
+function clearHeldControls() {
+  document
+    .querySelectorAll("#drive-controls .held")
+    .forEach((control) => control.classList.remove("held"));
+}
+window.addEventListener("blur", clearHeldControls);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) clearHeldControls();
 });
 window.addEventListener("beforeunload", (event) => {
   if (dirty) {

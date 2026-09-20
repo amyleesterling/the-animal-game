@@ -15,10 +15,18 @@ sightings are a scientific habitat assessment.
 The route visits plains zebra, African savanna elephant, northern giraffe,
 common warthog, Thomson's gazelle, cheetah, and spotted hyena. The player can
 walk around the connected savanna and return to unlocked stops from the field
-book. The jeep is a visible expedition vehicle; choosing the next stop places
-Sophia beside it at the next viewing area. This version has instant travel,
-not player-controlled driving. Animals retain their static authored poses;
-Sophia uses her supplied walking animation.
+book. The jeep supports getting in, driving, reversing, braking and getting
+out at a clear parking spot. A direction arrow points toward the current stop.
+After each discovery, choose **Back to jeep & drive** to travel there yourself,
+or **Quick jump to next stop** to arrive immediately. Animals retain their
+static authored poses; Sophia uses her supplied walking animation.
+
+Driving pauses when settings or the field book opens, the tab is hidden, or
+the browser loses focus. Vehicle collisions keep the jeep clear of trees,
+animals, the waterhole and world edges. Park and get out to answer questions
+or take photographs. Photo mode has **Back to exploring** so a parked jeep can
+be moved if it blocks the view. Saved questions and photographs resume after
+driving; the exact parking position resets on refresh. See [driving QA](DRIVING_QA.md).
 
 ## Reference-led asset revisions
 

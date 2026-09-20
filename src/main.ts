@@ -66,6 +66,7 @@ app.innerHTML = `
       <p class="welcome-copy">Follow your curiosity into the savanna. Meet a zebra. Take a photo. Make a discovery that’s yours.</p>
       <button class="primary start-button" id="start-button">Let’s explore ${icon("arrow")}</button>
       <p class="quiet start-note">A small adventure for curious minds.</p>
+      <a class="animal-preview-link" href="./animal-lab.html">Preview the next animals ${icon("arrow")}</a>
       <div class="welcome-steps"><span>${icon("compass")} Explore</span><span>${icon("camera")} Discover</span><span>${icon("book")} Remember</span></div>
     </section>
     <section class="mission-card hidden" id="mission" aria-labelledby="mission-title"></section>
@@ -348,7 +349,7 @@ function modelCredits(): string {
   const asset = assets.find((entry) => entry.id === zebra.model.assetId);
   if (asset?.kind !== "glb") return "";
   const credit = asset.attribution;
-  return `<section class="model-credits"><h3>Our zebra model</h3><p><a href="${esc(credit.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(credit.title)}</a> by ${esc(credit.creator)}, created with Meshy and supplied by Amy. Licensed under <a href="${esc(credit.licenseUrl)}" target="_blank" rel="noopener noreferrer">${esc(credit.license)}</a>.</p><p>${esc(credit.modifications)}</p></section>`;
+  return `<section class="model-credits"><h3>Our zebra model</h3><p><a href="${esc(credit.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(credit.title)}</a> by ${esc(credit.creator)}, created with Meshy and supplied by Amy. Licensed under <a href="${esc(credit.licenseUrl)}" target="_blank" rel="noopener noreferrer">${esc(credit.license)}</a>.</p><p>${esc(credit.modifications)}</p><h3>Your explorer</h3><p>Amy supplied Soph’s character and walking animation. The character walks when you move and holds a still pose with reduced motion.</p><h3>The next animals</h3><p><a href="./animal-lab.html">Open the animal previews</a> to rotate and inspect the next models. These are early art tests; their anatomy and future movements still need review.</p></section>`;
 }
 function openGrownups(): void {
   openDialog(

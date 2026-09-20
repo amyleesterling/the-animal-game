@@ -49,6 +49,12 @@ The game adds approximate procedural poses. The scenery and backup zebra remain
 original procedural art. See the [asset credits](public/models/CREDITS.md)
 and [provenance manifest](public/assets-manifest.json).
 
+The explorer now uses Amy's supplied **Soph walking character**, with its
+embedded walking animation. [Preview the nine next animals](https://amyleesterling.github.io/the-animal-game/animal-lab.html)
+in a separate rotatable gallery. All nine textured GLBs were generated through
+Meshy's API; they are static art tests, not yet animated encounters. The gallery
+loads one model at a time. See [generation records](docs/MESHY_GENERATION.md).
+
 ### Run locally
 
 Requires Node.js 22.12 or newer and a browser with WebGL.

@@ -325,6 +325,19 @@ em {
 .start-note {
   margin: 13px 0 32px;
 }
+.safari-entry {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-decoration: none;
+}
+.safari-entry + .start-button {
+  margin-top: 12px;
+  background: #f4f2e6;
+  color: #234e3b;
+  border: 1px solid #9aa888;
+}
 .welcome-steps {
   border-top: 1px solid #80946a42;
   display: flex;

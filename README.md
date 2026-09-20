@@ -28,7 +28,20 @@ This is both an educational game and a classroom-friendly example of what childr
 
 See [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md) for the full product, educational, technical, accessibility, privacy, content, and milestone plan.
 
-## Play the first slice
+## Play the Sunset Safari
+
+[Start the seven-stop story safari](https://amyleesterling.github.io/the-animal-game/safari.html).
+Help Sophia gather seven clues before sunset, meet seven species, and photograph
+each animal for a saved field book. The vintage Land Cruiser with roof rack is
+the expedition vehicle; next-stop travel is instant. Sophia walks with her
+supplied animation, while the animal models hold static poses.
+
+The lion, ostrich, and hippo have been rebuilt with generated reference images
+and Meshy Image-to-3D. They remain available for inspection in the model gallery.
+See [story and asset process](docs/STORY_SAFARI.md) and the
+[generation receipt](docs/SAFARI_ASSET_GENERATION.json).
+
+## Play the original zebra slice
 
 [Open the hosted playtest](https://amyleesterling.github.io/the-animal-game/)
 on a computer or phone. See [deployment notes](docs/DEPLOYMENT.md) for hosting,
@@ -40,8 +53,8 @@ and open a field-book page containing your own photo and a rotatable zebra.
 Progress, photographs, and preferences are saved in this browser using
 IndexedDB. There are no accounts or backend services.
 
-The ten-animal savanna remains the next milestone. Only the plains zebra is
-playable in this slice; the field book labels the other nine as future content.
+This original slice focuses on the plains zebra. Its field book and save remain
+separate from the new seven-species story safari.
 The zebra uses Amy's supplied Meshy model, **Zebra Portrait** by
 **amyleerobinson**, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 Its textures are optimized for the game; the source has no skeleton or animation clips.
@@ -52,7 +65,8 @@ and [provenance manifest](public/assets-manifest.json).
 The explorer now uses Amy's supplied **Soph walking character**, with its
 embedded walking animation. [Preview the nine next animals](https://amyleesterling.github.io/the-animal-game/animal-lab.html)
 in a separate rotatable gallery. All nine textured GLBs were generated through
-Meshy's API; they are static art tests, not yet animated encounters. The gallery
+Meshy's API; they are static models, with seven species including the supplied
+zebra now featured in the story safari. The gallery
 loads one model at a time. See [generation records](docs/MESHY_GENERATION.md).
 
 ### Run locally

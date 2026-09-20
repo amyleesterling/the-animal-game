@@ -31,4 +31,6 @@ current browser and origin, so localhost progress does not transfer to Pages.
 
 There is no account, camera/microphone request, or cross-device save service.
 Narration uses a local English voice when available; visible text remains usable
-without narration. This deployment is for playtesting the first zebra expedition.
+without narration. This deployment includes the original zebra expedition,
+the seven-stop story safari at `safari.html`, and the model workbench at
+`animal-lab.html`.

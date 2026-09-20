@@ -13,6 +13,7 @@ interface TestAnimal {
   thumbnail?: string;
   status: "ready";
   bytes?: number;
+  sha256?: string;
 }
 
 interface ModelViewer {
@@ -41,9 +42,9 @@ const leaf = `<svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M
 const arrow = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14 5-7 7 7 7M7 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 app.innerHTML = `
-  <header class="lab-header"><a class="lab-brand" href="./">${leaf}<span>Sophia’s <strong>Wild World</strong></span></a><a class="back-link" href="./">${arrow}<span>Back to the savanna</span></a></header>
+  <header class="lab-header"><a class="lab-brand" href="./">${leaf}<span>Sophia’s <strong>Wild World</strong></span></a><a class="back-link" href="./safari.html">${arrow}<span>Play the story safari</span></a></header>
   <main>
-    <section class="lab-intro" aria-labelledby="lab-title"><div><p class="eyebrow">Behind the adventure</p><h1 id="lab-title">Meet the next <em>neighbors.</em></h1><p class="intro-copy">A little workbench for a growing world. Choose an animal, turn it around, and take a closer look.</p></div><div class="review-note">${leaf}<p><strong>Test models</strong><br>Anatomy and animation review pending. These previews are separate from the zebra adventure.</p></div></section>
+    <section class="lab-intro" aria-labelledby="lab-title"><div><p class="eyebrow">Behind the adventure</p><h1 id="lab-title">Meet the savanna <em>neighbors.</em></h1><p class="intro-copy">Choose an animal, turn it around, and take a closer look. Seven species now have a part in Sophia’s story safari.</p></div><div class="review-note">${leaf}<p><strong>New image-guided models</strong><br>The lion, ostrich, and hippo have been rebuilt from reference images. These are static models; the story safari follows the other seven species.</p></div></section>
     <div class="lab-layout">
       <section class="viewer-card" aria-labelledby="animal-name">
         <div class="viewer-heading"><div><p class="eyebrow" id="model-number">The animal workbench</p><h2 id="animal-name">Room for a new discovery.</h2><p class="scientific-name" id="scientific-name">Our next savanna neighbors are on their way.</p></div><span class="model-badge">Model preview</span></div>
@@ -53,7 +54,7 @@ app.innerHTML = `
       </section>
       <aside class="animal-shelf" aria-labelledby="shelf-title"><div class="shelf-heading"><div><p class="eyebrow">The growing collection</p><h2 id="shelf-title">Savanna neighbors</h2></div><span class="ready-count" id="ready-count">0 ready</span></div><p class="shelf-copy" id="manifest-status" role="status">Checking for new models…</p><div class="animal-list" id="animal-list" aria-label="Choose an animal model"></div><button class="lab-button refresh-button" id="refresh-models">↻ <span>Refresh models</span></button><p class="small-note">Only the selected model loads into the viewer. Refresh to check for newly finished models.</p></aside>
     </div>
-    <section class="review-prompt"><span class="review-star" aria-hidden="true">✳</span><div><h2>What do you notice?</h2><p>Look at the legs, face, markings, and overall shape. These are first drafts to inspect together, before they join an expedition.</p></div></section>
+    <section class="review-prompt"><span class="review-star" aria-hidden="true">✳</span><div><h2>What do you notice?</h2><p>Look at the legs, face, markings, and overall shape. Your observations help us improve the animals. Turn each one around to check every side.</p></div></section>
   </main>
   <footer class="lab-footer"><span>A world imagined by Sophia.</span><span>Curiosity first. A closer look, always.</span></footer>`;
 
@@ -127,6 +128,10 @@ function readManifest(value: unknown): TestAnimal[] {
       file: entry.file,
       thumbnail,
       status: "ready",
+      sha256:
+        typeof entry.sha256 === "string" && /^[a-f0-9]{64}$/.test(entry.sha256)
+          ? entry.sha256
+          : undefined,
       bytes:
         typeof entry.bytes === "number" &&
         Number.isFinite(entry.bytes) &&
@@ -218,7 +223,13 @@ async function selectAnimal(animal: TestAnimal): Promise<void> {
   renderShelf();
   $("animal-name").textContent = animal.name;
   $("scientific-name").textContent = animal.scientificName;
-  $("model-number").textContent = "A future savanna neighbor";
+  $("model-number").textContent = [
+    "lion",
+    "common-ostrich",
+    "hippopotamus",
+  ].includes(animal.id)
+    ? "Image-guided animal revision"
+    : "A savanna story neighbor";
   setTools(false);
   const size = animal.bytes
     ? ` (${(animal.bytes / 1_000_000).toFixed(1)} MB)`
@@ -295,7 +306,15 @@ async function refreshManifest(): Promise<void> {
     $("manifest-status").textContent = animals.length
       ? "Choose a neighbor for a closer look."
       : "The test models are being prepared. Check back with Refresh models.";
-    if (!selected && animals[0]) await selectAnimal(animals[0]);
+    if (selected && animals.some((animal) => animal.id === selected?.id)) {
+      await selectAnimal(animals.find((animal) => animal.id === selected?.id)!);
+    } else if (animals[0])
+      await selectAnimal(
+        animals.find(
+          (animal) =>
+            animal.id === new URLSearchParams(location.search).get("animal"),
+        ) ?? animals[0],
+      );
     else if (!selected)
       setStage(
         "Good things take a little growing.",
@@ -357,6 +376,8 @@ function createViewer(
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.2;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const canvas = renderer.domElement;
   canvas.tabIndex = 0;
   canvas.setAttribute("role", "img");
@@ -377,6 +398,18 @@ function createViewer(
   scene.add(new THREE.HemisphereLight(0xfff5df, 0x788565, 3.2));
   const keyLight = new THREE.DirectionalLight(0xffefcd, 3);
   keyLight.position.set(4, 6, 5);
+  keyLight.castShadow = true;
+  keyLight.shadow.mapSize.set(1024, 1024);
+  Object.assign(keyLight.shadow.camera, {
+    left: -4,
+    right: 4,
+    top: 4,
+    bottom: -4,
+    near: 0.1,
+    far: 20,
+  });
+  keyLight.shadow.camera.updateProjectionMatrix();
+  keyLight.shadow.normalBias = 0.015;
   scene.add(keyLight);
   const fillLight = new THREE.DirectionalLight(0xd5e7eb, 1.5);
   fillLight.position.set(-4, 3, -2);
@@ -386,6 +419,7 @@ function createViewer(
     new THREE.MeshStandardMaterial({ color: 0xd6c397, roughness: 1 }),
   );
   pedestal.position.y = -0.075;
+  pedestal.receiveShadow = true;
   scene.add(pedestal);
   const pivot = new THREE.Group();
   scene.add(pivot);
@@ -493,6 +527,7 @@ function createViewer(
       canvas.dataset.modelState = "loading";
       render();
       const url = localResource(animal.file, "model");
+      if (animal.sha256) url.searchParams.set("v", animal.sha256.slice(0, 16));
       const response = await fetch(url, { signal: controller.signal });
       if (!response.ok) throw new Error("Model download failed.");
       const buffer = await response.arrayBuffer();
@@ -551,6 +586,9 @@ function createViewer(
         ownedScene.position.add(
           new THREE.Vector3(-center.x, -fitted.min.y, -center.z),
         );
+        ownedScene.traverse((object) => {
+          if (object instanceof THREE.Mesh) object.castShadow = true;
+        });
         model = ownedScene;
         ownedScene = undefined;
       } finally {
@@ -585,6 +623,7 @@ function createViewer(
       canvas.removeEventListener("webglcontextlost", onLoss);
       document.removeEventListener("visibilitychange", render);
       disposeObject(scene);
+      keyLight.dispose();
       renderer.dispose();
       renderer.forceContextLoss();
       canvas.remove();

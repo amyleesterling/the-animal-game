@@ -5,7 +5,11 @@ export default defineConfig({
   build: {
     chunkSizeWarningLimit: 650,
     rollupOptions: {
-      input: { expedition: "index.html", animals: "animal-lab.html" },
+      input: {
+        expedition: "index.html",
+        animals: "animal-lab.html",
+        safari: "safari.html",
+      },
     },
   },
 });

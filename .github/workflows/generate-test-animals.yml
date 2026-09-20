@@ -1,0 +1,36 @@
+name: Generate requested Meshy test animals
+on:
+  push:
+    tags: [meshy-savanna-tests-20260920-v1]
+permissions:
+  contents: read
+concurrency:
+  group: meshy-savanna-tests-20260920-v1
+  cancel-in-progress: false
+jobs:
+  generate:
+    # Rerunning a job must not create a second paid batch. Resume saved IDs explicitly.
+    if: github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    environment: MESHY_API_KEY
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Generate the nine remaining roster animals
+        timeout-minutes: 65
+        env:
+          MESHY_API_KEY: ${{ secrets.MESHY_API_KEY }}
+        run: node scripts/generate-test-animals.mjs
+      - name: Preserve models and resumable task IDs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: meshy-savanna-test-animals
+          path: generated/meshy-tests/
+          retention-days: 30
+          if-no-files-found: warn

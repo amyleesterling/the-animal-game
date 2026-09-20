@@ -1,0 +1,443 @@
+.lab {
+  display: grid;
+  grid-template-columns: 1fr minmax(320px, 400px);
+  height: 100dvh;
+  background: var(--cream);
+}
+
+.lab__stage {
+  position: relative;
+  min-width: 0;
+  background: #8fb7dd;
+}
+
+.lab__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  overflow-y: auto;
+  background: var(--cream);
+  border-left: 2px solid var(--line);
+}
+
+.lab__narration {
+  align-self: flex-start;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: #fff;
+  border: 2px solid var(--line);
+  font-size: 16px;
+}
+
+.weather-desk {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.weather-desk__title {
+  margin: 0;
+  font-size: 24px;
+  color: var(--green);
+}
+
+.weather-desk__place {
+  margin: -12px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.weather-desk__readout {
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--green);
+  color: #f4f7ec;
+  box-shadow: var(--shadow);
+}
+
+.weather-desk__date {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.weather-desk__season {
+  margin: 2px 0 0;
+  font-size: 18px;
+  color: var(--yellow);
+}
+
+.weather-desk__summary {
+  margin: 6px 0 0;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.weather-desk__facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 14px;
+  margin: 14px 0 0;
+  padding: 14px 0 0;
+  border-top: 1px solid #ffffff33;
+}
+
+.weather-desk__facts dt {
+  font-size: 14px;
+  color: #d8e2cd;
+}
+
+.weather-desk__facts dd {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.weather-desk__row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.weather-desk__row--storm button {
+  flex: 1;
+}
+
+.weather-desk__storm,
+.weather-desk__clear {
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 18px;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+}
+
+.weather-desk__storm {
+  background: #3f4a5c;
+  color: #f2f5fb;
+}
+
+.weather-desk__clear {
+  background: var(--yellow);
+  color: #4a3410;
+}
+
+.weather-desk__group {
+  margin: 0;
+  padding: 12px 14px 14px;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.weather-desk__group legend {
+  padding: 0 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.weather-desk__months {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.weather-desk__month {
+  padding: 10px 2px;
+  border-radius: 10px;
+  background: #f1efe2;
+  font-size: 14px;
+  font-weight: 600;
+  min-height: 44px;
+}
+
+.weather-desk__seasons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.weather-desk__season-button {
+  padding: 12px 10px;
+  border-radius: 12px;
+  background: #f1efe2;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.weather-desk__speeds {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.weather-desk__speed {
+  padding: 12px 10px;
+  border-radius: 12px;
+  background: #f1efe2;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.weather-desk__month[aria-pressed="true"],
+.weather-desk__season-button[aria-pressed="true"],
+.weather-desk__speed[aria-pressed="true"] {
+  background: var(--green);
+  color: var(--cream);
+}
+
+.weather-desk__step {
+  flex: 1;
+  padding: 12px 10px;
+  border-radius: 12px;
+  background: #f1efe2;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.weather-desk__year {
+  min-width: 72px;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--green);
+}
+
+.weather-desk__hour {
+  width: 100%;
+  margin: 4px 0 0;
+  accent-color: var(--green);
+  height: 32px;
+}
+
+.weather-desk__hour-value {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--green);
+}
+
+.weather-desk__provenance {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+@media (max-width: 900px) {
+  .lab {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(260px, 46dvh) 1fr;
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .lab__panel {
+    border-left: 0;
+    border-top: 2px solid var(--line);
+  }
+
+  .weather-desk__months {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .weather-desk__month {
+    font-size: 16px;
+  }
+}
+
+/* The savanna year. Two panels on a shared month axis; the chart reads, the
+   month buttons above it control. */
+.year-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  /* Chart roles. Validated against a white surface: grass to water is
+     Delta E 26.5 for protan and 29.0 for normal vision. */
+  --chart-grass: #008300;
+  --chart-water: #2a78d6;
+  --chart-rain: #6f8ba6;
+  --chart-ink: var(--ink);
+  --chart-muted: var(--muted);
+  --chart-grid: #e4e6da;
+}
+
+.year-chart__title {
+  margin: 0;
+  font-size: 18px;
+  color: var(--green);
+}
+
+.year-chart__lead {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--chart-muted);
+}
+
+.year-chart__panel-title {
+  margin: 6px 0 -4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--chart-ink);
+}
+
+.year-chart__panel-title--second {
+  margin-top: 8px;
+}
+
+.year-chart__plot {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.year-chart__marker {
+  fill: #253c3212;
+  transition: x 180ms ease;
+}
+
+.year-chart__bar {
+  fill: var(--chart-rain);
+}
+
+.year-chart__axis {
+  stroke: #c9cdbc;
+  stroke-width: 1;
+}
+
+.year-chart__grid {
+  stroke: var(--chart-grid);
+  stroke-width: 1;
+}
+
+.year-chart__line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.year-chart__line--grass {
+  stroke: var(--chart-grass);
+}
+
+.year-chart__line--water {
+  stroke: var(--chart-water);
+}
+
+.year-chart__dot {
+  stroke: #fff;
+  stroke-width: 2;
+  transition:
+    cx 180ms ease,
+    cy 180ms ease;
+}
+
+.year-chart__dot--grass {
+  fill: var(--chart-grass);
+}
+
+.year-chart__dot--water {
+  fill: var(--chart-water);
+}
+
+.year-chart__months {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.year-chart__months li {
+  font-size: 12px;
+  text-align: center;
+  color: var(--chart-muted);
+}
+
+.year-chart__months li.is-current {
+  font-weight: 700;
+  color: var(--green);
+}
+
+.year-chart__legend {
+  display: flex;
+  gap: 16px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.year-chart__legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--chart-ink);
+}
+
+.year-chart__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.year-chart__swatch--grass {
+  background: var(--chart-grass);
+}
+
+.year-chart__swatch--water {
+  background: var(--chart-water);
+}
+
+.year-chart__reading {
+  margin: 4px 0 0;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--chart-ink);
+}
+
+.year-chart__lag {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--chart-muted);
+}
+
+.year-chart__table summary {
+  font-size: 14px;
+  color: var(--chart-muted);
+  cursor: pointer;
+  min-height: 24px;
+}
+
+.year-chart__table table {
+  width: 100%;
+  margin-top: 8px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.year-chart__table th,
+.year-chart__table td {
+  padding: 4px 6px;
+  text-align: right;
+  border-bottom: 1px solid var(--line);
+}
+
+.year-chart__table th[scope="row"],
+.year-chart__table thead th:first-child {
+  text-align: left;
+  font-weight: 600;
+}

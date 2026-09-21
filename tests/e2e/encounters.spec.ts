@@ -1,5 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 import { safariStops, safariStoryStops } from "../../src/content/safari";
+import {
+  closePhotoBook,
+  saveFieldNotes,
+  startNaming,
+} from "./observation-helpers";
 
 const world = (page: Page) => page.locator("#safari-world canvas");
 const encounter = (page: Page) => page.locator("#encounter-dialog");
@@ -69,6 +74,7 @@ async function finishAnimal(page: Page, id: string) {
   await page.locator("#learn-clue").click();
   await expect(page.locator("#take-photo")).toBeEnabled({ timeout: 15000 });
   await page.locator("#take-photo").click();
+  await closePhotoBook(page);
   await expect(page.locator(".photo-thumb")).toHaveAttribute(
     "src",
     /^data:image\/jpeg;base64,/,
@@ -78,7 +84,7 @@ async function finishAnimal(page: Page, id: string) {
   );
 }
 
-test("walking off route finds the elephant, retries its name and saves its first photograph", async ({
+test("walking off route finds the elephant, saves a child's guess and photograph", async ({
   page,
 }, info) => {
   test.setTimeout(120000);
@@ -104,16 +110,16 @@ test("walking off route finds the elephant, retries its name and saves its first
   );
   const reached = await position(page);
   expect(Math.hypot(reached.x - 44, reached.z + 24)).toBeLessThanOrEqual(10.6);
-  await expect(page.locator("#animal-name")).toBeFocused();
+  await startNaming(page);
   await page.locator("#animal-name").pressSequentially("wasd", { delay: 80 });
   await assertStill(page);
   await page.locator("#confirm-animal").click();
-  await expect(page.locator("#name-feedback")).not.toBeEmpty();
-  await expect(encounter(page)).toBeVisible();
-  await expect(page.locator("[data-answer]")).toHaveCount(0);
-  await page.locator("#animal-name").fill("Elephant");
-  await page.locator("#confirm-animal").click();
   await expect(encounter(page)).not.toBeVisible();
+  await expect(page.locator(".guess-note")).toContainText("wasd");
+  await expect(page.locator("#story-title")).toContainText(
+    "African savanna elephant",
+  );
+  await saveFieldNotes(page);
   await expect(page.locator("#identified-name")).toContainText(
     "African savanna elephant",
   );
@@ -186,10 +192,12 @@ test("driving off route stops at the elephant and skip safely exits into its qui
   expect(
     Math.hypot(stopped.vehicleX - 44, stopped.vehicleZ + 24),
   ).toBeLessThanOrEqual(10.6);
+  await startNaming(page);
   await page.locator("#animal-name").pressSequentially("wasd", { delay: 80 });
   await assertStill(page);
   await page.locator("#skip-animal").click();
   await expect(encounter(page)).not.toBeVisible();
+  await saveFieldNotes(page);
   await expect(world(page)).toHaveAttribute("data-travel-mode", "walking");
   await expect(page.locator("#identified-name")).toContainText(
     "African savanna elephant",
@@ -235,7 +243,7 @@ test("dismissal stays quiet until leaving the animal and a photographed zebra do
     "data-animal-id",
     "plains-zebra",
   );
-  await expect(page.locator("#animal-name")).toBeFocused();
+  await expect(page.locator("#encounter-title")).toHaveText("Animal ahead!");
   await page.locator("#encounter-later").click();
   await expect(encounter(page)).not.toBeVisible();
   await walkUntil(page, "s", (p) => p.z > 16);
@@ -247,7 +255,9 @@ test("dismissal stays quiet until leaving the animal and a photographed zebra do
   await walkUntil(page, "s", (p) => p.z > 16);
   await page.locator("#guide-animal").click();
   await expect(encounter(page)).toBeVisible();
+  await startNaming(page);
   await page.locator("#skip-animal").click();
+  await saveFieldNotes(page);
   await expect(page.locator("#identified-name")).toContainText("Plains zebra");
   await page.locator('[data-answer="grass"]').click();
   await page.locator("#learn-clue").click();
@@ -256,15 +266,14 @@ test("dismissal stays quiet until leaving the animal and a photographed zebra do
   await walkUntil(page, "s", (p) => p.z > 16);
   await page.locator("#guide-animal").click();
   await expect(encounter(page)).toBeVisible();
-  await expect(page.locator("#animal-name")).not.toBeVisible();
-  await expect(page.locator("#skip-animal")).not.toBeVisible();
-  await expect(page.locator("#confirm-animal")).toHaveText(
-    "Continue discovery",
+  await expect(page.locator("#log-animal")).toHaveText(
+    "Continue this discovery",
   );
-  await page.locator("#confirm-animal").click();
+  await page.locator("#log-animal").click();
   await expect(encounter(page)).not.toBeVisible();
   await expect(page.locator("#take-photo")).toBeEnabled();
   await page.locator("#take-photo").click();
+  await closePhotoBook(page);
   await expect(page.locator("#save-status")).toHaveText(
     "Story saved on this device",
   );
@@ -297,6 +306,7 @@ test.describe("phone animal naming", () => {
     await begin(page);
     await page.locator("#guide-animal").tap();
     await expect(encounter(page)).toBeVisible();
+    await startNaming(page);
     await expect(page.locator("#animal-name")).toBeFocused();
     await expect(page.locator("#animal-name")).toHaveAttribute(
       "maxlength",
@@ -345,7 +355,7 @@ test.describe("phone animal naming", () => {
     await page.locator("#animal-name").fill("zebra");
     await page.locator("#confirm-animal").tap();
     await expect(encounter(page)).not.toBeVisible();
-    await expect(page.locator("[data-answer]")).toHaveCount(3);
+    await saveFieldNotes(page);
   });
 });
 
@@ -428,7 +438,7 @@ test("a version-one save keeps its photo, settings and pending feedback through 
   await expect(page.locator(".book-page img")).toHaveAttribute("src", photo);
   await page.keyboard.press("Escape");
   await page.locator("#settings-button").click();
-  await expect(page.locator("#narration-setting")).not.toBeChecked();
+  await expect(page.locator("#narration-setting")).toHaveCount(0);
   await expect(page.locator("#volume-setting")).toHaveValue("0.2");
   await page.locator("#volume-setting").fill("0.25");
   await page.locator("#volume-setting").dispatchEvent("change");

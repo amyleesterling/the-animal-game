@@ -1,6 +1,8 @@
 import "./safari.css";
+import "./ui/field-photo.css";
 import { safariStops, safariStoryStops, safariEnding } from "./content/safari";
 import { renderSafariProfile } from "./ui/safari-profile";
+import { installFieldPhotoFrames } from "./ui/field-photo";
 import { createSafariWorld } from "./game/safari-world";
 import { matchesAnimalName } from "./content/animal-names";
 import { safariEncounterRange } from "./game/encounters";
@@ -29,6 +31,7 @@ import {
   newSafari,
   nextSafariStop,
   photographSafari,
+  recordSafariObservation,
   retrySafariAnswer,
   visitStop,
   type SafariProgress,
@@ -70,14 +73,18 @@ app.innerHTML = `
     <section id="story-panel" class="story-panel" aria-labelledby="story-title" aria-busy="true"><p class="eyebrow">Preparing your field book</p><h1 id="story-title">A little adventure awaits.</h1><p>Loading your saved story…</p></section>
   </main>
   <footer class="safari-footer"><span id="save-status" role="status">Opening your field book…</span><span>Created by Sophia, age 7, with AI and help from her mom.</span></footer>
-  <dialog id="encounter-dialog" aria-labelledby="encounter-title" aria-describedby="encounter-intro"><div class="dialog-top"><div><p class="eyebrow">A wildlife discovery</p><h2 id="encounter-title">What animal did you find?</h2></div><button id="encounter-later" data-close>Keep exploring</button></div><p id="encounter-intro" class="dialog-intro">Look at your nearby neighbor. Type its name, or skip and we’ll help you.</p><form id="name-animal"><div id="animal-name-field"><label for="animal-name">Animal name</label><input id="animal-name" name="animal" type="text" maxlength="60" autocomplete="off" autocapitalize="none" placeholder="Type an animal name" aria-describedby="name-feedback" required></div><p id="name-feedback" role="status" aria-live="polite"></p><div class="actions"><button id="confirm-animal" class="primary" type="submit">Continue to quiz</button><button id="skip-animal" type="button">Skip · tell me the name</button></div></form><p id="encounter-driving-note" class="secondary" hidden>The jeep is paused. We’ll step out when you continue.</p></dialog>
+  <dialog id="encounter-dialog" aria-labelledby="encounter-title" aria-describedby="encounter-intro"><div class="dialog-top"><div><p class="eyebrow">A wildlife discovery</p><h2 id="encounter-title">Animal ahead!</h2></div><button id="encounter-later" data-close>Keep exploring</button></div><p id="encounter-intro" class="dialog-intro">Look around and notice what makes this animal special.</p><div id="encounter-spotting" class="actions"><button id="log-animal" class="primary">Log this animal</button></div><form id="name-animal" hidden><div id="animal-name-field"><label for="animal-name">What do you think it is?</label><input id="animal-name" name="animal" type="text" maxlength="60" autocomplete="off" placeholder="Your best guess" aria-describedby="name-feedback" required></div><p id="name-feedback" role="status" aria-live="polite"></p><div class="actions"><button id="confirm-animal" class="primary" type="submit">Record my guess</button><button id="skip-animal" type="button">Tell me the name</button></div></form><p id="encounter-driving-note" class="secondary" hidden>The jeep is paused. We’ll step out when you continue.</p></dialog>
   <dialog id="book-dialog" aria-labelledby="book-title"><div class="dialog-top"><div><p class="eyebrow">Your expedition</p><h2 id="book-title">Route & field book</h2></div><button data-close aria-label="Close field book">Close</button></div><p class="dialog-intro">Seven story clues and 25 more animals to discover, from insects to birds. This imagined reserve brings together wildlife from different African regions. Check each profile for its real range.</p><div class="book-tools"><label for="book-search">Find an animal<input id="book-search" type="search" placeholder="Name or scientific name"></label><label for="book-group">Animal group<select id="book-group"><option value="all">All animals</option><option value="Insect">Insects</option><option value="Rodent">Rodents</option><option value="Bird">Birds</option><option value="Mammal">Other mammals</option><option value="Reptile">Reptiles</option></select></label><button id="book-view" aria-pressed="false">Browse all animal profiles</button></div><p id="book-results" class="secondary" role="status"></p><ol id="route-list" class="route-list"></ol><div id="book-pages" class="book-pages"></div></dialog>
-  <dialog id="settings-dialog" aria-labelledby="settings-title"><div class="dialog-top"><h2 id="settings-title">Make it yours</h2><button data-close aria-label="Close settings">Close</button></div><div class="settings-fields"><label><span>Read the story aloud</span><input id="narration-setting" type="checkbox"></label><label class="volume"><span>Narration volume</span><input id="volume-setting" type="range" min="0" max="1" step="0.05"></label><label><span>Reduce motion</span><input id="motion-setting" type="checkbox"></label><label><span>Lighter graphics</span><input id="quality-setting" type="checkbox"></label></div><p class="secondary">Narration uses an available local English voice. Every instruction also appears on screen.</p><details><summary>About this safari</summary><p class="secondary">An imagined savanna adventure with sourced natural history. Animal models and poses are prototypes. Sources are listed beside each discovery in your field book.</p></details><button id="restart-button" class="danger">Restart this story</button><p class="secondary">This replaces only the story safari. Your classic zebra encounter stays separate.</p></dialog>
+  <dialog id="settings-dialog" aria-labelledby="settings-title"><div class="dialog-top"><h2 id="settings-title">Make it yours</h2><button data-close aria-label="Close settings">Close</button></div><div class="settings-fields"><label class="volume"><span>Narration volume</span><input id="volume-setting" type="range" min="0" max="1" step="0.05"></label><label><span>Reduce motion</span><input id="motion-setting" type="checkbox"></label><label><span>Lighter graphics</span><input id="quality-setting" type="checkbox"></label></div><p class="secondary">Read it aloud plays only when you press the button. Every instruction also appears on screen.</p><details><summary>About this safari</summary><p class="secondary">An imagined savanna adventure with sourced natural history. Animal models and poses are prototypes. Sources are listed beside each discovery in your field book.</p></details><button id="restart-button" class="danger">Restart this story</button><p class="secondary">This replaces only the story safari. Your classic zebra encounter stays separate.</p></dialog>
   <p id="announcement" class="sr-only" aria-live="polite"></p>`;
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 const panel = $("story-panel");
+installFieldPhotoFrames(
+  $("book-pages"),
+  (id) => progress.entries[id]?.observations,
+);
 const store = createSafariStore();
 let progress = newSafari({
   reducedMotion: matchMedia("(prefers-reduced-motion: reduce)").matches,
@@ -99,7 +106,14 @@ let status: SafariStatus = {
   destinationBearing: 0,
 };
 type Mode =
-  "intro" | "arrival" | "explore" | "question" | "photo" | "success" | "ending";
+  | "intro"
+  | "arrival"
+  | "explore"
+  | "observe"
+  | "question"
+  | "photo"
+  | "success"
+  | "ending";
 let mode: Mode = "intro";
 let arrivalStage: ArrivalStage = "walking";
 let currentNarration = "";
@@ -134,7 +148,9 @@ function setBusy(value: boolean) {
     });
     disabledBeforeBusy.clear();
     world?.setActive(
-      mode !== "question" && !document.querySelector("dialog[open]"),
+      mode !== "observe" &&
+        mode !== "question" &&
+        !document.querySelector("dialog[open]"),
     );
   }
 }
@@ -202,7 +218,6 @@ function say(text: string) {
   currentNarration = text;
   $("announcement").textContent = text;
   stopNarration();
-  if (progress.settings.narration) narrate(text);
 }
 function button(id: string, text: string, primary = false) {
   return `<button id="${id}" class="${primary ? "primary" : ""}">${text}</button>`;
@@ -212,7 +227,8 @@ function deriveMode(): Mode {
   if (entry().photo) return "success";
   if (entry().learned) return "photo";
   if (entry().answer) return "question";
-  if (entry().identification) return "question";
+  if (entry().identification)
+    return entry().observations ? "question" : "observe";
   return "explore";
 }
 function render(announce = true) {
@@ -241,8 +257,11 @@ function render(announce = true) {
   $("photo-frame").hidden = mode !== "photo";
   document.body.dataset.mode = mode;
   world?.setPhotoMode(mode === "photo");
+  world?.setInspecting(mode === "observe" || mode === "question");
   world?.setActive(
-    mode !== "question" && !document.querySelector("dialog[open]"),
+    mode !== "observe" &&
+      mode !== "question" &&
+      !document.querySelector("dialog[open]"),
   );
   let body = "";
   let narration = "";
@@ -265,13 +284,28 @@ function render(announce = true) {
   } else if (mode === "explore") {
     body = `<p class="eyebrow">${animal.profile ? "Extra discovery" : `Story stop ${index + 1}`} · ${animal.chapter}</p><h1 id="story-title" tabindex="-1">${animal.name}</h1><p>${animal.story}</p><p class="mission">${animal.mission}</p>${animal.viewingNote ? `<p class="viewing-note secondary">${escape(animal.viewingNote)}</p>` : ""}<div class="actions">${button("guide-animal", "Guide Sophia closer")}${discovery.learned ? button("resume-photo", "Photograph this discovery", true) : button("discover-clue", "Discover the clue", true)}</div><p id="approach-status" class="secondary" role="status"></p>`;
     narration = `${animal.story} ${animal.mission} Walk or drive toward an animal to begin a discovery. You can also use Guide Sophia closer.`;
+  } else if (mode === "observe") {
+    const identification = discovery.identification!;
+    const guessedRight = matchesAnimalName(animal.id, identification.name);
+    const introduction = identification.skipped
+      ? "You asked us to name it."
+      : guessedRight
+        ? `You wrote “${escape(identification.name)}.” You spotted it!`
+        : `You wrote “${escape(identification.name)}.” Good noticing — let’s look closer.`;
+    const notes = discovery.observations;
+    body = `<p class="eyebrow">Step 1 · Meet your animal</p><h1 id="story-title" tabindex="-1">Meet the ${escape(animal.name)}.</h1><p class="guess-note">${introduction}</p><p>Drag the landscape to look around. Sophia and Cora will wait while you make your field notes.</p><form id="field-observations" class="observation-form"><div class="observation-height"><label for="height-value">Estimated height</label><div><input id="height-value" type="number" min="0.1" max="10000" step="any" inputmode="decimal" value="${notes?.heightValue ?? ""}" required><select id="height-unit" aria-label="Height unit"><option value="m" ${notes?.heightUnit !== "cm" ? "selected" : ""}>metres</option><option value="cm" ${notes?.heightUnit === "cm" ? "selected" : ""}>centimetres</option></select></div></div><label for="colors-seen">Colors you can see<input id="colors-seen" type="text" maxlength="60" placeholder="e.g. brown and cream" value="${escape(notes?.colors ?? "")}" required></label><label for="animal-count">How many do you see?<input id="animal-count" type="number" min="1" max="999" step="1" inputmode="numeric" value="${notes?.count ?? 1}" required></label><p class="secondary">Make your best estimate. These are your observations, not quiz answers.</p><p id="observation-feedback" role="status" aria-live="polite"></p><button class="primary" type="submit">Save notes · Start the quiz</button></form>`;
+    narration = `Meet the ${animal.name}. Look around and record your estimate of its height, its colors, and how many you can see. Then start the quiz.`;
   } else if (mode === "question") {
+    const notes = discovery.observations;
+    const noteLine = notes
+      ? `<p class="recorded-observation">Your field notes: about ${notes.heightValue} ${notes.heightUnit} tall · ${escape(notes.colors)} · ${notes.count} seen</p>${button("edit-notes", "Edit field notes")}`
+      : "";
     if (!discovery.answer) {
-      body = `<p class="eyebrow">Question ${quiz.number} of ${quiz.total}</p><h1 id="story-title" tabindex="-1">${question.prompt}</h1><div class="choices">${question.choices.map((c, i) => `<button data-answer="${c.id}"><span aria-hidden="true">${i + 1}</span>${c.text}</button>`).join("")}</div>`;
+      body = `<p class="eyebrow">Step 2 · Question ${quiz.number} of ${quiz.total}</p><h1 id="story-title" tabindex="-1">${question.prompt}</h1>${noteLine}<div class="choices">${question.choices.map((c, i) => `<button data-answer="${c.id}"><span aria-hidden="true">${i + 1}</span>${c.text}</button>`).join("")}</div>`;
       narration = `${question.prompt} ${question.choices.map((c, i) => `${i + 1}. ${c.text}.`).join(" ")}`;
     } else {
       const correct = discovery.answer === question.correctId;
-      body = `<p class="eyebrow">${correct ? "You spotted it" : "Let’s discover it together"}</p><h1 id="story-title" tabindex="-1">${animal.clue}</h1><p>${question.explanation}</p><div class="actions">${!correct ? button("retry-answer", "Try again") : ""}${button("learn-clue", quiz.number < quiz.total ? "I’ve got it · Next question" : "I’ve got it · Take a photo", true)}</div>`;
+      body = `<p class="eyebrow">${correct ? "You spotted it" : "Let’s discover it together"}</p><h1 id="story-title" tabindex="-1">${animal.clue}</h1><p>${question.explanation}</p>${noteLine}<div class="actions">${!correct ? button("retry-answer", "Try again") : ""}${button("learn-clue", quiz.number < quiz.total ? "I’ve got it · Next question" : "I’ve got it · Take a photo", true)}</div>`;
       narration = `${correct ? "You spotted it!" : "Let’s discover it together."} ${question.explanation} When you’re ready, choose I’ve got it ${quiz.number < quiz.total ? "for the next question" : "to take a photo"}.`;
     }
   } else if (mode === "photo") {
@@ -323,6 +357,30 @@ function render(announce = true) {
     if (status.driving || !status.nearby || !status.animalLoaded) return;
     beginEncounter(progress.currentStopId);
   });
+  panel
+    .querySelector<HTMLFormElement>("#field-observations")
+    ?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      try {
+        update(
+          recordSafariObservation(progress, {
+            heightValue: Number($<HTMLInputElement>("height-value").value),
+            heightUnit: $<HTMLSelectElement>("height-unit").value as "cm" | "m",
+            colors: $<HTMLInputElement>("colors-seen").value,
+            count: Number($<HTMLInputElement>("animal-count").value),
+          }),
+        );
+        mode = "question";
+        render();
+      } catch (error) {
+        $("observation-feedback").textContent =
+          error instanceof Error ? error.message : "Check your field notes.";
+      }
+    });
+  bind("edit-notes", () => {
+    mode = "observe";
+    render();
+  });
   panel.querySelectorAll<HTMLButtonElement>("[data-answer]").forEach(
     (el) =>
       (el.onclick = () => {
@@ -370,6 +428,17 @@ function render(announce = true) {
       update(photographSafari(progress, photo));
       mode = "success";
       render();
+      const photographed = stop();
+      $<HTMLInputElement>("book-search").value = "";
+      $<HTMLSelectElement>("book-group").value = "all";
+      openBook();
+      requestAnimationFrame(() => {
+        $("book-pages")
+          .querySelector<HTMLElement>(
+            `.book-page[data-animal-id="${photographed.id}"]`,
+          )
+          ?.scrollIntoView({ block: "nearest" });
+      });
     } catch (error) {
       $("photo-status").textContent =
         error instanceof Error
@@ -456,11 +525,12 @@ function alignPhotoFrame() {
 function updateVehicleControls() {
   const driving = status.driving;
   document.body.dataset.driving = String(driving);
-  panel.hidden = driving;
+  panel.hidden = driving || Boolean(pendingEncounterId);
   $("vehicle-card").hidden =
     !world ||
     mode === "intro" ||
     mode === "arrival" ||
+    mode === "observe" ||
     mode === "question" ||
     mode === "photo";
   $("walking-vehicle").hidden = driving;
@@ -469,6 +539,7 @@ function updateVehicleControls() {
   $("movement").hidden = driving || mode !== "explore";
   $("nearby-encounter").hidden =
     !nearbyDiscovery() ||
+    mode === "observe" ||
     mode === "question" ||
     mode === "photo" ||
     !progress.started;
@@ -492,9 +563,12 @@ function updateVehicleControls() {
     : Math.abs(status.speedKph) > 2.8
       ? "Hold Brake or Space to stop before getting out."
       : "Move to an open spot so there is room to get out.";
-  $("scene-keyboard").textContent = driving
-    ? "W / ↑: go · S / ↓: reverse · A D / ← →: steer · Space: brake · E: get out"
-    : "Walk: W A S D or arrow keys · E: get in · Look: drag";
+  $("scene-keyboard").textContent =
+    mode === "observe" || mode === "question" || pendingEncounterId
+      ? "Drag the landscape to look around the animal"
+      : driving
+        ? "W / ↑: go · S / ↓: reverse · A D / ← →: steer · Space: brake · E: get out"
+        : "Walk: W A S D or arrow keys · E: get in · Look: drag";
 }
 function nearbyDiscovery() {
   return status.encounters.find(
@@ -533,6 +607,7 @@ function queueEncounterCheck() {
       pendingEncounterId ||
       document.hidden ||
       document.querySelector("dialog[open]") ||
+      mode === "observe" ||
       mode === "question" ||
       mode === "photo" ||
       mode === "arrival" ||
@@ -564,46 +639,54 @@ function beginEncounter(id: string) {
     return;
   pendingEncounterId = id;
   dismissedEncounters.add(id);
+  $("scene-chapter").textContent = "Animal ahead!";
+  $("scene-hint").textContent = "Look around before making a field note";
   const identification = progress.entries[id].identification;
   const dialog = $<HTMLDialogElement>("encounter-dialog");
   dialog.dataset.animalId = id;
-  $("encounter-title").textContent = identification
-    ? "Continue your discovery"
-    : "What animal did you find?";
+  $("encounter-title").textContent = "Animal ahead!";
   $("encounter-intro").textContent = identification
-    ? `You’ve already named the ${animal.name.toLowerCase()}. Pick up where you left off.`
-    : "Look at your nearby neighbor. Type its name, or skip and we’ll help you.";
-  $("animal-name-field").hidden = Boolean(identification);
+    ? "You have already met this animal. Pick up your field notes when you are ready."
+    : "Look around and notice its shape, colors, and neighbors. Drag the scene to see more.";
+  $("encounter-spotting").hidden = false;
+  $("name-animal").hidden = true;
+  $("log-animal").textContent = identification
+    ? "Continue this discovery"
+    : "Log this animal";
   const input = $<HTMLInputElement>("animal-name");
   input.value = identification?.name ?? "";
-  input.disabled = Boolean(identification);
   input.removeAttribute("aria-invalid");
   $("name-feedback").textContent = "";
-  $("skip-animal").hidden = Boolean(identification);
-  $("confirm-animal").textContent = identification
-    ? "Continue discovery"
-    : "Continue to quiz";
   $("encounter-driving-note").hidden = !status.driving;
   openDialog("encounter-dialog");
-  if (identification) $("confirm-animal").focus();
-  else input.focus();
+  $("log-animal").focus();
   $("announcement").textContent = identification
     ? "A nearby discovery is ready to continue."
-    : "An animal is nearby. What animal did you find?";
+    : "Animal ahead! Look around, then log what you find.";
 }
+$("log-animal").onclick = () => {
+  const id = pendingEncounterId;
+  if (!id) return;
+  if (progress.entries[id].identification) {
+    finishEncounter(false);
+    return;
+  }
+  $("encounter-spotting").hidden = true;
+  $("name-animal").hidden = false;
+  $("encounter-title").textContent = "What do you think it is?";
+  $("encounter-intro").textContent =
+    "Type your best guess. We’ll show you the animal’s name on the next screen.";
+  $<HTMLInputElement>("animal-name").focus();
+};
 function finishEncounter(skipped: boolean) {
   const id = pendingEncounterId;
   if (busy || !world || !id || encounterTransition) return;
   const animal = safariStops.find((s) => s.id === id)!;
   const input = $<HTMLInputElement>("animal-name");
-  if (
-    !progress.entries[id].identification &&
-    !skipped &&
-    !matchesAnimalName(id, input.value)
-  ) {
+  if (!progress.entries[id].identification && !skipped && !input.value.trim()) {
     input.setAttribute("aria-invalid", "true");
     $("name-feedback").textContent =
-      "Have another look and try again. You can also choose Skip and we’ll tell you the name.";
+      "Write your best guess or ask for the name.";
     input.focus();
     return;
   }
@@ -625,7 +708,7 @@ function finishEncounter(skipped: boolean) {
     }
     if (skipped) input.value = animal.name;
     update(next);
-    mode = entry().learned ? "photo" : "question";
+    mode = deriveMode();
     pendingEncounterId = null;
     closeDialog($<HTMLDialogElement>("encounter-dialog"));
     world.setStop(id, true);
@@ -656,6 +739,7 @@ function enterJeep() {
     busy ||
     !world ||
     !status.canEnterJeep ||
+    mode === "observe" ||
     mode === "question" ||
     mode === "photo"
   )
@@ -747,11 +831,14 @@ function travel(id: string) {
 }
 function openDialog(id: string) {
   stopNarration();
+  world?.setInspecting(id === "encounter-dialog");
   world?.setActive(false);
   document
     .querySelectorAll("#drive-controls .held")
     .forEach((control) => control.classList.remove("held"));
-  $<HTMLDialogElement>(id).showModal();
+  const dialog = $<HTMLDialogElement>(id);
+  if (id === "encounter-dialog") dialog.show();
+  else dialog.showModal();
 }
 function closeDialogs() {
   document
@@ -762,9 +849,15 @@ function resumeAfterDialog(dialog: HTMLDialogElement) {
   // Native close events are queued. An earlier close must not clear a newly
   // opened encounter, and button dismissal must resume before the next keydown.
   if (dialog.open) return;
+  const dismissedSighting =
+    dialog.id === "encounter-dialog" && pendingEncounterId !== null;
   if (dialog.id === "encounter-dialog") pendingEncounterId = null;
-  if (!busy && !document.querySelector("dialog[open]"))
-    world?.setActive(mode !== "question");
+  if (!busy && !document.querySelector("dialog[open]")) {
+    world?.setInspecting(mode === "observe" || mode === "question");
+    world?.setActive(mode !== "observe" && mode !== "question");
+    updateVehicleControls();
+    if (dismissedSighting) render(false);
+  }
 }
 function closeDialog(dialog: HTMLDialogElement) {
   dialog.close();
@@ -831,8 +924,6 @@ $("book-view").onclick = () => {
 };
 $("route-button").onclick = openBook;
 $("settings-button").onclick = () => {
-  $<HTMLInputElement>("narration-setting").checked =
-    progress.settings.narration;
   $<HTMLInputElement>("volume-setting").value = String(
     progress.settings.volume,
   );
@@ -849,18 +940,19 @@ document.querySelectorAll<HTMLDialogElement>("dialog").forEach((d) => {
     closeDialog(d);
   });
   d.addEventListener("close", () => resumeAfterDialog(d));
+  if (d.id === "encounter-dialog")
+    d.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      closeDialog(d);
+    });
 });
-for (const id of [
-  "narration-setting",
-  "volume-setting",
-  "motion-setting",
-  "quality-setting",
-])
+for (const id of ["volume-setting", "motion-setting", "quality-setting"])
   $(id).onchange = () => {
     update({
       ...progress,
       settings: {
-        narration: $<HTMLInputElement>("narration-setting").checked,
+        narration: false,
         volume: Number($<HTMLInputElement>("volume-setting").value),
         reducedMotion: $<HTMLInputElement>("motion-setting").checked,
         lowQuality: $<HTMLInputElement>("quality-setting").checked,

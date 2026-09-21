@@ -1,6 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
 import { safariStops, safariStoryStops } from "../../src/content/safari";
 import type { SafariProgress } from "../../src/state/safari";
+import {
+  closePhotoBook,
+  saveFieldNotes,
+  startNaming,
+} from "./observation-helpers";
 
 async function beginJourney(page: Page) {
   await page.locator("#begin-safari").click();
@@ -84,19 +89,21 @@ async function meet(page: Page, id: string, skip = true) {
   });
   expect(Math.hypot(before.x - after.x, before.z - after.z)).toBeGreaterThan(4);
   await expect(world(page)).toHaveAttribute("data-nearest-animal-id", id);
+  await startNaming(page);
   if (skip) await page.locator("#skip-animal").click();
   else {
     await page.locator("#animal-name").fill(animal(id).name);
     await page.locator("#confirm-animal").click();
   }
   await expect(encounter(page)).not.toBeVisible();
+  await saveFieldNotes(page);
   await expect(page.locator("#identified-name")).toContainText(animal(id).name);
 }
 
 async function answerQuestion(page: Page, id: string, index: number) {
   const question = animal(id).profile!.questions[index];
   await expect(page.locator("#story-panel .eyebrow")).toHaveText(
-    `Question ${index + 1} of 3`,
+    `Step 2 · Question ${index + 1} of 3`,
   );
   await expect(page.locator("#story-title")).toHaveText(question.prompt);
   await page.locator(`[data-answer="${question.correctId}"]`).click();
@@ -110,6 +117,7 @@ async function photograph(page: Page, id: string) {
   await expect(page.locator("#take-photo")).toBeEnabled({ timeout: 15000 });
   await expect(world(page)).toHaveAttribute("data-stop-id", id);
   await page.locator("#take-photo").click();
+  await closePhotoBook(page);
   await expect(page.locator(".photo-thumb")).toHaveAttribute(
     "src",
     /^data:image\/jpeg;base64,/,
@@ -251,7 +259,7 @@ test("a completed version-two story survives a new page session and gains empty 
   await resumed.keyboard.press("Escape");
   await resumed.locator("#settings-button").click();
   await expect(resumed.locator("#volume-setting")).toHaveValue("0.2");
-  await expect(resumed.locator("#narration-setting")).not.toBeChecked();
+  await expect(resumed.locator("#narration-setting")).toHaveCount(0);
   await resumed.locator("#volume-setting").fill("0.3");
   await resumed.locator("#volume-setting").dispatchEvent("change");
   await saved(resumed);
@@ -264,6 +272,7 @@ test("a completed version-two story survives a new page session and gains empty 
       ...legacy.entries[stop.id],
       questionIndex: 0,
       quizAnswers: [stop.question.correctId],
+      observations: null,
     });
   }
   for (const stop of safariStops.filter((stop) => stop.profile)) {
@@ -274,6 +283,7 @@ test("a completed version-two story survives a new page session and gains empty 
       visits: 0,
       learned: false,
       photo: null,
+      observations: null,
       questionIndex: 0,
       quizAnswers: [null, null, null],
     });
@@ -341,6 +351,7 @@ test("evicted animals reload within cache bounds and a dismissed discovery rearm
     "data-animal-id",
     "plains-zebra",
   );
+  await startNaming(page);
   await expect(page.locator("#animal-name")).toBeFocused();
 });
 

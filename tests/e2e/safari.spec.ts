@@ -1,5 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 import { safariStoryStops } from "../../src/content/safari";
+import {
+  closePhotoBook,
+  saveFieldNotes,
+  startNaming,
+} from "./observation-helpers";
 async function beginJourney(page: Page) {
   await page.locator("#begin-safari").click();
   if (await page.locator("#skip-arrival").isVisible())
@@ -18,14 +23,15 @@ async function meet(page: Page) {
   await expect(page.locator("#encounter-dialog")).toBeVisible({
     timeout: 15000,
   });
+  await startNaming(page);
   await page.locator("#skip-animal").click();
   await expect(page.locator("#encounter-dialog")).not.toBeVisible();
-  await expect(page.locator("[data-answer]")).toHaveCount(3);
+  await saveFieldNotes(page);
 }
 test("seven-stop story saves real photographs, resumes feedback, finishes and revisits", async ({
   page,
 }, info) => {
-  test.setTimeout(180000);
+  test.setTimeout(360000);
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -57,6 +63,7 @@ test("seven-stop story saves real photographs, resumes feedback, finishes and re
     await page.locator("#learn-clue").click();
     await expect(page.locator("#take-photo")).toBeEnabled({ timeout: 30000 });
     await page.locator("#take-photo").click();
+    await closePhotoBook(page);
     await expect(page.locator(".photo-thumb")).toHaveAttribute(
       "src",
       /^data:image\/jpeg;base64,/,
@@ -122,6 +129,7 @@ test("phone story keeps the scene, choices, camera and field book reachable", as
   await expect(page.locator("#take-photo")).toBeEnabled();
   await page.screenshot({ path: info.outputPath("safari-camera-phone.png") });
   await page.locator("#take-photo").click();
+  await closePhotoBook(page);
   await page.locator("#route-button").click();
   await expect(page.locator(".book-page img")).toHaveCount(1);
   await expect(
@@ -259,7 +267,7 @@ test("a delayed restart blocks old settings writes until replacement commits", a
   await page.evaluate(delayNextStoryOpen);
   page.once("dialog", (dialog) => dialog.accept());
   await page.locator("#restart-button").click();
-  await expect(page.locator("#narration-setting")).toBeDisabled();
+  await expect(page.locator("#volume-setting")).toBeDisabled();
   await expect(
     page.getByRole("button", { name: "Close settings" }),
   ).toBeDisabled();

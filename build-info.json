@@ -1,7 +1,7 @@
 {
-  "purpose": "Field notebook: bound journal, specimen forms, rendered opening, music, Tarangire stamp",
+  "purpose": "Field notebook: one species per page with page turning",
   "sourceBranch": "claude/field-notebook-design",
-  "sourceCommit": "cfcf29a0ce49bc4951d071e44a9b06f9493f8806",
-  "builtAt": "2026-09-21T18:58:39.997727+00:00",
-  "publishedAt": "2026-09-21T18:58:39.997727+00:00"
+  "sourceCommit": "313ce1fb4ed5cd437ed40af8c68153e3c3256ffc",
+  "builtAt": "2026-09-21T19:08:23.333992+00:00",
+  "publishedAt": "2026-09-21T19:08:23.333992+00:00"
 }

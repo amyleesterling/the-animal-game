@@ -1,5 +1,4 @@
 import { safariStops, safariStoryStops } from "../content/safari";
-import { matchesAnimalName } from "../content/animal-names";
 import type { SafariStop } from "../safari-contracts";
 import {
   defaultSettings,
@@ -11,8 +10,16 @@ import { SaveError } from "./save";
 export const SAFARI_DATABASE = "sophias-wild-world-story-safari";
 export const SAFARI_STORE = "journey";
 export const SAFARI_KEY = "current";
+export interface SafariObservation {
+  heightValue: number;
+  heightUnit: "cm" | "m";
+  colors: string;
+  count: number;
+}
 export interface SafariEntry {
   identification: { name: string; skipped: boolean } | null;
+  /** Optional for saves made before field observations were introduced. */
+  observations?: SafariObservation | null;
   attempts: number;
   answer: string | null;
   /** Zero-based active question; completed quizzes remain on their final question. */
@@ -49,6 +56,7 @@ function questionsForStop(stop: SafariStop): SafariStop["question"][] {
 function emptyEntry(stop: SafariStop): SafariEntry {
   return {
     identification: null,
+    observations: null,
     attempts: 0,
     answer: null,
     questionIndex: 0,
@@ -132,19 +140,46 @@ export function identifySafari(
   if (!stop || !p.started || p.entries[stop.id].visits < 1)
     throw new Error("Come closer to an animal before naming it.");
   if (p.entries[stop.id].identification) return p;
-  if (
-    typeof skipped !== "boolean" ||
-    (!skipped && !matchesAnimalName(stop.id, name))
-  )
-    throw new Error(
-      "Take another look and try its animal name, or choose Tell me the name.",
-    );
+  if (typeof skipped !== "boolean" || (!skipped && !validGuess(name)))
+    throw new Error("Write your best animal name, or choose Tell me the name.");
   return changeEntry(p, {
     identification: {
       name: skipped ? stop.name : name.trim().replace(/\s+/g, " "),
       skipped,
     },
   });
+}
+
+function validGuess(name: unknown): name is string {
+  return (
+    typeof name === "string" &&
+    name.trim().length > 0 &&
+    name.trim().length <= 60 &&
+    !/[\u0000-\u001f\u007f]/.test(name)
+  );
+}
+
+/** Child-authored estimates are field notes, not answers to grade. */
+export function recordSafariObservation(
+  p: SafariProgress,
+  observation: SafariObservation,
+): SafariProgress {
+  const entry = p.entries[p.currentStopId];
+  if (!p.started || !entry?.identification)
+    throw new Error("Name this animal before making field notes.");
+  const colors = observation.colors.trim().replace(/\s+/g, " ");
+  if (
+    !Number.isFinite(observation.heightValue) ||
+    observation.heightValue <= 0 ||
+    observation.heightValue > 10000 ||
+    !["cm", "m"].includes(observation.heightUnit) ||
+    !validGuess(colors) ||
+    !Number.isSafeInteger(observation.count) ||
+    observation.count < 1 ||
+    observation.count > 999
+  )
+    throw new Error("Add a height, colors, and how many animals you can see.");
+  return changeEntry(p, { observations: { ...observation, colors } });
 }
 
 /** The first remaining route stop is always unlocked, even after an off-route discovery. */
@@ -338,7 +373,26 @@ function validProgress(value: unknown, version: 1 | 2 | 3): boolean {
         if (
           identification.skipped
             ? identification.name !== stop.name
-            : !matchesAnimalName(stop.id, identification.name)
+            : !validGuess(identification.name)
+        )
+          return false;
+      }
+      if (version === 3 && entry.observations != null) {
+        const notes = entry.observations;
+        if (
+          !object(notes) ||
+          typeof notes.heightValue !== "number" ||
+          !Number.isFinite(notes.heightValue) ||
+          notes.heightValue <= 0 ||
+          notes.heightValue > 10000 ||
+          (notes.heightUnit !== "cm" && notes.heightUnit !== "m") ||
+          !validGuess(notes.colors) ||
+          notes.colors !== notes.colors.trim().replace(/\s+/g, " ") ||
+          typeof notes.count !== "number" ||
+          !Number.isSafeInteger(notes.count) ||
+          notes.count < 1 ||
+          notes.count > 999 ||
+          !identification
         )
           return false;
       }
@@ -416,6 +470,7 @@ function migratePreviousProgress(
             learned: entry.learned,
             photo: entry.photo,
             visits: entry.visits,
+            observations: null,
             identification:
               value.schemaVersion === 2
                 ? (entry as PreviousSafariEntry).identification

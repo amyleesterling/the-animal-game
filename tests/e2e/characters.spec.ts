@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { zebra } from "../../src/content/species";
+import { saveFieldNotes, startNaming } from "./observation-helpers";
 
 async function loadedCharacter(
   canvas: Locator,
@@ -581,7 +582,9 @@ test("the safari pair walks together, pauses, rides the jeep and stays out of th
   await expect(page.locator("#encounter-dialog")).toBeVisible({
     timeout: 20000,
   });
+  await startNaming(page);
   await page.locator("#skip-animal").click();
+  await saveFieldNotes(page);
   await page.locator('[data-answer="grass"]').click();
   await page.locator("#learn-clue").click();
   await loadedCharacter(canvas, "photo");

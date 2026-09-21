@@ -31,7 +31,7 @@ export interface Progress {
 }
 
 export const defaultSettings: GameSettings = {
-  narration: true,
+  narration: false,
   volume: 0.75,
   reducedMotion: false,
   lowQuality: false,

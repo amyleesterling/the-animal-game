@@ -515,7 +515,6 @@ test("narrow layouts remain legible and accessibility preferences survive reload
   });
 
   await page.locator("#settings-button").click();
-  await page.locator("#narration-toggle").uncheck();
   await page.locator("#motion-toggle").check();
   await page.locator("#quality-toggle").check();
   await expectReadableLayout(page);
@@ -523,7 +522,7 @@ test("narrow layouts remain legible and accessibility preferences survive reload
   await page.reload();
   await expect(page.locator("#start-button")).toBeEnabled();
   await page.locator("#settings-button").click();
-  await expect(page.locator("#narration-toggle")).not.toBeChecked();
+  await expect(page.locator("#narration-toggle")).toHaveCount(0);
   await expect(page.locator("#motion-toggle")).toBeChecked();
   await expect(page.locator("#quality-toggle")).toBeChecked();
   await page.keyboard.press("Escape");

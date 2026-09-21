@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { closePhotoBook, saveFieldNotes, startNaming } from "./observation-helpers";
 
 const canvas = (page: Page) => page.locator("#safari-world canvas");
 
@@ -75,7 +76,9 @@ test("the student can compose a 4:3 photo by dragging, zooming, and using button
   await expect(page.locator("#guide-animal")).toBeVisible();
   await page.locator("#guide-animal").click();
   await expect(page.locator("#encounter-dialog")).toBeVisible();
+  await startNaming(page);
   await page.locator("#skip-animal").click();
+  await saveFieldNotes(page);
   await page.locator('[data-answer="grass"]').click();
   await page.locator("#learn-clue").click();
   await expect(page.locator("#take-photo")).toBeEnabled({ timeout: 15000 });
@@ -112,11 +115,13 @@ test("the student can compose a 4:3 photo by dragging, zooming, and using button
   await page.locator("#frame-animal").click();
   await expect(page.locator("#take-photo")).toBeEnabled();
   await page.locator("#take-photo").click();
+  await closePhotoBook(page);
   const first = await page.locator(".photo-thumb").getAttribute("src");
   await page.locator("#retake-photo").click();
   await page.locator('[data-photo-adjust="orbit-right"]').click();
   await expect(page.locator("#take-photo")).toBeEnabled();
   await page.locator("#take-photo").click();
+  await closePhotoBook(page);
   const second = await page.locator(".photo-thumb").getAttribute("src");
   expect(second).toMatch(/^data:image\/jpeg;base64,/);
   expect(second).not.toBe(first);

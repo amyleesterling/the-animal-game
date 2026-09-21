@@ -307,12 +307,11 @@
 
 /* ---- The entries: specimens taped onto the page --------------------- */
 
+/* One species per leaf. Every leaf stays in the book so the whole guide is one
+   document; only the turned-to leaf is shown. */
 #book-dialog .book-pages {
+  display: block;
   margin: 0;
-  gap: 20px;
-  /* auto-fit so a single search result fills the page instead of hugging
-     the left column, while a full guide still runs two entries wide. */
-  grid-template-columns: repeat(auto-fit, minmax(264px, 1fr));
 }
 
 #book-dialog .book-pages > h3,
@@ -762,4 +761,86 @@ h4.entry-label {
   .notebook-intro {
     display: none;
   }
+}
+
+/* ---- Turning the pages ---------------------------------------------- */
+
+#book-dialog .field-entry {
+  margin-top: 14px;
+}
+
+/* Sticky, so a page can always be turned without scrolling to the foot. */
+.book-pager {
+  position: sticky;
+  bottom: -26px;
+  z-index: 3;
+  padding-bottom: 12px;
+  background: linear-gradient(#fffaecd9, var(--nb-paper-warm) 34%);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--nb-paper-edge);
+}
+
+.book-pager button {
+  flex-shrink: 0;
+  background: #fffdf4;
+  border-color: #a98f66;
+  color: var(--nb-ink);
+}
+
+.book-pager button:hover:not(:disabled) {
+  background: #f6ead0;
+}
+
+.book-leaf-count {
+  min-width: 0;
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--nb-ink-soft);
+}
+
+/* The species name is the part a child reads, so it stays at body size. */
+.book-leaf-count span {
+  display: block;
+  margin-top: 2px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--nb-ink);
+}
+
+@keyframes notebook-leaf {
+  from {
+    opacity: 0;
+    transform: translateX(14px) rotateY(-7deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+#book-dialog .field-entry:not([hidden]) {
+  animation: notebook-leaf 240ms ease-out both;
+  transform-origin: left center;
+}
+
+/* A photograph in a field book is a mounted plate, not a full bleed image. */
+#book-dialog .entry-plate {
+  max-width: 360px;
+}
+
+#book-dialog .field-entry {
+  max-width: 660px;
 }

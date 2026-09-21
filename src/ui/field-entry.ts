@@ -37,6 +37,10 @@ export type FieldEntryOptions = {
   number: number;
   /** Only unlocked animals offer a way to travel there. */
   unlocked: boolean;
+  /** One species per leaf. Every leaf stays in the book; one is turned to. */
+  leaf: number;
+  leaves: number;
+  open: boolean;
 };
 
 /**
@@ -50,6 +54,9 @@ export function renderFieldEntry({
   saved,
   number,
   unlocked,
+  leaf,
+  leaves,
+  open,
 }: FieldEntryOptions) {
   const profile = animal.profile;
   const lower = escape(animal.name.toLowerCase());
@@ -67,7 +74,7 @@ export function renderFieldEntry({
     ? `${escape(saved.identification.name)}${saved.identification.skipped ? ' <span class="entry-aside">(name supplied)</span>' : ""}`
     : null;
 
-  return `<article class="book-page field-entry" data-animal-id="${animal.id}">
+  return `<article class="book-page field-entry" data-animal-id="${animal.id}" data-leaf="${leaf}"${open ? "" : " hidden"} aria-label="${escape(animal.name)}, page ${leaf} of ${leaves}">
     <header class="entry-head">
       <span class="entry-no">Specimen ${number}</span>
       ${saved.photo ? `<span class="entry-stamp">Recorded${recorded ? ` ${escape(recorded)}` : ""}</span>` : ""}

@@ -779,6 +779,8 @@ function closeDialog(dialog: HTMLDialogElement) {
   resumeAfterDialog(dialog);
 }
 let browseAllProfiles = false;
+/** Which leaf of the book is turned to. One species per leaf. */
+let bookLeaf = 0;
 function renderBook() {
   const query = $<HTMLInputElement>("book-search")
     .value.trim()
@@ -813,17 +815,26 @@ function renderBook() {
       progress.entries[animal.id].identification ||
       progress.entries[animal.id].photo,
   );
+  if (bookLeaf >= pages.length) bookLeaf = 0;
+  const turned = pages[bookLeaf];
   $("book-pages").innerHTML = pages.length
     ? `<h3>${browseAllProfiles ? "Savanna animal guide" : "Animals you’ve met"}</h3>${pages
-        .map((animal) =>
+        .map((animal, index) =>
           renderFieldEntry({
             animal,
             saved: progress.entries[animal.id],
             number: safariStops.indexOf(animal) + 1,
             unlocked: isStopUnlocked(progress, animal.id),
+            leaf: index + 1,
+            leaves: pages.length,
+            open: index === bookLeaf,
           }),
         )
-        .join("")}`
+        .join("")}${
+        pages.length > 1
+          ? `<nav class="book-pager" aria-label="Turn the pages"><button id="book-back" ${bookLeaf === 0 ? "disabled" : ""}>Back a page</button><p class="book-leaf-count" role="status">Page ${bookLeaf + 1} of ${pages.length}<span>${escape(turned.name)}</span></p><button id="book-forward" ${bookLeaf === pages.length - 1 ? "disabled" : ""}>Next page</button></nav>`
+          : ""
+      }`
     : matching.length
       ? `<div class="notebook-empty"><img src="${publicAsset("/assets/notebook/cover-hero.webp")}" alt="" width="574" height="620" loading="lazy"><p class="empty-book">No pages yet. Walk or drive near an animal to start its page, or choose Browse all animal profiles to read ahead.</p></div>`
       : `<p class="empty-book">No animals match. Try a shorter name or another group.</p>`;
@@ -832,6 +843,10 @@ function renderBook() {
     .forEach(
       (button) => (button.onclick = () => travel(button.dataset.visit!)),
     );
+  const back = document.getElementById("book-back");
+  if (back) back.onclick = () => turnTo(bookLeaf - 1);
+  const forward = document.getElementById("book-forward");
+  if (forward) forward.onclick = () => turnTo(bookLeaf + 1);
 }
 /**
  * Amy's rendered opening plays once per page load, then hands off to the real
@@ -877,11 +892,23 @@ async function openBook() {
   }
   openDialog("book-dialog");
 }
-$("book-search").oninput = renderBook;
-$("book-group").onchange = renderBook;
+function turnTo(leaf: number) {
+  bookLeaf = leaf;
+  renderBook();
+  $("book-pages")
+    .querySelector<HTMLElement>(".book-page:not([hidden])")
+    ?.scrollIntoView({ block: "start" });
+}
+/** A different set of animals is a different book, so it opens at the front. */
+function reopenBook() {
+  bookLeaf = 0;
+  renderBook();
+}
+$("book-search").oninput = reopenBook;
+$("book-group").onchange = reopenBook;
 $("book-view").onclick = () => {
   browseAllProfiles = !browseAllProfiles;
-  renderBook();
+  reopenBook();
 };
 $("route-button").onclick = openBook;
 $<HTMLInputElement>("music-setting").onchange = (event) =>

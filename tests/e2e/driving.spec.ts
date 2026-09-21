@@ -6,7 +6,11 @@ import {
   type Page,
 } from "@playwright/test";
 import { safariStops } from "../../src/content/safari";
-import { closePhotoBook, saveFieldNotes, startNaming } from "./observation-helpers";
+import {
+  closePhotoBook,
+  saveFieldNotes,
+  startNaming,
+} from "./observation-helpers";
 
 type Vehicle = {
   x: number;

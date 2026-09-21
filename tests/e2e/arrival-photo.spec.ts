@@ -1,5 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
-import { closePhotoBook, saveFieldNotes, startNaming } from "./observation-helpers";
+import {
+  closePhotoBook,
+  saveFieldNotes,
+  startNaming,
+} from "./observation-helpers";
 
 const canvas = (page: Page) => page.locator("#safari-world canvas");
 

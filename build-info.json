@@ -1,7 +1,7 @@
 {
-  "purpose": "Animal observation flow, silent narrator, and Claude handoff",
-  "sourceBranch": "codex/animal-observation-flow",
-  "sourceCommit": "964ce160546a28f45e0a17181a11153fb9cd73b7",
-  "builtAt": "2026-09-21T18:08:25.1762035Z",
-  "publishedAt": "2026-09-21T18:09:32.2358784Z"
+  "purpose": "Field notebook redesign: bound journal, specimen form entries, rendered opening, background music",
+  "sourceBranch": "claude/field-notebook-design",
+  "sourceCommit": "cfebe414818ab2497af8fd653c0677fd148ea846",
+  "builtAt": "2026-09-21T18:20:36.371062+00:00",
+  "publishedAt": "2026-09-21T18:20:36.371062+00:00"
 }

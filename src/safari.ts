@@ -5,6 +5,7 @@ import { safariStops, safariStoryStops, safariEnding } from "./content/safari";
 import { renderFieldEntry } from "./ui/field-entry";
 import { installFieldPhotoFrames } from "./ui/field-photo";
 import { publicAsset } from "./public-asset";
+import { renderTarangireMap } from "./ui/tarangire-map";
 import {
   armBackgroundMusic,
   musicEnabled,
@@ -82,7 +83,7 @@ app.innerHTML = `
   <footer class="safari-footer"><span id="save-status" role="status">Opening your field book…</span><span>Created by Sophia, age 7, with AI and help from her mom.</span></footer>
   <dialog id="encounter-dialog" aria-labelledby="encounter-title" aria-describedby="encounter-intro"><div class="dialog-top"><div><p class="eyebrow">A wildlife discovery</p><h2 id="encounter-title">Animal ahead!</h2></div><button id="encounter-later" data-close>Keep exploring</button></div><p id="encounter-intro" class="dialog-intro">Look around and notice what makes this animal special.</p><div id="encounter-spotting" class="actions"><button id="log-animal" class="primary">Log this animal</button></div><form id="name-animal" hidden><div id="animal-name-field"><label for="animal-name">What do you think it is?</label><input id="animal-name" name="animal" type="text" maxlength="60" autocomplete="off" placeholder="Your best guess" aria-describedby="name-feedback" required></div><p id="name-feedback" role="status" aria-live="polite"></p><div class="actions"><button id="confirm-animal" class="primary" type="submit">Record my guess</button><button id="skip-animal" type="button">Tell me the name</button></div></form><p id="encounter-driving-note" class="secondary" hidden>The jeep is paused. We’ll step out when you continue.</p></dialog>
   <div id="notebook-intro" class="notebook-intro" hidden aria-hidden="true"><div class="notebook-intro-stage"><video id="notebook-intro-video" src="${publicAsset("/assets/notebook/opening.mp4")}" muted playsinline preload="auto"></video><div class="notebook-intro-title"><p class="intro-mark">Field Notes</p><p class="intro-place">Tanzania, 2026</p><p class="intro-count" id="notebook-intro-count"></p><p class="intro-by">Kept by Sophia</p></div></div></div>
-  <dialog id="book-dialog" aria-labelledby="book-title"><div class="notebook-body"><div class="notebook-head"><div><p class="eyebrow">Tanzania, 2026</p><h2 id="book-title">Route & field book</h2></div><button data-close aria-label="Close field book">Close</button></div><div class="notebook-spread"><section class="notebook-page notebook-page--index" aria-label="Route index"><p class="dialog-intro">Seven story clues and 25 more animals to discover, from insects to birds. This imagined reserve brings together wildlife from different African regions. Check each profile for its real range.</p><div class="book-tools"><label for="book-search">Find an animal<input id="book-search" type="search" placeholder="Name or scientific name"></label><label for="book-group">Animal group<select id="book-group"><option value="all">All animals</option><option value="Insect">Insects</option><option value="Rodent">Rodents</option><option value="Bird">Birds</option><option value="Mammal">Other mammals</option><option value="Reptile">Reptiles</option></select></label><button id="book-view" aria-pressed="false">Browse all animal profiles</button></div><p id="book-results" class="secondary" role="status"></p><ol id="route-list" class="route-list"></ol></section><section class="notebook-page notebook-page--entries" aria-label="Your field book pages"><div id="book-pages" class="book-pages"></div></section></div></div></dialog>
+  <dialog id="book-dialog" aria-labelledby="book-title"><div class="notebook-body"><div class="notebook-head"><div><p class="eyebrow">Tanzania, 2026</p><h2 id="book-title">Route & field book</h2></div><button data-close aria-label="Close field book">Close</button></div><div class="notebook-spread"><section class="notebook-page notebook-page--index" aria-label="Route index"><p class="dialog-intro">Seven story clues and 25 more animals to discover, from insects to birds. This imagined reserve brings together wildlife from different African regions. Check each profile for its real range.</p><div class="book-tools"><label for="book-search">Find an animal<input id="book-search" type="search" placeholder="Name or scientific name"></label><label for="book-group">Animal group<select id="book-group"><option value="all">All animals</option><option value="Insect">Insects</option><option value="Rodent">Rodents</option><option value="Bird">Birds</option><option value="Mammal">Other mammals</option><option value="Reptile">Reptiles</option></select></label><button id="book-view" aria-pressed="false">Browse all animal profiles</button><button id="book-map" aria-pressed="false">See the real park</button></div><p id="book-results" class="secondary" role="status"></p><ol id="route-list" class="route-list"></ol></section><section class="notebook-page notebook-page--entries" aria-label="Your field book pages"><div id="park-map-panel" hidden></div><div id="book-pages" class="book-pages"></div></section></div></div></dialog>
   <dialog id="settings-dialog" aria-labelledby="settings-title"><div class="dialog-top"><h2 id="settings-title">Make it yours</h2><button data-close aria-label="Close settings">Close</button></div><div class="settings-fields"><label><span>Background music</span><input id="music-setting" type="checkbox"></label><label class="volume"><span>Narration volume</span><input id="volume-setting" type="range" min="0" max="1" step="0.05"></label><label><span>Reduce motion</span><input id="motion-setting" type="checkbox"></label><label><span>Lighter graphics</span><input id="quality-setting" type="checkbox"></label></div><p class="secondary">Read it aloud plays only when you press the button. Every instruction also appears on screen.</p><details><summary>About this safari</summary><p class="secondary">An imagined savanna adventure with sourced natural history. Animal models and poses are prototypes. Sources are listed beside each discovery in your field book.</p></details><button id="restart-button" class="danger">Restart this story</button><p class="secondary">This replaces only the story safari. Your classic zebra encounter stays separate.</p></dialog>
   <p id="announcement" class="sr-only" aria-live="polite"></p>`;
 
@@ -1050,6 +1051,20 @@ $("book-group").onchange = reopenBook;
 $("book-view").onclick = () => {
   browseAllProfiles = !browseAllProfiles;
   reopenBook();
+};
+/** The map is a page about the real place, so it replaces the species pages. */
+let showingParkMap = false;
+$("book-map").onclick = () => {
+  showingParkMap = !showingParkMap;
+  const panel = $("park-map-panel");
+  if (showingParkMap && !panel.innerHTML)
+    panel.innerHTML = renderTarangireMap();
+  panel.hidden = !showingParkMap;
+  $("book-pages").hidden = showingParkMap;
+  $("book-map").setAttribute("aria-pressed", String(showingParkMap));
+  $("book-map").textContent = showingParkMap
+    ? "Back to the animals"
+    : "See the real park";
 };
 $("route-button").onclick = openBook;
 $<HTMLInputElement>("music-setting").onchange = (event) =>

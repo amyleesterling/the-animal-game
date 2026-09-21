@@ -1032,3 +1032,76 @@ h4.entry-label {
     display: none;
   }
 }
+
+/* ---- The real park ---------------------------------------------------- */
+
+.park-map {
+  display: grid;
+  gap: 8px;
+}
+
+.park-map h3 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.map-sub {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--nb-ink-soft);
+}
+
+.park-map svg {
+  width: 100%;
+  height: auto;
+  margin-top: 6px;
+}
+
+.map-park {
+  fill: #e4dcc0;
+  stroke: var(--nb-margin);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.map-river {
+  fill: none;
+  stroke: #4a7fa3;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.map-north line,
+.map-scale line {
+  stroke: var(--nb-ink-soft);
+  stroke-width: 1.6;
+}
+
+.map-north path {
+  fill: var(--nb-ink-soft);
+}
+
+.map-north text,
+.map-scale text {
+  fill: var(--nb-ink-soft);
+  font-size: 13px;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  text-anchor: middle;
+}
+
+.map-scale text {
+  text-anchor: start;
+}
+
+.map-note,
+.map-credit {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.map-credit a {
+  color: var(--nb-margin);
+}

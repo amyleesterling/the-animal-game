@@ -896,8 +896,12 @@ h4.entry-label {
   }
 }
 
+/* No fill mode. With "both" the page held the animation's first frame, which
+   is opacity 0, whenever the animation did not run: a hidden tab, a throttled
+   one, or a headless capture all left the entry invisible. The finished state
+   has to be the default, with the animation only an entrance on top of it. */
 #book-dialog .field-entry:not([hidden]) {
-  animation: notebook-leaf 240ms ease-out both;
+  animation: notebook-leaf 240ms ease-out;
   transform-origin: left center;
 }
 
@@ -925,6 +929,9 @@ h4.entry-label {
 
 #book-dialog .route-go {
   flex: 0 0 auto;
+  /* safari.css gives every .route-list button width:100%. With shrink 0 that
+     let Go keep the whole row and squeezed the name to nothing. */
+  width: auto;
   align-self: center;
   min-height: 44px;
   padding: 8px 14px;

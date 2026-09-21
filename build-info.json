@@ -1,7 +1,7 @@
 {
-  "purpose": "Field notebook: one species per page with page turning",
+  "purpose": "Phone: bigger savanna, compact jeep row, icon photo controls, index opens pages, opening title page",
   "sourceBranch": "claude/field-notebook-design",
-  "sourceCommit": "313ce1fb4ed5cd437ed40af8c68153e3c3256ffc",
-  "builtAt": "2026-09-21T19:08:23.333992+00:00",
-  "publishedAt": "2026-09-21T19:08:23.333992+00:00"
+  "sourceCommit": "338c19dfc271414d52805ed9661a130b454dfca0",
+  "builtAt": "2026-09-21T19:22:03.859589+00:00",
+  "publishedAt": "2026-09-21T19:22:03.859589+00:00"
 }

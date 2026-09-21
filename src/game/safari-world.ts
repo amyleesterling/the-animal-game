@@ -35,6 +35,108 @@ type Direction = "forward" | "backward" | "left" | "right";
 type Obstacle = { x: number; z: number; radius: number };
 const UP = new THREE.Vector3(0, 1, 0);
 
+/** Selected discoveries always load, even when selected from across the map. */
+export function prioritizeSafariModels(
+  stops: readonly SafariStop[],
+  selectedId: string,
+  position: GroundPosition,
+): string[] {
+  const nearby = stops
+    .map((entry) => ({
+      id: entry.id,
+      distance: Math.hypot(
+        entry.position[0] - position.x,
+        entry.position[2] - position.z,
+      ),
+    }))
+    .filter((entry) => entry.id === selectedId || entry.distance <= 50)
+    .sort((a, b) =>
+      a.id === selectedId
+        ? -1
+        : b.id === selectedId
+          ? 1
+          : a.distance - b.distance || a.id.localeCompare(b.id),
+    );
+  return nearby.slice(0, 8).map((entry) => entry.id);
+}
+
+/** Own parsed resources and keep both downloads and retained textures bounded. */
+export function createSafariModelQueue(
+  stops: readonly SafariStop[],
+  callbacks: {
+    load(entry: SafariStop, signal: AbortSignal): Promise<SafariModel>;
+    loaded(entry: SafariStop, model: SafariModel): void;
+    failed(entry: SafariStop): void;
+  },
+) {
+  const entries = new Map(stops.map((entry) => [entry.id, entry]));
+  const models = new Map<string, SafariModel>();
+  const failed = new Set<string>();
+  const pending = new Map<string, AbortController>();
+  let desired: string[] = [];
+  let disposed = false;
+  function pump() {
+    if (disposed) return;
+    for (const id of desired) {
+      if (pending.size >= 2) break;
+      if (models.has(id) || pending.has(id) || failed.has(id)) continue;
+      const entry = entries.get(id);
+      if (!entry) continue;
+      const controller = new AbortController();
+      pending.set(id, controller);
+      void Promise.resolve()
+        .then(() => {
+          controller.signal.throwIfAborted();
+          return callbacks.load(entry, controller.signal);
+        })
+        .then((model) => {
+          if (disposed || controller.signal.aborted || !desired.includes(id)) {
+            model.dispose();
+            return;
+          }
+          models.set(id, model);
+          callbacks.loaded(entry, model);
+        })
+        .catch(() => {
+          if (disposed || controller.signal.aborted) return;
+          failed.add(id);
+          callbacks.failed(entry);
+        })
+        .finally(() => {
+          pending.delete(id);
+          pump();
+        });
+    }
+  }
+  return {
+    models,
+    failed,
+    get pendingCount() {
+      return pending.size;
+    },
+    update(ids: readonly string[]) {
+      if (disposed) return;
+      desired = [...new Set(ids)].filter((id) => entries.has(id)).slice(0, 8);
+      for (const [id, controller] of pending)
+        if (!desired.includes(id)) controller.abort();
+      for (const [id, model] of models)
+        if (!desired.includes(id)) {
+          models.delete(id);
+          model.dispose();
+        }
+      pump();
+    },
+    dispose() {
+      if (disposed) return;
+      disposed = true;
+      desired = [];
+      pending.forEach((controller) => controller.abort());
+      models.forEach((model) => model.dispose());
+      models.clear();
+    },
+  };
+}
+
 export function safariViewpoints(
   stop: Pick<SafariStop, "position" | "height">,
 ) {
@@ -54,6 +156,7 @@ export function frameSafariPhoto(
   camera: THREE.PerspectiveCamera,
   bounds: THREE.Box3,
   viewpoint: THREE.Vector3,
+  closeUp = false,
 ) {
   const target = bounds.getCenter(new THREE.Vector3());
   const direction = viewpoint.clone().sub(target).normalize();
@@ -66,7 +169,9 @@ export function frameSafariPhoto(
   const inverseRotation = camera.quaternion.clone().invert();
   const halfVertical = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
   const halfHorizontal = halfVertical * camera.aspect;
-  let range = Math.max(1, viewpoint.distanceTo(target));
+  // A virtual macro lens can frame a small animal without moving the explorer
+  // inside its protected space. Normal large-animal photography stays intact.
+  let range = closeUp ? 0.35 : Math.max(1, viewpoint.distanceTo(target));
   for (const x of [bounds.min.x, bounds.max.x])
     for (const y of [bounds.min.y, bounds.max.y])
       for (const z of [bounds.min.z, bounds.max.z]) {
@@ -105,7 +210,10 @@ function createLandscape(scene: THREE.Scene, stops: SafariStop[]) {
   ground.position.y = -0.03;
   ground.receiveShadow = true;
   scene.add(ground);
-  const routePoints = stops.map((stop) => safariViewpoints(stop).arrival);
+  const storyStops = stops.filter((stop) => !stop.profile);
+  const routePoints = (storyStops.length ? storyStops : stops).map(
+    (stop) => safariViewpoints(stop).arrival,
+  );
   const route = new THREE.CatmullRomCurve3(routePoints, true, "centripetal");
   const pathPoints = route.getPoints(300);
   const pathPositions: number[] = [],
@@ -150,7 +258,7 @@ function createLandscape(scene: THREE.Scene, stops: SafariStop[]) {
   );
   stops.forEach((stop, i) => {
     const patch = new THREE.Mesh(
-      new THREE.CircleGeometry(10.5, 32),
+      new THREE.CircleGeometry(stop.profile ? 6.5 : 10.5, 32),
       mat(
         [0xb6aa72, 0xc0ad7b, 0xa6a268, 0xc3ae79, 0xb7af70, 0xbcaa79, 0xb8aa7d][
           i % 7
@@ -163,6 +271,114 @@ function createLandscape(scene: THREE.Scene, stops: SafariStop[]) {
     patch.receiveShadow = true;
     scene.add(patch);
   });
+
+  // The displays are marked as study views in both the world and DOM content.
+  // Reuse a handful of textures/geometries rather than one label per animal.
+  const postGeometry = new THREE.CylinderGeometry(0.055, 0.07, 1.45, 6);
+  const signGeometry = new THREE.PlaneGeometry(1.75, 0.7);
+  const postMaterial = mat(0x65543d);
+  const soilMaterial = mat(0x92714d);
+  const labels = new Map<string, THREE.MeshBasicMaterial>();
+  const soilPieces: THREE.BufferGeometry[] = [];
+  const posts: THREE.BufferGeometry[] = [];
+  for (const stop of stops.filter((entry) => entry.profile)) {
+    const marker = new THREE.Group();
+    marker.name = `habitat-station-${stop.id}`;
+    marker.position.set(...stop.position);
+    const kind =
+      stop.habitatFeature === "burrow"
+        ? "BURROW CUTAWAY"
+        : stop.viewingNote
+          ? "ENLARGED STUDY"
+          : "WILDLIFE CLEARING";
+    if (!labels.has(kind)) {
+      const label = document.createElement("canvas");
+      label.width = 512;
+      label.height = 208;
+      const context = label.getContext("2d");
+      if (context) {
+        context.fillStyle = "#f2e5c9";
+        context.fillRect(0, 0, 512, 208);
+        context.strokeStyle = "#827555";
+        context.lineWidth = 12;
+        context.strokeRect(8, 8, 496, 192);
+        context.fillStyle = "#334b3a";
+        context.textAlign = "center";
+        context.font = "bold 37px sans-serif";
+        context.fillText(kind, 256, 87);
+        context.font = "30px sans-serif";
+        context.fillText(
+          stop.viewingNote
+            ? "Real size in field book"
+            : "Observe from the trail",
+          256,
+          145,
+        );
+      }
+      const texture = new THREE.CanvasTexture(label);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      labels.set(
+        kind,
+        new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide }),
+      );
+    }
+    const sign = new THREE.Mesh(signGeometry, labels.get(kind));
+    sign.position.set(-3.2, 1.28, 1.7);
+    marker.add(sign);
+    posts.push(
+      postGeometry
+        .clone()
+        .translate(stop.position[0] - 3.2, 0.725, stop.position[2] + 1.7),
+    );
+    if (stop.habitatFeature === "burrow") {
+      // A section through the soil, open toward the visitor. The animal stays
+      // above the ground plane so the actual mesh remains visible and grounded.
+      for (const [x, z, width, depth] of [
+        [0, -1, 3.5, 0.4],
+        [-1.55, -0.2, 0.4, 1.6],
+        [1.55, -0.2, 0.4, 1.6],
+      ])
+        soilPieces.push(
+          new THREE.BoxGeometry(width, 0.55, depth).translate(
+            stop.position[0] + x,
+            0.275,
+            stop.position[2] + z,
+          ),
+        );
+    } else if (stop.habitatFeature === "insect") {
+      const rim = new THREE.Mesh(
+        new THREE.RingGeometry(1.45, 1.56, 32),
+        soilMaterial,
+      );
+      rim.rotation.x = -Math.PI / 2;
+      rim.position.y = 0.017;
+      marker.add(rim);
+    }
+    scene.add(marker);
+  }
+  for (const [pieces, material] of [
+    [posts, postMaterial],
+    [soilPieces, soilMaterial],
+  ] as const) {
+    if (!pieces.length) continue;
+    const geometry = mergeGeometries(pieces);
+    pieces.forEach((piece) => piece.dispose());
+    if (geometry) {
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.castShadow = true;
+      scene.add(mesh);
+    }
+  }
+  postGeometry.dispose();
+  if (!labels.size) {
+    signGeometry.dispose();
+    postMaterial.dispose();
+  }
+  if (
+    !soilPieces.length &&
+    !stops.some((entry) => entry.habitatFeature === "insect")
+  )
+    soilMaterial.dispose();
   const elephant =
     stops.find((stop) => stop.id === "african-elephant") ?? stops[0];
   const pondCenter = new THREE.Vector2(
@@ -464,8 +680,24 @@ export function createSafariWorld(
   jeep.add(fallbackJeep);
   scene.add(jeep);
   const controller = new AbortController();
-  const animals = new Map<string, SafariModel>();
-  const failedAnimals = new Set<string>();
+  const modelQueue = createSafariModelQueue(options.stops, {
+    load: (entry, signal) =>
+      loadSafariModel(entry.modelPath, entry.forwardAxis, entry.height, signal),
+    loaded(entry, model) {
+      model.root.position.set(...entry.position);
+      model.root.rotation.y = -0.12;
+      scene.add(model.root);
+      if (stop.id === entry.id) updateCamera(true);
+      updateStatus();
+    },
+    failed(entry) {
+      if (stop.id !== entry.id) return;
+      updateStatus();
+      settings.onError(`${entry.name} could not load. Refresh to try again.`);
+    },
+  });
+  const animals = modelQueue.models;
+  const failedAnimals = modelQueue.failed;
   let jeepModel: SafariModel | undefined;
   let disposed = false;
   let active = false;
@@ -570,6 +802,11 @@ export function createSafariWorld(
     canvas.dataset.vehicleSpeed = String(vehicle.speed);
     canvas.dataset.explorerX = String(explorer.root.position.x);
     canvas.dataset.explorerZ = String(explorer.root.position.z);
+    canvas.dataset.loadedAnimalCount = String(animals.size);
+    canvas.dataset.pendingAnimalCount = String(modelQueue.pendingCount);
+    canvas.dataset.loadedAnimalIds = [...animals.keys()].join(",");
+    canvas.dataset.habitatFeature = stop.habitatFeature ?? "clearing";
+    canvas.dataset.viewingNote = stop.viewingNote ?? "";
   }
   function syncVehicle() {
     jeep.position.set(vehicle.x, 0, vehicle.z);
@@ -578,6 +815,9 @@ export function createSafariWorld(
   }
   function updateStatus() {
     if (disposed) return;
+    modelQueue.update(
+      prioritizeSafariModels(options.stops, stop.id, explorer.root.position),
+    );
     diagnosticState();
     const encounters = collectSafariEncounters(
       options.stops,
@@ -619,6 +859,10 @@ export function createSafariWorld(
         ? "error"
         : "loading";
     const status: SafariStatus = {
+      explorerPosition: {
+        x: explorer.root.position.x,
+        z: explorer.root.position.z,
+      },
       encounters,
       distance,
       nearby: !driving && animalLoaded && distance <= views.encounterRange,
@@ -648,6 +892,7 @@ export function createSafariWorld(
         camera,
         currentBounds(),
         explorer.root.position.clone().add(new THREE.Vector3(0, 1.65, 0)),
+        Boolean(stop.profile),
       );
       return;
     }
@@ -935,38 +1180,6 @@ export function createSafariWorld(
   selectStop(stop.id);
   resize();
 
-  for (const entry of options.stops) {
-    void loadSafariModel(
-      entry.modelPath,
-      entry.forwardAxis,
-      entry.height,
-      controller.signal,
-    )
-      .then((model) => {
-        if (disposed) {
-          model.dispose();
-          return;
-        }
-        model.root.position.set(...entry.position);
-        model.root.rotation.y = -0.12;
-        animals.set(entry.id, model);
-        scene.add(model.root);
-        if (stop.id === entry.id) {
-          updateCamera(true);
-          updateStatus();
-        }
-      })
-      .catch(() => {
-        if (disposed) return;
-        failedAnimals.add(entry.id);
-        if (stop.id === entry.id) {
-          updateStatus();
-          settings.onError(
-            `${entry.name} could not load. Refresh to try again.`,
-          );
-        }
-      });
-  }
   canvas.dataset.jeepState = "loading";
   void loadSafariModel("/models/safari-jeep.glb", "-x", 2.6, controller.signal)
     .then((model) => {
@@ -1197,6 +1410,7 @@ export function createSafariWorld(
           photoCamera,
           currentBounds(),
           explorer.root.position.clone().add(new THREE.Vector3(0, 1.65, 0)),
+          Boolean(stop.profile),
         );
         renderer.setPixelRatio(1);
         renderer.setSize(960, 720, false);
@@ -1217,6 +1431,7 @@ export function createSafariWorld(
       if (disposed) return;
       disposed = true;
       controller.abort();
+      modelQueue.dispose();
       cancelAnimationFrame(frame);
       observer.disconnect();
       window.removeEventListener("keydown", onKeyDown);
@@ -1231,7 +1446,6 @@ export function createSafariWorld(
       canvas.removeEventListener("webglcontextlost", onContextLost);
       explorer.dispose();
       companion?.dispose();
-      animals.forEach((model) => model.dispose());
       jeepModel?.dispose();
       disposeModelResources(scene);
       scene.clear();

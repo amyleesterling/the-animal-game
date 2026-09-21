@@ -89,6 +89,29 @@ function atomicWrite(filename, value) {
 }
 const save = () => atomicWrite(stateFile, state);
 
+function validSavedTask(asset) {
+  if (!["planned", "ready", "failed"].includes(asset.status)) return false;
+  const task = asset.task;
+  if (task === undefined)
+    return asset.status === "planned" && !asset.model && !asset.thumbnails;
+  if (!task || typeof task !== "object" || Array.isArray(task)) return false;
+  if (
+    typeof task.submissionStartedAt !== "string" ||
+    !Number.isFinite(Date.parse(task.submissionStartedAt))
+  )
+    return false;
+  if (task.id === undefined)
+    return task.status === "SUBMITTING" && asset.status !== "ready";
+  return (
+    typeof task.id === "string" &&
+    /^[a-zA-Z0-9_-]{1,128}$/.test(task.id) &&
+    taskStates.has(task.status) &&
+    (asset.status !== "ready" || task.status === "SUCCEEDED") &&
+    (task.consumedCredits === undefined ||
+      (Number.isFinite(task.consumedCredits) && task.consumedCredits >= 0))
+  );
+}
+
 function png(bytes) {
   return (
     bytes.length >= 33 &&
@@ -394,19 +417,41 @@ async function main() {
       ? undefined
       : JSON.parse(readFileSync(process.argv[resumeIndex + 1], "utf8"));
   if (
+    resumeIndex >= 0 &&
+    (!previous || typeof previous !== "object" || Array.isArray(previous))
+  )
+    throw new Error("Resume state must be a saved batch object");
+  // A stale downloaded checkpoint must never erase task IDs already saved here.
+  // Exact copies are safe; differing histories require human reconciliation.
+  if (
     previous &&
-    (previous.batch !== plan.batch ||
+    existsSync(stateFile) &&
+    JSON.stringify(previous) !==
+      JSON.stringify(JSON.parse(readFileSync(stateFile, "utf8")))
+  )
+    throw new Error(
+      "Resume conflicts with the existing checkpoint; preserve both and reconcile task IDs",
+    );
+  if (
+    previous &&
+    (previous.schemaVersion !== 1 ||
+      previous.batch !== plan.batch ||
       previous.planHash !== planHash ||
+      JSON.stringify(previous.request) !== JSON.stringify(plan.request) ||
       previous.assets?.length !== 25 ||
       previous.assets.some(
         (asset, i) =>
           asset.id !== ids[i] ||
+          asset.reference !== planned[i].reference ||
           asset.referenceSha256 !== planned[i].referenceSha256 ||
           asset.targetPolycount !== planned[i].targetPolycount ||
-          (asset.task?.id &&
-            (typeof asset.task.id !== "string" ||
-              !/^[a-zA-Z0-9_-]{1,128}$/.test(asset.task.id))),
-      ))
+          !validSavedTask(asset),
+      ) ||
+      new Set(
+        previous.assets.flatMap((asset) =>
+          asset.task?.id ? [asset.task.id] : [],
+        ),
+      ).size !== previous.assets.filter((asset) => asset.task?.id).length)
   )
     throw new Error(
       "Resume state does not match this plan and its reference images",

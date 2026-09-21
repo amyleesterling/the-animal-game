@@ -1,4 +1,6 @@
-/** Shared interfaces for the seven-stop story safari. Keep the classic zebra save intact. */
+import type { SavannaProfile } from "./content/savanna-profile";
+
+/** Story stops and optional discoveries share the same accessible encounter flow. */
 export type SafariStop = {
   id: string;
   name: string;
@@ -8,6 +10,9 @@ export type SafariStop = {
   mission: string;
   clue: string;
   facts: string[];
+  profile?: SavannaProfile;
+  viewingNote?: string;
+  habitatFeature?: "burrow" | "insect";
   sources: { title: string; url: string }[];
   question: {
     prompt: string;
@@ -22,6 +27,8 @@ export type SafariStop = {
 };
 
 export type SafariStatus = {
+  /** Ground position remains available when distant models leave the cache. */
+  explorerPosition?: { x: number; z: number };
   /** Loaded animals, nearest first, independently of the chosen story stop. */
   encounters: { id: string; distance: number; range: number }[];
   nearby: boolean;

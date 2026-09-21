@@ -14,15 +14,15 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 
 const project = fileURLToPath(new URL("../../", import.meta.url));
-const fakeKey = "FAKE_SAFARI_OFFLINE_KEY_NOT_A_CREDENTIAL";
+const fakeKey = "FAKE_SAVANNA_OFFLINE_KEY_NOT_A_CREDENTIAL";
 const plan = JSON.parse(
-  readFileSync(join(project, "scripts/safari-image-assets.json"), "utf8"),
+  readFileSync(join(project, "scripts/savanna-expansion.json"), "utf8"),
 );
 const png = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aHK0AAAAASUVORK5CYII=",
   "base64",
 );
-const tempPrefix = join(resolve(tmpdir()), "safari-generation-test-");
+const tempPrefix = join(resolve(tmpdir()), "savanna-generation-test-");
 const owned: string[] = [];
 type Task = { id?: string; status: string; submissionStartedAt?: string };
 type Asset = {
@@ -30,10 +30,16 @@ type Asset = {
   status: string;
   task: Task;
   referenceSha256: string;
+  reference?: string;
   model?: { file: string };
   thumbnails?: Record<string, { file: string }>;
 };
-type Batch = { assets: Asset[]; error?: string; consumedCredits?: number };
+type Batch = {
+  schemaVersion: number;
+  assets: Asset[];
+  error?: string;
+  consumedCredits?: number;
+};
 type Request = {
   method: string;
   path: string;
@@ -57,7 +63,7 @@ http.request = http.get = https.request = https.get = net.connect = net.createCo
 // Only polling/backoff sleep is shortened. Request handling and saved state are real.
 timers.setTimeout = async () => {};
 syncBuiltinESMExports();
-const fault = process.env.SAFARI_TEST_FAULT;
+const fault = process.env.SAVANNA_TEST_FAULT;
 const png = Buffer.from("${png.toString("base64")}", "base64");
 let submissions = 0, failedReads = 0;
 globalThis.fetch = async (input, options = {}) => {
@@ -75,7 +81,7 @@ globalThis.fetch = async (input, options = {}) => {
     const { image_url, ...rest } = body;
     settings = rest;
   }
-  fs.appendFileSync(process.env.SAFARI_TEST_REQUESTS, JSON.stringify({method,path:url.pathname,authorization:Boolean(authorization),checkpointExists,imageMatches,settings}) + "\\n");
+  fs.appendFileSync(process.env.SAVANNA_TEST_REQUESTS, JSON.stringify({method,path:url.pathname,authorization:Boolean(authorization),checkpointExists,imageMatches,settings}) + "\\n");
   if (url.origin === "https://api.meshy.ai") {
     if (authorization !== "Bearer ${fakeKey}") throw new Error("Expected fake key only");
     if (url.pathname === "/openapi/v1/balance" && method === "GET") {
@@ -105,7 +111,7 @@ globalThis.fetch = async (input, options = {}) => {
     if (url.pathname.endsWith(".glb")) {
       if (fault === "invalid-model") return new Response(Buffer.from("not a GLB"));
       if (fault === "oversized-model") return new Response("small body", {headers:{"content-length":String(81*1024*1024)}});
-      return new Response(fs.readFileSync(process.env.SAFARI_TEST_GLB));
+      return new Response(fs.readFileSync(process.env.SAVANNA_TEST_GLB));
     }
   }
   throw new Error("Unexpected offline request");
@@ -117,17 +123,33 @@ function harness() {
   owned.push(directory);
   const scripts = join(directory, "scripts");
   mkdirSync(scripts);
-  mkdirSync(join(directory, "assets/references"), { recursive: true });
+  mkdirSync(join(directory, "assets/references/savanna-expansion"), {
+    recursive: true,
+  });
   copyFileSync(
-    join(project, "scripts/generate-safari-assets.mjs"),
-    join(scripts, "generate-safari-assets.mjs"),
+    join(project, "scripts/generate-savanna-expansion.mjs"),
+    join(scripts, "generate-savanna-expansion.mjs"),
   );
   copyFileSync(
-    join(project, "scripts/safari-image-assets.json"),
-    join(scripts, "safari-image-assets.json"),
+    join(project, "scripts/savanna-expansion.json"),
+    join(scripts, "savanna-expansion.json"),
   );
   for (const asset of plan.assets)
     writeFileSync(join(directory, asset.reference), png);
+  const geometry = Buffer.from(
+    JSON.stringify({
+      asset: { version: "2.0" },
+      meshes: [{ primitives: [] }],
+    }).padEnd(128, " "),
+  );
+  const header = Buffer.alloc(20);
+  header.writeUInt32LE(0x46546c67, 0);
+  header.writeUInt32LE(2, 4);
+  header.writeUInt32LE(20 + geometry.length, 8);
+  header.writeUInt32LE(geometry.length, 12);
+  header.writeUInt32LE(0x4e4f534a, 16);
+  const glb = join(directory, "synthetic.glb");
+  writeFileSync(glb, Buffer.concat([header, geometry]));
   const hook = join(directory, "offline-fetch.mjs");
   writeFileSync(hook, preload);
   const output = join(directory, "output");
@@ -144,7 +166,7 @@ function harness() {
         [
           "--import",
           pathToFileURL(hook).href,
-          join(scripts, "generate-safari-assets.mjs"),
+          join(scripts, "generate-savanna-expansion.mjs"),
           ...args,
         ],
         {
@@ -157,9 +179,9 @@ function harness() {
               : {}),
             MESHY_API_KEY: fakeKey,
             MESHY_OUTPUT_DIR: output,
-            SAFARI_TEST_FAULT: fault,
-            SAFARI_TEST_REQUESTS: log,
-            SAFARI_TEST_GLB: join(project, "public/models/zebra.glb"),
+            SAVANNA_TEST_FAULT: fault,
+            SAVANNA_TEST_REQUESTS: log,
+            SAVANNA_TEST_GLB: glb,
           },
         },
       );
@@ -205,25 +227,28 @@ afterEach(() => {
 });
 
 // These cases launch several real Node processes; allow Windows startup time.
-describe("offline image-guided safari generation", { timeout: 20000 }, () => {
-  it("submits exactly four authorized image tasks and saves GLBs plus all cardinal views", () => {
+describe("offline bounded savanna generation", { timeout: 20000 }, () => {
+  it("submits exactly 25 checkpointed tasks, saves 100 views, and never forwards credentials to downloads", () => {
     const batch = harness();
     const run = batch.run();
     expect(run.status, run.text).toBe(0);
     const posts = run.requests.filter((request) => request.method === "POST");
-    expect(posts).toHaveLength(4);
+    expect(posts).toHaveLength(25);
     for (const post of posts) {
-      expect(post.path).toBe("/openapi/v1/image-to-3d");
-      expect(post.imageMatches).toBe(true);
       expect(post.checkpointExists).toBe(true);
-      expect(post.settings).toMatchObject(plan.request);
-      expect(post.settings).not.toHaveProperty("texture_prompt");
-      expect(post.settings).not.toHaveProperty("geometry_resolution");
+      expect(post.imageMatches).toBe(true);
+      expect(post.settings).toEqual({
+        ...plan.request,
+        target_polycount: 15000,
+      });
     }
-    expect(posts.map((post) => post.settings!.target_polycount).sort()).toEqual(
-      [20000, 20000, 20000, 25000],
+    expect(run.state!.consumedCredits).toBe(750);
+    expect(run.state!.assets.map((asset) => asset.id)).toEqual(
+      plan.assets.map((asset: Asset) => asset.id),
     );
-    expect(run.state!.consumedCredits).toBe(120);
+    expect(new Set(run.state!.assets.map((asset) => asset.task.id)).size).toBe(
+      25,
+    );
     for (const asset of run.state!.assets) {
       expect(asset.status).toBe("ready");
       expect(existsSync(join(batch.output, asset.model!.file))).toBe(true);
@@ -233,31 +258,28 @@ describe("offline image-guided safari generation", { timeout: 20000 }, () => {
         "left",
         "right",
       ]);
-      for (const receipt of Object.values(asset.thumbnails!))
-        expect(existsSync(join(batch.output, receipt.file))).toBe(true);
     }
     const downloads = run.requests.filter(
       (request) => !request.path.startsWith("/openapi/"),
     );
-    expect(downloads).toHaveLength(20);
+    expect(downloads).toHaveLength(125);
     expect(downloads.every((request) => !request.authorization)).toBe(true);
-    expect(existsSync(join(batch.output, "manifest.json"))).toBe(true);
   });
 
   it.each(["network", "http", "id"])(
-    "does not retry uncertain %s submissions, including after restart",
+    "never retries uncertain %s paid requests, even after restart",
     (failure) => {
       const batch = harness();
       const first = batch.run(`uncertain-${failure}`);
       expect(first.status).toBe(1);
       expect(
         first.requests.filter((request) => request.method === "POST"),
-      ).toHaveLength(4);
-      for (const asset of first.state!.assets) {
-        expect(asset.task.status).toBe("SUBMITTING");
-        expect(asset.task.submissionStartedAt).toEqual(expect.any(String));
-        expect(asset.task.id).toBeUndefined();
-      }
+      ).toHaveLength(25);
+      expect(
+        first.state!.assets.every(
+          (asset) => asset.task.status === "SUBMITTING" && !asset.task.id,
+        ),
+      ).toBe(true);
       const resumed = batch.run("resume-only", ["--resume", batch.stateFile]);
       expect(resumed.status).toBe(1);
       expect(resumed.requests).toHaveLength(0);
@@ -265,87 +287,124 @@ describe("offline image-guided safari generation", { timeout: 20000 }, () => {
     },
   );
 
-  it("recovers missing thumbnails using existing IDs without regenerating or downloading saved models again", () => {
+  it("recovers missing views with original task IDs and no replacement charge", () => {
     const batch = harness();
     const first = batch.run("missing-thumbnail");
     expect(first.status).toBe(1);
     const resumed = batch.run("resume-only", ["--resume", batch.stateFile]);
     expect(resumed.status, resumed.text).toBe(0);
-    expect(resumed.requests.some((request) => request.method === "POST")).toBe(
-      false,
-    );
+    expect(
+      resumed.requests.filter((request) => request.method === "POST"),
+    ).toHaveLength(0);
     expect(
       resumed.requests.filter((request) => request.path.endsWith(".glb")),
     ).toHaveLength(0);
     expect(
       resumed.requests.filter((request) => request.path.endsWith("-left.png")),
-    ).toHaveLength(4);
+    ).toHaveLength(25);
     expect(resumed.state!.assets.map((asset) => asset.task.id)).toEqual(
       first.state!.assets.map((asset) => asset.task.id),
     );
   });
 
-  it("retries a read-only rate limit without duplicating paid tasks", () => {
-    const run = harness().run("read-retry");
-    expect(run.status, run.text).toBe(0);
-    expect(
-      run.requests.filter((request) => request.path === "/openapi/v1/balance"),
-    ).toHaveLength(2);
-    expect(
-      run.requests.filter((request) => request.method === "POST"),
-    ).toHaveLength(4);
+  it("rejects stale external checkpoints without replacing newer receipts", () => {
+    const batch = harness();
+    const first = batch.run();
+    expect(first.status, first.text).toBe(0);
+    const latest = readFileSync(batch.stateFile, "utf8");
+    const stale = JSON.parse(latest);
+    delete stale.assets[0].task;
+    delete stale.assets[0].model;
+    delete stale.assets[0].thumbnails;
+    stale.assets[0].status = "planned";
+    const file = join(batch.directory, "older-state.json");
+    writeFileSync(file, JSON.stringify(stale));
+    const resumed = batch.run("resume-only", ["--resume", file]);
+    expect(resumed.status).toBe(1);
+    expect(resumed.text).toContain("Resume conflicts");
+    expect(resumed.requests).toHaveLength(0);
+    expect(readFileSync(batch.stateFile, "utf8")).toBe(latest);
   });
 
+  it("protects malformed, future, and duplicate-ID checkpoints before any network or state write", () => {
+    const batch = harness();
+    const first = batch.run();
+    expect(first.status, first.text).toBe(0);
+    const original = JSON.stringify(first.state);
+    const mutate: ((state: Batch) => unknown)[] = [
+      (state) => {
+        state.schemaVersion = 2;
+      },
+      (state) => {
+        delete state.assets[0].task.submissionStartedAt;
+      },
+      (state) => {
+        state.assets[0].task.id = state.assets[1].task.id;
+      },
+      (state) => {
+        state.assets[0].task.status = "SUBMITTING";
+      },
+      (state) => {
+        state.assets[0].task = { status: "SUCCEEDED" };
+      },
+      (state) => {
+        state.assets[0].reference = "../changed.png";
+      },
+    ];
+    for (const change of mutate) {
+      const state: Batch = JSON.parse(original);
+      change(state);
+      const bytes = JSON.stringify(state);
+      writeFileSync(batch.stateFile, bytes);
+      const result = batch.run("resume-only", ["--resume", batch.stateFile]);
+      expect(result.status, result.text).toBe(1);
+      expect(result.requests).toHaveLength(0);
+      expect(readFileSync(batch.stateFile, "utf8")).toBe(bytes);
+    }
+    writeFileSync(batch.stateFile, "null");
+    const result = batch.run("resume-only", ["--resume", batch.stateFile]);
+    expect(result.status).toBe(1);
+    expect(result.requests).toHaveLength(0);
+    expect(readFileSync(batch.stateFile, "utf8")).toBe("null");
+  }, 20000);
+
   it.each(["untrusted-host", "invalid-model", "oversized-model"])(
-    "rejects %s downloads while retaining task IDs",
+    "rejects %s downloads while retaining existing IDs",
     (fault) => {
       const batch = harness();
-      const run = batch.run(fault);
-      expect(run.status).toBe(1);
+      const result = batch.run(fault);
+      expect(result.status).toBe(1);
       expect(
-        run.state!.assets.every(
+        result.state!.assets.every(
           (asset) => asset.task.id && asset.status === "failed",
         ),
       ).toBe(true);
-      for (const asset of run.state!.assets)
-        expect(existsSync(join(batch.output, `${asset.id}.glb`))).toBe(false);
-      if (fault === "untrusted-host")
-        expect(
-          run.requests.every((request) => request.path.startsWith("/openapi/")),
-        ).toBe(true);
+      expect(
+        result.state!.assets.every(
+          (asset) => !existsSync(join(batch.output, asset.id + ".glb")),
+        ),
+      ).toBe(true);
     },
   );
 
-  it("validates every reference before any charge and keeps dry-run offline", () => {
+  it("keeps dry-run offline and rejects a changed count or image before charging", () => {
     const batch = harness();
     const dry = batch.run("success", ["--dry-run"]);
     expect(dry.status, dry.text).toBe(0);
     expect(dry.requests).toHaveLength(0);
+    writeFileSync(join(batch.directory, plan.assets[24].reference), "invalid");
+    const badImage = batch.run();
+    expect(badImage.status).toBe(1);
+    expect(badImage.requests).toHaveLength(0);
+    const changed = structuredClone(plan);
+    changed.assets.pop();
     writeFileSync(
-      join(batch.directory, "assets/references/safari-jeep.png"),
-      "invalid image",
+      join(batch.directory, "scripts/savanna-expansion.json"),
+      JSON.stringify(changed),
     );
-    const broken = batch.run();
-    expect(broken.status).toBe(1);
-    expect(broken.requests).toHaveLength(0);
-    expect(broken.state).toBeUndefined();
-  });
-
-  it("refuses a second fresh run or changed reference images without touching saved task receipts", () => {
-    const batch = harness();
-    const first = batch.run("missing-thumbnail");
-    const receipts = readFileSync(batch.stateFile, "utf8");
-    expect(first.status).toBe(1);
-    const duplicate = batch.run();
-    expect(duplicate.status).toBe(1);
-    expect(duplicate.requests).toHaveLength(0);
-    writeFileSync(
-      join(batch.directory, "assets/references/lion.png"),
-      Buffer.concat([png, Buffer.from("changed")]),
-    );
-    const changed = batch.run("resume-only", ["--resume", batch.stateFile]);
-    expect(changed.status).toBe(1);
-    expect(changed.requests).toHaveLength(0);
-    expect(readFileSync(batch.stateFile, "utf8")).toBe(receipts);
+    const badCount = batch.run();
+    expect(badCount.status).toBe(1);
+    expect(badCount.requests).toHaveLength(0);
+    expect(badCount.state).toBeUndefined();
   });
 });

@@ -1,0 +1,2824 @@
+{
+  "schemaVersion": 1,
+  "batch": "savanna-expansion-20260920-v1",
+  "planHash": "cab9b526f663b88950fc1f6f755d1914b5ae61981d63f3b126a5c1605b233590",
+  "request": {
+    "model_type": "standard",
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": false,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "image_enhancement": false,
+    "target_formats": [
+      "glb"
+    ],
+    "multi_view_thumbnails": true
+  },
+  "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+  "estimatedCredits": 870,
+  "reportedCredits": 870,
+  "reviewedCardinalRenders": true,
+  "preparationScript": "scripts/prepare-savanna-expansion.py",
+  "optimizer": "scripts/optimize-character.py",
+  "pillowVersion": "12.3.0",
+  "assets": [
+    {
+      "id": "lamarcks-dung-beetle",
+      "name": "Lamarck’s dung beetle",
+      "scientificName": "Scarabaeus lamarcki",
+      "file": "lamarcks-dung-beetle.glb",
+      "status": "ready",
+      "bytes": 1338168,
+      "sha256": "f62204d8c872fb89eb8a9e0951acfa28c91dbbef1bcc3e2f40b6f188452761ba",
+      "sourceBytes": 5175492,
+      "sourceSha256": "663b4c5d91d96ab4e5d888600a72521dec7349c8a9828691aaa4ad5418bf90c1",
+      "polygonCount": 15511,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c197-ab07-76a3-991b-a3a0ea6ac218",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/lamarcks-dung-beetle.png",
+      "referenceSha256": "82e8986d1cdc61fffb77bcab5f549934512f37f90d825757aa7599364d59a2ab",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "lamarcks-dung-beetle-front.png",
+          "bytes": 114538,
+          "sha256": "1d234a0be1fd6855e9de3b3e91c2cfa480ab9c418d3f88fa8a44ebf337ee5852"
+        },
+        {
+          "view": "right",
+          "file": "lamarcks-dung-beetle-right.png",
+          "bytes": 104575,
+          "sha256": "3973097f2a5b7c9ffdf4b3199ff8e8f2fdfd9ea0ec81b7a08ed13e4f9866c1cf"
+        },
+        {
+          "view": "back",
+          "file": "lamarcks-dung-beetle-back.png",
+          "bytes": 95249,
+          "sha256": "1485df66f5bc0f90fb2d7dbaaa8a5e4105e6c306f4104002f88211b85d50510a"
+        },
+        {
+          "view": "left",
+          "file": "lamarcks-dung-beetle-left.png",
+          "bytes": 100486,
+          "sha256": "fb372e1de5e5171f056d4b779bd78eba23160ebcc2487a555c71e9ba2c45377f"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "mound-building-termite",
+      "name": "Mound-building termite",
+      "scientificName": "Macrotermes bellicosus",
+      "file": "mound-building-termite.glb",
+      "status": "ready",
+      "bytes": 1161356,
+      "sha256": "b1aa61e75337a3613a6eb7f96eed6297e67dba0c13b87c5f254124f9edc0c8b3",
+      "sourceBytes": 4391664,
+      "sourceSha256": "976293a8e1a0afad07c4b780ca73a4d1d7361e16362fbb31eaaee1ccb8e8e282",
+      "polygonCount": 15696,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c197-ab17-7378-970d-897f5bc7bd8f",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/mound-building-termite.png",
+      "referenceSha256": "2f693568380a32579e2b5370fe3b24af5ee306109e26db7ce928c4e8a441b028",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "mound-building-termite-front.png",
+          "bytes": 49801,
+          "sha256": "759877427132bf27949c624a632568c6432a7e3388d5c96e9525d6aa9c0b4f96"
+        },
+        {
+          "view": "right",
+          "file": "mound-building-termite-right.png",
+          "bytes": 60854,
+          "sha256": "43151cd29e4597ab3103e71c5da4b85301c6f1ab72a5d6b4d0b987fb145bc621"
+        },
+        {
+          "view": "back",
+          "file": "mound-building-termite-back.png",
+          "bytes": 55351,
+          "sha256": "9f8ce25d7c15e7eeff8d5396b6e7ae84fdf2b5d1294de5bfe56a3c398b78abf4"
+        },
+        {
+          "view": "left",
+          "file": "mound-building-termite-left.png",
+          "bytes": 58973,
+          "sha256": "7be83981138433aaff704149684bdd4366ca0968bab6031cfba354950300708d"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "mopane-emperor-moth",
+      "name": "Mopane emperor moth",
+      "scientificName": "Gonimbrasia belina",
+      "file": "mopane-emperor-moth.glb",
+      "status": "ready",
+      "bytes": 1378892,
+      "sha256": "c380fa9a052bf441a6e0e5a16a5db18858cbd29852b84a9369e76753504fdb48",
+      "sourceBytes": 5565264,
+      "sourceSha256": "6b066265317f42c118cb7e2ced417027ddfa3d818f86dcdca1e67b76e8e09181",
+      "polygonCount": 15543,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c198-a11e-7332-8eb7-93484cf860da",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/mopane-emperor-moth.png",
+      "referenceSha256": "c9ba41898b2841890424b96ade803f9bce0af1e8dc9b095ed0254d61c24ec442",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "mopane-emperor-moth-front.png",
+          "bytes": 124513,
+          "sha256": "7bc58e78b67dc633220c338bf6fa0ed800b6c172c2e1fd4ec52236163c4ad23c"
+        },
+        {
+          "view": "right",
+          "file": "mopane-emperor-moth-right.png",
+          "bytes": 72887,
+          "sha256": "9bf508bcbaaf6ab85a917cec46e6c64f881f1843255a794fb9674a6d9a4ed0ec"
+        },
+        {
+          "view": "back",
+          "file": "mopane-emperor-moth-back.png",
+          "bytes": 88768,
+          "sha256": "a16605cc274728db5dd97baf51109efb79268f812e38ac8b460185aab8674e7f"
+        },
+        {
+          "view": "left",
+          "file": "mopane-emperor-moth-left.png",
+          "bytes": 54889,
+          "sha256": "2c34adcf39c9bc98de9f810ad29071a3b29c9c30915f7571d935d034dd910332"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "african-monarch",
+      "name": "African monarch",
+      "scientificName": "Danaus chrysippus",
+      "file": "african-monarch.glb",
+      "status": "ready",
+      "bytes": 1184764,
+      "sha256": "e595d363d65b43102981bca7caec25a5960c41a45051445e91369f1ef9024909",
+      "sourceBytes": 4575700,
+      "sourceSha256": "911eb8bc0f35e330742744847a0f4a3209555757af70b07e9a43a8acd8aac691",
+      "polygonCount": 15190,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c198-f07c-7545-9f7b-7a996aaaedaf",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/african-monarch.png",
+      "referenceSha256": "fb099ee2eb4e6048306718d8528d2dc2896fae6f1acbf53c272b1a7f6777998e",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "african-monarch-front.png",
+          "bytes": 111311,
+          "sha256": "071d22e999efa2c7fb6296e86c8532f622b19769276ac287037a4a64f320d883"
+        },
+        {
+          "view": "right",
+          "file": "african-monarch-right.png",
+          "bytes": 45888,
+          "sha256": "f3083b1ba3f2117af67da6e421e7d9eff3a3a7a942f94d3bbfeb6a1df2d12482"
+        },
+        {
+          "view": "back",
+          "file": "african-monarch-back.png",
+          "bytes": 109625,
+          "sha256": "407ea2205e5784b8691803c0eb503ffed36121229b402cffa99277702e575972"
+        },
+        {
+          "view": "left",
+          "file": "african-monarch-left.png",
+          "bytes": 50386,
+          "sha256": "78ea249511cf673415110a61ad8dc2f330ed2df48c33042d9f88bfc8c59b86f0"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "desert-locust",
+      "name": "Desert locust",
+      "scientificName": "Schistocerca gregaria",
+      "file": "desert-locust.glb",
+      "status": "ready",
+      "bytes": 1476692,
+      "sha256": "873a7fa052d8eb925b0bb88c6e892b4db25ac36a795401e50476dada05d7e60e",
+      "sourceBytes": 5428664,
+      "sourceSha256": "0fec64bd6f2e0455277b5b064636dae534716a07c54a4ec46801b931a8438a5e",
+      "polygonCount": 15214,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c199-97b1-77e1-98ec-5d7f69f44736",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/desert-locust.png",
+      "referenceSha256": "6482bd719a6a4fb99a738ade623b0787ca88bb7eafb28374e677b6eea7fabeab",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "desert-locust-front.png",
+          "bytes": 49457,
+          "sha256": "99a0c4bafc7b111d1478a59f4f71beb9266c54baaa9e74ad447dd5dabfad0d12"
+        },
+        {
+          "view": "right",
+          "file": "desert-locust-right.png",
+          "bytes": 84902,
+          "sha256": "6fb47a13c59cddbdca3241d36a5f0b0d01be77efc78350d98d7c76f3ce44e28e"
+        },
+        {
+          "view": "back",
+          "file": "desert-locust-back.png",
+          "bytes": 49713,
+          "sha256": "370586680087c9b7ca62168a3fd5749d3a8a7cd8d935b6dfdfdf1c45f935372f"
+        },
+        {
+          "view": "left",
+          "file": "desert-locust-left.png",
+          "bytes": 81322,
+          "sha256": "5d603875cb2c79d4cba158b3288539b2876fd485c58abccdccfd54bc81c06a09"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "cape-porcupine",
+      "name": "Cape porcupine",
+      "scientificName": "Hystrix africaeaustralis",
+      "file": "cape-porcupine.glb",
+      "status": "ready",
+      "bytes": 628352,
+      "sha256": "63dd77aef2e207bb30e7b7812687c711a33935783ef5b2dfe756e4c300ee6677",
+      "sourceBytes": 627840,
+      "sourceSha256": "865949e5ed62a6ad469c6e8dcfde3affddbda78d52a6dc61da1fc3fb987c6ba8",
+      "polygonCount": 11832,
+      "textures": [
+        {
+          "sourceSize": [
+            16,
+            16
+          ],
+          "outputSize": [
+            16,
+            16
+          ],
+          "mimeType": "image/jpeg"
+        },
+        {
+          "sourceSize": [
+            1,
+            1
+          ],
+          "outputSize": [
+            1,
+            1
+          ],
+          "mimeType": "image/jpeg"
+        },
+        {
+          "sourceSize": [
+            2,
+            128
+          ],
+          "outputSize": [
+            2,
+            128
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "authored": true,
+      "reviewedAuthoredPorcupine": true,
+      "reportedCredits": 0,
+      "generationMethod": "Locally authored procedural Cape porcupine geometry and textures",
+      "sourceScript": "scripts/build-cape-porcupine.mjs",
+      "sourceScriptBytes": 17534,
+      "sourceScriptSha256": "cc29043d71b6f13270cb06255d2074efd5cf6973e61d3282cb9e774a5a62a300",
+      "sourceFile": "generated/authored-porcupine/cape-porcupine.glb",
+      "authorship": "Original procedural geometry and textures authored for Sophia's Wild World using the project's Three.js geometry primitives; no Meshy geometry, photographs, or third-party texture artwork.",
+      "textureProvenance": "Original deterministic 16x16 fur-grain PNG, 1x1 white palette PNG, and 2x128 alternating black-and-cream quill-band PNG generated by the source script. No external image inputs.",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged.",
+      "replacedOriginal": {
+        "id": "cape-porcupine",
+        "imageTaskId": "01a0c199-e5f5-72b0-9e5a-a0e3a49dab7f",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/cape-porcupine.png",
+        "referenceSha256": "3ad79b42c24780006804300f42cdb9935872f5124da2489425ccaf31a89383c6",
+        "sourceBytes": 5622524,
+        "sourceSha256": "aeafeb835a76a3ae2a0bdc74b120b7fa83580286d736edaf7026194a2e6b77ab",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "cape-porcupine-front.png",
+            "bytes": 187713,
+            "sha256": "a34245bdf324ba9446ae8f196700b9e961d4e4e7a4702f171fd70a1a0dc8ae20"
+          },
+          {
+            "view": "right",
+            "file": "cape-porcupine-right.png",
+            "bytes": 66694,
+            "sha256": "671943752fbe71de7b656a98e5d3931eeca58bcda3fa976464fb13bf4437a9e3"
+          },
+          {
+            "view": "back",
+            "file": "cape-porcupine-back.png",
+            "bytes": 175866,
+            "sha256": "31c7d27409563a80349256e232e88ce69275d849942b84e010d91f27117ebca4"
+          },
+          {
+            "view": "left",
+            "file": "cape-porcupine-left.png",
+            "bytes": 66801,
+            "sha256": "e18a8da442d4acd6e299896f599a3bdde282e29d6d04825eb58e1fd8eb2974d3"
+          }
+        ],
+        "rejectionReason": "Original model rejected during cardinal-render review for slab-like, flattened anatomy."
+      },
+      "replacedRevisions": [
+        {
+          "id": "cape-porcupine",
+          "imageTaskId": "01a0c416-5c43-7532-a202-5a38f016d670",
+          "reportedCredits": 30,
+          "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35603815194",
+          "referenceImage": "assets/references/savanna-revisions/cape-porcupine.png",
+          "referenceSha256": "a06d738ed7a97d8bc3d38a04358f54ca9658d2d5eea756edd36f3530116509c5",
+          "sourceBytes": 5162612,
+          "sourceSha256": "21760e714748fb47f9c7c794ddf783e987622e8d40114e7c721e7b18f5a65ecd",
+          "reviewThumbnails": [
+            {
+              "view": "front",
+              "file": "cape-porcupine-front.png",
+              "bytes": 131836,
+              "sha256": "35938577bfd44913735e37fa837cdd137ed12ed3ec0d37d9ec27aefdd0ce387e"
+            },
+            {
+              "view": "right",
+              "file": "cape-porcupine-right.png",
+              "bytes": 134691,
+              "sha256": "105b6749528b9b8630d6c92ccd55f648355aa4943c86c7d55ed334d3a3abd5f0"
+            },
+            {
+              "view": "back",
+              "file": "cape-porcupine-back.png",
+              "bytes": 113525,
+              "sha256": "137c0673a877ad5497d737107f2435d13ab01a2bb14b3a5af13620039025f9d0"
+            },
+            {
+              "view": "left",
+              "file": "cape-porcupine-left.png",
+              "bytes": 110710,
+              "sha256": "0afb2b9ef60fabbab1d80bad73d12255b3d624c2ad392ec73fca0a93265666b9"
+            }
+          ],
+          "rejectionReason": "First porcupine repair rejected during cardinal-render review: detached head and quills, without a complete torso and legs."
+        },
+        {
+          "id": "cape-porcupine",
+          "imageTaskId": "01a0c420-7580-7047-8554-6791d2a8bd59",
+          "reportedCredits": 30,
+          "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35605009922",
+          "referenceImage": "assets/references/savanna-porcupine/cape-porcupine.png",
+          "referenceSha256": "7c5eb7f3338bd309702c1ac443e82496851eaa5a22a3fc4e6259f695b0b19169",
+          "sourceBytes": 5824928,
+          "sourceSha256": "8297ee2b26eed660c77e6ce001b7bb0cc5bcf632391d0ee3f44802ac6a7cf7ae",
+          "reviewThumbnails": [
+            {
+              "view": "front",
+              "file": "cape-porcupine-front.png",
+              "bytes": 114956,
+              "sha256": "f509d67a202168e1b787f53722cfbdb53fa25ab83a857258b3874eea0856926a"
+            },
+            {
+              "view": "right",
+              "file": "cape-porcupine-right.png",
+              "bytes": 164179,
+              "sha256": "2efd020f6f634cab8aa3ed9d67700cf2711bab564761ade3948910132c325514"
+            },
+            {
+              "view": "back",
+              "file": "cape-porcupine-back.png",
+              "bytes": 142968,
+              "sha256": "595710f7e9e86ffc21f1d04c0c4d39cb13e03ea6ec6e92d85e5638987777b9cc"
+            },
+            {
+              "view": "left",
+              "file": "cape-porcupine-left.png",
+              "bytes": 144710,
+              "sha256": "96b09116b677836b183debeb86179681ef0e6913138c0a0467084b2634c9f127"
+            }
+          ],
+          "rejectionReason": "Second porcupine repair rejected during cardinal-render review: no complete torso or legs."
+        }
+      ]
+    },
+    {
+      "id": "south-african-springhare",
+      "name": "South African springhare",
+      "scientificName": "Pedetes capensis",
+      "file": "south-african-springhare.glb",
+      "status": "ready",
+      "bytes": 1037624,
+      "sha256": "21ddc089f24e44b620486ffc7c00eace9d3dc75435c21e25862eb144398e718f",
+      "sourceBytes": 4852736,
+      "sourceSha256": "8bfd0021bb3c79591a349dde79d877b64bb4e0d95f1e50b18a445c41f3c3a13a",
+      "polygonCount": 15629,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c416-5c32-7285-be75-04a371924e29",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-revisions/south-african-springhare.png",
+      "referenceSha256": "59ab0b528ccd9acf7fb6d85da1f236deba2a7495ec4e3ec1c8a7d6d3f73ec6f0",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "south-african-springhare-front.png",
+          "bytes": 63791,
+          "sha256": "32f25dbfb231037201eba4a1a4aead70b269f2b2ba6b630f23c866cdd6aeefd9"
+        },
+        {
+          "view": "right",
+          "file": "south-african-springhare-right.png",
+          "bytes": 65298,
+          "sha256": "57e9b497a3b0dd5601dc04a7a5cccef2a6a90100f157e757d6be7c7ac434918a"
+        },
+        {
+          "view": "back",
+          "file": "south-african-springhare-back.png",
+          "bytes": 48184,
+          "sha256": "8ed6a1997078febb98ea19a0126b476a4e7c7ad986e9552a656c6aa35e375f85"
+        },
+        {
+          "view": "left",
+          "file": "south-african-springhare-left.png",
+          "bytes": 83085,
+          "sha256": "9665ca480618fb62881d42186ced64076efac5b5e7b84714f347f29d6d5ff7aa"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35603815194",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged.",
+      "replacedOriginal": {
+        "id": "south-african-springhare",
+        "imageTaskId": "01a0c19b-79f8-760f-ac1f-02547df55455",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/south-african-springhare.png",
+        "referenceSha256": "30487d6657d19a8dbdabd1c1943b6344f5253a1e1ce56722d20908cde0cf72f4",
+        "sourceBytes": 4795912,
+        "sourceSha256": "d042202b80ddde1011698b81722cc3e72e4f66a15ef08bfef3a734939bd4752b",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "south-african-springhare-front.png",
+            "bytes": 86258,
+            "sha256": "a46597c430504e838ab347a9c642732330565fa70cf62e929c7506b04914920b"
+          },
+          {
+            "view": "right",
+            "file": "south-african-springhare-right.png",
+            "bytes": 33772,
+            "sha256": "8af05677b35393321847c2740deaa410653c0e070cf71843287058ec475d9286"
+          },
+          {
+            "view": "back",
+            "file": "south-african-springhare-back.png",
+            "bytes": 89612,
+            "sha256": "3c95b07244fe8e3e03d8d48a6d2f1d404dab5c60edb7d25efb79ed68a94b2ee4"
+          },
+          {
+            "view": "left",
+            "file": "south-african-springhare-left.png",
+            "bytes": 56672,
+            "sha256": "cd3a1cbc61868c8dd0d253d8ed51ebf94866d49c9d29e9c464af1fb3a7985e9a"
+          }
+        ],
+        "rejectionReason": "Original model rejected during cardinal-render review for slab-like, flattened anatomy."
+      }
+    },
+    {
+      "id": "striped-grass-mouse",
+      "name": "Striped grass mouse",
+      "scientificName": "Lemniscomys striatus",
+      "file": "striped-grass-mouse.glb",
+      "status": "ready",
+      "bytes": 1037252,
+      "sha256": "8b77352a0fc5623b7c28c47a991b6819ee72a006baae382bf9cc812e24ec9c6b",
+      "sourceBytes": 4457732,
+      "sourceSha256": "46eac8c763c2a227ce189c75bd9308945cb871dbae51814766a8b1ccf215a5a7",
+      "polygonCount": 15554,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c19b-79f9-7639-8d1d-4f0e0e7c3de6",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/striped-grass-mouse.png",
+      "referenceSha256": "dbe649d5c42c5fd7eef9e35e0d5d70a8cbee338c45585b29facbeb94e1843893",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "striped-grass-mouse-front.png",
+          "bytes": 38882,
+          "sha256": "7165f7067656038d18e7f82e1648334dcf664e297bd8042efecbe5393e08d02b"
+        },
+        {
+          "view": "right",
+          "file": "striped-grass-mouse-right.png",
+          "bytes": 50398,
+          "sha256": "da45c278992c063d7970e451b0417604c0a40df717202cd847fb3621ad2da0a1"
+        },
+        {
+          "view": "back",
+          "file": "striped-grass-mouse-back.png",
+          "bytes": 27273,
+          "sha256": "ca83a83379239daac64a131ccbda444536253472c8c6970bcebdc67e0d76b915"
+        },
+        {
+          "view": "left",
+          "file": "striped-grass-mouse-left.png",
+          "bytes": 56744,
+          "sha256": "c84277b0aa038ae0340bdd782eb7fd96191b226abd56bde2541333084215757f"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "naked-mole-rat",
+      "name": "Naked mole-rat",
+      "scientificName": "Heterocephalus glaber",
+      "file": "naked-mole-rat.glb",
+      "status": "ready",
+      "bytes": 1032724,
+      "sha256": "396273b7fecd6007e0494039ec0b99aa6675028d25b34a20be2acbbb30719014",
+      "sourceBytes": 4533360,
+      "sourceSha256": "d67a8cac6228e97422881dfae1279b8752298f9b1c1de0ade0849cbba41c0dc8",
+      "polygonCount": 15663,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c19c-6f81-75fa-8cdd-1c8dc14283df",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/naked-mole-rat.png",
+      "referenceSha256": "54106e67007f567b5f5cff208799b7b80e2f383f772d5fdd2a8474c91d993e22",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "naked-mole-rat-front.png",
+          "bytes": 50013,
+          "sha256": "f6a2a7502781d822d4eda2c52ba365cebe848ad94b9086b676f657a61872266f"
+        },
+        {
+          "view": "right",
+          "file": "naked-mole-rat-right.png",
+          "bytes": 81295,
+          "sha256": "0a6b9391628bd6002072f3b49a6dcda2898a2b71c1087b8178aaad879e45ee19"
+        },
+        {
+          "view": "back",
+          "file": "naked-mole-rat-back.png",
+          "bytes": 48771,
+          "sha256": "a5ab8f1b777cf1ed67f0c59b098e82efecd92a4c79d9331cd768efc4880496ea"
+        },
+        {
+          "view": "left",
+          "file": "naked-mole-rat-left.png",
+          "bytes": 74699,
+          "sha256": "313d7f4b5f194946340902c2e331f823d089fe7e970fb1467cfbde9a476cde51"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "secretarybird",
+      "name": "Secretarybird",
+      "scientificName": "Sagittarius serpentarius",
+      "file": "secretarybird.glb",
+      "status": "ready",
+      "bytes": 1274060,
+      "sha256": "c391fce983d20e042c053aa524c3cd415208f27e8c8fb5cfa6bc05131b43e21c",
+      "sourceBytes": 4673232,
+      "sourceSha256": "e3230147c6e792127b1940f602d80c85bf3c00be7a7252d8db02ac3e742ccf79",
+      "polygonCount": 15393,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c19c-70af-75bd-a007-1db95777c9b7",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/secretarybird.png",
+      "referenceSha256": "5fb8385d9b7d3c79b96e514b1ed3f7de96804004e54d56ac20d70d78fdb89ab1",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "secretarybird-front.png",
+          "bytes": 66449,
+          "sha256": "3f1668edfea90003b0f82a39e4d9f5fb4860b39bf5853a42d10d489fa5f3df89"
+        },
+        {
+          "view": "right",
+          "file": "secretarybird-right.png",
+          "bytes": 80691,
+          "sha256": "cc9ba46f82457c972b6064e390c8bf5014a01cef4425927eb3f3812c9fc35963"
+        },
+        {
+          "view": "back",
+          "file": "secretarybird-back.png",
+          "bytes": 46062,
+          "sha256": "b71597b261619b9de000a9c1c5b5bd7f74ad53e0f038049e418177adc9ad1fb0"
+        },
+        {
+          "view": "left",
+          "file": "secretarybird-left.png",
+          "bytes": 92163,
+          "sha256": "2b0fa0edb25a2dd78847d0d90cc13edbf4a14decd35084c52ad0863a19e55fb3"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "lilac-breasted-roller",
+      "name": "Lilac-breasted roller",
+      "scientificName": "Coracias caudatus",
+      "file": "lilac-breasted-roller.glb",
+      "status": "ready",
+      "bytes": 1208180,
+      "sha256": "3a069f7de6428a52672eaa58fecbf1b2d5bbe013efe2e96a5aed2d31548eaef4",
+      "sourceBytes": 5033556,
+      "sourceSha256": "24d538951d67281b473b1f2a5da5d752ad491fbea905451d108fc36db33367c0",
+      "polygonCount": 15329,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c19d-6d1b-768c-8008-d680e44137bc",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/lilac-breasted-roller.png",
+      "referenceSha256": "8da69e828dd9831111d2410109e2169a81598636a3a84339f151f47cf61da1c7",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "lilac-breasted-roller-front.png",
+          "bytes": 69970,
+          "sha256": "e7fa8397d7c8ddf5f4b818aed0afc35d48325441a46438bff6c493cac7ed92f5"
+        },
+        {
+          "view": "right",
+          "file": "lilac-breasted-roller-right.png",
+          "bytes": 68319,
+          "sha256": "ccebb87d8848104ce92fff9e77e1be94765b0ddd8a2213ac168f49e5e85bf2ad"
+        },
+        {
+          "view": "back",
+          "file": "lilac-breasted-roller-back.png",
+          "bytes": 41598,
+          "sha256": "730e7873d52439a795f9a64c65d4a583078b68e3f9464de9a61c935c15d90eff"
+        },
+        {
+          "view": "left",
+          "file": "lilac-breasted-roller-left.png",
+          "bytes": 78479,
+          "sha256": "568e1e019cbe00b1556cac33edc21c5834bf8cc8cfea20dd7ae98a35ce8600e4"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "southern-ground-hornbill",
+      "name": "Southern ground hornbill",
+      "scientificName": "Bucorvus leadbeateri",
+      "file": "southern-ground-hornbill.glb",
+      "status": "ready",
+      "bytes": 1355952,
+      "sha256": "9d5ce6ee137576b263e3a841fee4c8bab2e7833c8ea6b9004617758704e14517",
+      "sourceBytes": 4517956,
+      "sourceSha256": "136dc2a1c0bda39dc7615fa0b5a14258c33d0517c006c4e5b188da91a41b0871",
+      "polygonCount": 15509,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c19d-bc76-7589-a20a-eb19b97e8b27",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/southern-ground-hornbill.png",
+      "referenceSha256": "0b7e1d7782d690a06800de293e65ca27a67c60c88b894c46a2f9f774f03bd8ab",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "southern-ground-hornbill-front.png",
+          "bytes": 67440,
+          "sha256": "d37983d407805bf8462ccb513f8fadb9c6eb4f7c5625144d37dc643e863e8d9b"
+        },
+        {
+          "view": "right",
+          "file": "southern-ground-hornbill-right.png",
+          "bytes": 82121,
+          "sha256": "1aa8b6c0d77cae624237a960ae48c567298716e8e189d27a7a947f84a25b193c"
+        },
+        {
+          "view": "back",
+          "file": "southern-ground-hornbill-back.png",
+          "bytes": 57418,
+          "sha256": "9d1371cf091d835f97a397b143e45e4e33950904369ef9a9b76f32e0572aa001"
+        },
+        {
+          "view": "left",
+          "file": "southern-ground-hornbill-left.png",
+          "bytes": 94055,
+          "sha256": "7f07625b09e3b19f1698b2a799b4b435cad6d03466901ba4100e61371dc90b46"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "helmeted-guineafowl",
+      "name": "Helmeted guineafowl",
+      "scientificName": "Numida meleagris",
+      "file": "helmeted-guineafowl.glb",
+      "status": "ready",
+      "bytes": 1241880,
+      "sha256": "040f0b6b5b9f81951018a95cbefe022cdda0ec8bb39b00c936343f3a9b03734a",
+      "sourceBytes": 5322872,
+      "sourceSha256": "846973eb24cf555e32019127c3e3ab3fc0b191fe70f1b418a07c2bf0fab5b42a",
+      "polygonCount": 15589,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c19e-61c8-7380-b446-51a22f195043",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/helmeted-guineafowl.png",
+      "referenceSha256": "328e6e60fe135097457c4edd8792ee43973b264df3cabf52a5d5f1baefe87e16",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "helmeted-guineafowl-front.png",
+          "bytes": 121418,
+          "sha256": "06fe2d6f6d166b6ecccce56c6ac54acc2e30672bd1c390d621314aefbf8252f0"
+        },
+        {
+          "view": "right",
+          "file": "helmeted-guineafowl-right.png",
+          "bytes": 174039,
+          "sha256": "108becf43876ff4eef81161287c0393a40d170c5b3ebc0494896b35f533bb5bd"
+        },
+        {
+          "view": "back",
+          "file": "helmeted-guineafowl-back.png",
+          "bytes": 107192,
+          "sha256": "44e9a7edfcf0e8a950b5dc47ea65bf91b1770a199d8e9c130d43c56c1d3b1be9"
+        },
+        {
+          "view": "left",
+          "file": "helmeted-guineafowl-left.png",
+          "bytes": 179125,
+          "sha256": "4d8226bddbd25d6e3ec9b206bb32dee3c3bf6a105bf68e95a2291919267e81cb"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "grey-crowned-crane",
+      "name": "Grey crowned crane",
+      "scientificName": "Balearica regulorum",
+      "file": "grey-crowned-crane.glb",
+      "status": "ready",
+      "bytes": 1342328,
+      "sha256": "2c743b1b51e4aaa0dd066f71f056f3e8f06a20c8e21b026bdec12cc5fe48379a",
+      "sourceBytes": 4559324,
+      "sourceSha256": "32975e56abf54f0ecac047a526f4e59e7e6d18600c579202141d863c6cb50052",
+      "polygonCount": 15125,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c19f-4e89-73cd-bd54-18e4e961d1df",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/grey-crowned-crane.png",
+      "referenceSha256": "f9ced148c76f3faa1014f06750d5b57b212d54a8714c340ca44b7e426f95507c",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "grey-crowned-crane-front.png",
+          "bytes": 50175,
+          "sha256": "4d3b02ab1692862902c29fc391e3d7d4d5fa1ff25469ef3faa5879b332ccea37"
+        },
+        {
+          "view": "right",
+          "file": "grey-crowned-crane-right.png",
+          "bytes": 76117,
+          "sha256": "641e81e0866f9d4cd247a9ed78059cf29efce061b7cffb638c4b9f339014c206"
+        },
+        {
+          "view": "back",
+          "file": "grey-crowned-crane-back.png",
+          "bytes": 40481,
+          "sha256": "047efa8a4a63f4402b62c1ff7b7bed1c8ade022a4f78f94840d924db30a4c37b"
+        },
+        {
+          "view": "left",
+          "file": "grey-crowned-crane-left.png",
+          "bytes": 77619,
+          "sha256": "8b5a2006c6d3d4982bec7fb0f82df160a1c5edec0da9adea589ff7560634d9dd"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "white-backed-vulture",
+      "name": "White-backed vulture",
+      "scientificName": "Gyps africanus",
+      "file": "white-backed-vulture.glb",
+      "status": "ready",
+      "bytes": 1481668,
+      "sha256": "a03c6f4d6a36fbb56f1d5cee74a6437a0a3eb08e2092351bd1fc79922ac01ff1",
+      "sourceBytes": 5118660,
+      "sourceSha256": "0ca51bc9d52de772f33bd086dfc3b699d43514eff2e45d8451f37525fcb3941d",
+      "polygonCount": 15368,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c19f-55bc-740f-8eac-75b366facafd",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/white-backed-vulture.png",
+      "referenceSha256": "6bf410e1bbde8f5adbb9e0848750c733f7dd3fd1dcc8097336993461a773553d",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "white-backed-vulture-front.png",
+          "bytes": 110203,
+          "sha256": "9f4e098f1cafc647f581b6af0f9ca564501af0ed827aeb42e994bf43f40402b4"
+        },
+        {
+          "view": "right",
+          "file": "white-backed-vulture-right.png",
+          "bytes": 145469,
+          "sha256": "3c1ef5fde048b0d86c0ff604a7b173495c374736ba0cb0ddf20a2bccc3d0ef2f"
+        },
+        {
+          "view": "back",
+          "file": "white-backed-vulture-back.png",
+          "bytes": 90218,
+          "sha256": "2c424b3732a43f5d17e05ed443355906ed8a59cbef03cb954acc74a918c94715"
+        },
+        {
+          "view": "left",
+          "file": "white-backed-vulture-left.png",
+          "bytes": 140219,
+          "sha256": "97b44455068344aa60dbe8545aaade2cc5c864590847947cc0d3caf5724d69a2"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "red-billed-oxpecker",
+      "name": "Red-billed oxpecker",
+      "scientificName": "Buphagus erythrorynchus",
+      "file": "red-billed-oxpecker.glb",
+      "status": "ready",
+      "bytes": 1131724,
+      "sha256": "7996eba5a6d5bd88ca26052bba7089c8e47b1e38b4b51c51b3b93c67ddcd4632",
+      "sourceBytes": 4574244,
+      "sourceSha256": "2e02ccc2e3479bd35cd87b86bc52e14971ead62aeb6fff366ed58a01dc008e35",
+      "polygonCount": 15213,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c1a0-9350-75ca-a395-a17d99299745",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/red-billed-oxpecker.png",
+      "referenceSha256": "3124f4bf911641e61654ad008a163708d5228fa02aa4002173c60c85d862d91e",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "red-billed-oxpecker-front.png",
+          "bytes": 67994,
+          "sha256": "d935880b841613e6ec6f48dad9cb740572bd2ac8de73662579a3069a95f15be6"
+        },
+        {
+          "view": "right",
+          "file": "red-billed-oxpecker-right.png",
+          "bytes": 82113,
+          "sha256": "82bdb24ac78fc97b7b1d8b04c66e226d243439227794c097ce03eebf448b9877"
+        },
+        {
+          "view": "back",
+          "file": "red-billed-oxpecker-back.png",
+          "bytes": 56628,
+          "sha256": "27aa75c5c3d5122fc0dfabc2a46e7574b72a1185583af5158d95816bafb68180"
+        },
+        {
+          "view": "left",
+          "file": "red-billed-oxpecker-left.png",
+          "bytes": 89158,
+          "sha256": "452e79e3bda4b32508dcccde2da99bfae7f05ad1903b419c52f74e58548c4139"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "marabou-stork",
+      "name": "Marabou stork",
+      "scientificName": "Leptoptilos crumenifer",
+      "file": "marabou-stork.glb",
+      "status": "ready",
+      "bytes": 1129212,
+      "sha256": "abca550c471dfb8983d6bbc97242d752793231a0413a0c5867f04fca6f21f191",
+      "sourceBytes": 4502556,
+      "sourceSha256": "7e5999e0fa4d24f345a35c2cb3c9e91243a042dd1485d41d768b2362878bd6ec",
+      "polygonCount": 15073,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c1a0-e5fb-7787-85ce-01ccb41aac8b",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/marabou-stork.png",
+      "referenceSha256": "387c136a8f28367b7df4e1565990298a29d8fe3c8d8a4b8dc2300ee54417b69f",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "marabou-stork-front.png",
+          "bytes": 63730,
+          "sha256": "a523881cb585b7bc481927e290c22528a57b567000cbc7823e88839a5ed4f5b4"
+        },
+        {
+          "view": "right",
+          "file": "marabou-stork-right.png",
+          "bytes": 108075,
+          "sha256": "244dba9dbed6117931309eb7c6527a4ce4bb08997a3889805f7e4672a2eb64c2"
+        },
+        {
+          "view": "back",
+          "file": "marabou-stork-back.png",
+          "bytes": 64958,
+          "sha256": "d14db448b6c8e0acdfe600a0238181281c6bf4cf8ae068b10f197d3483af8cde"
+        },
+        {
+          "view": "left",
+          "file": "marabou-stork-left.png",
+          "bytes": 105425,
+          "sha256": "91e154a2e2a1adeddba5c932c1c448ba0c303158c240a39b2baae24f4343641f"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "aardvark",
+      "name": "Aardvark",
+      "scientificName": "Orycteropus afer",
+      "file": "aardvark.glb",
+      "status": "ready",
+      "bytes": 978236,
+      "sha256": "18a331af4031ed5c62345632749202976adc8c265ed4e8c826a81a1a3113f479",
+      "sourceBytes": 4458224,
+      "sourceSha256": "498cd37d89111cee17c8e005ebc8bf2c5fad338268c882f7b469f8c91e231167",
+      "polygonCount": 15663,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c1a1-8766-769f-b9fd-886b40ff65ea",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/aardvark.png",
+      "referenceSha256": "7e5690c09503326a688ed9133127061637d968f68b1cfe8f3f986faba5c6ac87",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "aardvark-front.png",
+          "bytes": 44874,
+          "sha256": "6508979aa5f7368289636995774df8da878bbdf6a0ead16670b8dc996361ebde"
+        },
+        {
+          "view": "right",
+          "file": "aardvark-right.png",
+          "bytes": 55502,
+          "sha256": "8d22f14a1004726b71c625c6842fbb1f95fb842b8e53aa9e1453eb5a8a29c9b4"
+        },
+        {
+          "view": "back",
+          "file": "aardvark-back.png",
+          "bytes": 30462,
+          "sha256": "a98409cf4b1228dc14a7daf53430f132b11c35e89c979848220a3728b20a9323"
+        },
+        {
+          "view": "left",
+          "file": "aardvark-left.png",
+          "bytes": 56043,
+          "sha256": "78c2bb2c8368d4188f9a88eae07f026cd3bc8e101d098c0011c8d103a8686ea3"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "bat-eared-fox",
+      "name": "Bat-eared fox",
+      "scientificName": "Otocyon megalotis",
+      "file": "bat-eared-fox.glb",
+      "status": "ready",
+      "bytes": 1460984,
+      "sha256": "71f8240d16dc401f8783f497fd501064378bdf334cede93a98ba726283f287d5",
+      "sourceBytes": 5340176,
+      "sourceSha256": "96152f2cbf82fac4f7fd20a384679e8c4f594a5ca46f9ca1d1de68da09be2868",
+      "polygonCount": 15637,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c417-52c3-76fd-bbe4-e501bf820576",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-revisions/bat-eared-fox.png",
+      "referenceSha256": "117d5e52824d0d2e94c400a7c07936c1249ad80b2d6422a1457716dac3a3e037",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "bat-eared-fox-front.png",
+          "bytes": 89654,
+          "sha256": "aa73a3bb0303a223a3c25720d0a92311677ddbd082002fb10ddc0d90ee7b5cd6"
+        },
+        {
+          "view": "right",
+          "file": "bat-eared-fox-right.png",
+          "bytes": 94334,
+          "sha256": "0aa3631d4c9bc16476838165560cdd81c8b37c05f68f244ae4d62e8428801cf3"
+        },
+        {
+          "view": "back",
+          "file": "bat-eared-fox-back.png",
+          "bytes": 95109,
+          "sha256": "c8bc4e16aefd5248fd36946e5d9be1d718b34bffe0ce33914f2ab9ea74ad2548"
+        },
+        {
+          "view": "left",
+          "file": "bat-eared-fox-left.png",
+          "bytes": 93110,
+          "sha256": "3d168db333e9a38d88a21b483fc34dd2d80e272c8456c4ac5ad567fbb01c0a26"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35603815194",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged.",
+      "replacedOriginal": {
+        "id": "bat-eared-fox",
+        "imageTaskId": "01a0c1a1-da31-77b3-8941-1c8990454274",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/bat-eared-fox.png",
+        "referenceSha256": "d781b2ec9e7a961c8429d4a0267c88b46a55db5d3ba18d495428d0ad1ccfc2a2",
+        "sourceBytes": 4745060,
+        "sourceSha256": "ae4d2d61f0e794aa2dd8ccbeadcf466314b3da220b27dc205bda68b787cf48e5",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "bat-eared-fox-front.png",
+            "bytes": 119368,
+            "sha256": "8ba6873ec58369a83c57ade690bcc7763e09765def01c0eb1bb1415210c602c8"
+          },
+          {
+            "view": "right",
+            "file": "bat-eared-fox-right.png",
+            "bytes": 49681,
+            "sha256": "c2a175430eccc12d60519e1de96eeb868f5786ad524c17d9de03e317fbe2429e"
+          },
+          {
+            "view": "back",
+            "file": "bat-eared-fox-back.png",
+            "bytes": 110627,
+            "sha256": "ad256324a84e89414e1de199060cf9103a6e902d2ccb52045e352a880b4e7ac8"
+          },
+          {
+            "view": "left",
+            "file": "bat-eared-fox-left.png",
+            "bytes": 50074,
+            "sha256": "425623f6e5c13a212110c493b9e4e979918b15bbd91b6a8969aeb2d520d23ce1"
+          }
+        ],
+        "rejectionReason": "Original model rejected during cardinal-render review for slab-like, flattened anatomy."
+      }
+    },
+    {
+      "id": "banded-mongoose",
+      "name": "Banded mongoose",
+      "scientificName": "Mungos mungo",
+      "file": "banded-mongoose.glb",
+      "status": "ready",
+      "bytes": 1260632,
+      "sha256": "fab53c9f7549acd65d1bbdc038e3bccda6506fa88d306331fdb7fdc07057ebb3",
+      "sourceBytes": 4268504,
+      "sourceSha256": "6bcf5a0e12ff778d82dadda4f5bebef86351ac2cad4c09444469515071e78b2e",
+      "polygonCount": 15445,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c1a2-7ccb-7725-8389-6071b503b4da",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/banded-mongoose.png",
+      "referenceSha256": "0e7b86e008dd52e4b8e3ee63bbbe5f62456591c7fa25c29ce3516e7a388dc679",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "banded-mongoose-front.png",
+          "bytes": 34234,
+          "sha256": "e5c3c22ecae7f4272901abee68323e3d19a0b31c5c2edc21aa3d44fb91b97405"
+        },
+        {
+          "view": "right",
+          "file": "banded-mongoose-right.png",
+          "bytes": 51989,
+          "sha256": "f05b064f2138f79f28d5b5146422c7374dab46fd2c7b429479c11e4c9b3b8022"
+        },
+        {
+          "view": "back",
+          "file": "banded-mongoose-back.png",
+          "bytes": 27688,
+          "sha256": "9d33a26944a282ad19ab9caa5f81ed3fff32c5a959eebc92ed442d411eb4a81b"
+        },
+        {
+          "view": "left",
+          "file": "banded-mongoose-left.png",
+          "bytes": 53447,
+          "sha256": "dbbe4f132c92ea9ddca337c3b017a81f4a8c6cd813196f292522e1ca52534029"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "meerkat",
+      "name": "Meerkat",
+      "scientificName": "Suricata suricatta",
+      "file": "meerkat.glb",
+      "status": "ready",
+      "bytes": 1488704,
+      "sha256": "04951b6205071aa6a2d86d106c69cadb2254d654dc02f0fc69f29735ff0f435b",
+      "sourceBytes": 5555844,
+      "sourceSha256": "703dc16c680da9aae1e84a0f81217a94fadfc3a94da2e73b20adb66ca47bf3e7",
+      "polygonCount": 15690,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c1a2-ce80-70e4-b542-a47c146bcce5",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/meerkat.png",
+      "referenceSha256": "af73fdb70681a2b958f34f675fdee27617e95a16816e55bbd2d3ee3c87beabf2",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "meerkat-front.png",
+          "bytes": 67497,
+          "sha256": "aef780cda58d59ca1303256ea36bf87f42a38373034a63b9854f8cb6a65580bb"
+        },
+        {
+          "view": "right",
+          "file": "meerkat-right.png",
+          "bytes": 80967,
+          "sha256": "e7894f6cc32e1bfb3014256a71e8e0f70dbe1bb7949ebc64d0fdecf2db8aa7a4"
+        },
+        {
+          "view": "back",
+          "file": "meerkat-back.png",
+          "bytes": 64675,
+          "sha256": "f4942208db7bda2391574f48632f7aff41ef6d8ebdde21ab94108e0751b9fbef"
+        },
+        {
+          "view": "left",
+          "file": "meerkat-left.png",
+          "bytes": 78917,
+          "sha256": "576c40fba1ab19bba1c045d81eaa1ce260f0d1d31216b51ffe1242a6f0542498"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "olive-baboon",
+      "name": "Olive baboon",
+      "scientificName": "Papio anubis",
+      "file": "olive-baboon.glb",
+      "status": "ready",
+      "bytes": 1093152,
+      "sha256": "300ad987d069ac6b90254e3371e1b8bdd478f0c0fa829cc8e4d60b4537c0abb7",
+      "sourceBytes": 4877284,
+      "sourceSha256": "bc3a141cfe3f032d6f35bb94931db8363724593abe3b907b5ee7b183bcbe6890",
+      "polygonCount": 15664,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c1a3-c277-7300-8825-bbc17bd39d16",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/olive-baboon.png",
+      "referenceSha256": "e412b6a72e440a9c4287b63ffd1e2a575f89c7c020f783181b7cf51562d7d0be",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "olive-baboon-front.png",
+          "bytes": 64564,
+          "sha256": "06644b0dc8cf450fbd952691f266981ef2c51a08ea014296a4e155eeee0d41ba"
+        },
+        {
+          "view": "right",
+          "file": "olive-baboon-right.png",
+          "bytes": 86095,
+          "sha256": "1fc1e45ec2d73ff0f27a972b9f6763a6c2e672c1a3f280e957c26e10134b97c4"
+        },
+        {
+          "view": "back",
+          "file": "olive-baboon-back.png",
+          "bytes": 49066,
+          "sha256": "63fdebc00e0e38b9dbe3ce3007d79e3291cc2f6a260fb44121570bbd4ee1c567"
+        },
+        {
+          "view": "left",
+          "file": "olive-baboon-left.png",
+          "bytes": 96788,
+          "sha256": "ee1507248549a6be0b5351a9bb3c5075aa7d62a5ad9010885ee48a4bb879343d"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "vervet-monkey",
+      "name": "Vervet monkey",
+      "scientificName": "Chlorocebus pygerythrus",
+      "file": "vervet-monkey.glb",
+      "status": "ready",
+      "bytes": 1295672,
+      "sha256": "deab75eaf60806827bf823f50abbe74a2f10105e3606f366247de2d3a6d0c68e",
+      "sourceBytes": 5378336,
+      "sourceSha256": "d4f60e153c0ef25d85b1c6bc09515a2dd540994a99a5af194532f2c9c2b41de8",
+      "polygonCount": 15683,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c1a4-60cf-73c5-bd94-2f2fc55e2227",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/vervet-monkey.png",
+      "referenceSha256": "20fcf7614466c306f46ee89923ab67cce469f72d208ad8247e420bdc62d28b98",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "vervet-monkey-front.png",
+          "bytes": 47069,
+          "sha256": "4967007a98755b6fa0aad5b5a4b2b946f86c5a7ce1a8c4edcf1aada23cf622d6"
+        },
+        {
+          "view": "right",
+          "file": "vervet-monkey-right.png",
+          "bytes": 61050,
+          "sha256": "879f4b963d4092e89b3313449c634d598e124af3e07fdc8b534e76db2c0bdfb6"
+        },
+        {
+          "view": "back",
+          "file": "vervet-monkey-back.png",
+          "bytes": 35419,
+          "sha256": "3f201fef5422b8e1b25ac4eae5dd21a493d1a7f0824c43053b6cbb627bfa703f"
+        },
+        {
+          "view": "left",
+          "file": "vervet-monkey-left.png",
+          "bytes": 68181,
+          "sha256": "055edd332d4704f0445ddcc8ed8c9d1e759f75d55f5bb71d01fba1f7ada8851b"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "african-buffalo",
+      "name": "African buffalo",
+      "scientificName": "Syncerus caffer",
+      "file": "african-buffalo.glb",
+      "status": "ready",
+      "bytes": 1025352,
+      "sha256": "097e9b59624cc9489ab08b34baca1f52f4335e368b8a170d3baadfa8a7303396",
+      "sourceBytes": 4431236,
+      "sourceSha256": "3d42a34fae110905ae862639eab8fd7d5bcd07aeb502c51297b4c0cdeaf9b1a3",
+      "polygonCount": 15650,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c1a5-067f-7588-ad5c-966fa4553851",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/african-buffalo.png",
+      "referenceSha256": "c7899fc0ecaf2381e04b98bb6df3360a0e484b4a1fe2ca95b6ddd7858ca13cc6",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "african-buffalo-front.png",
+          "bytes": 67984,
+          "sha256": "5e1eec8c5e4ca2e0259814982525ce2a2ca0ad5d5cbc4f23be1a6ec4067ed574"
+        },
+        {
+          "view": "right",
+          "file": "african-buffalo-right.png",
+          "bytes": 98466,
+          "sha256": "32f1fe5789b8b0ac368ae30ae1ec82b13f486fe134c221d74040cf67ef298ad7"
+        },
+        {
+          "view": "back",
+          "file": "african-buffalo-back.png",
+          "bytes": 65853,
+          "sha256": "d51acc7ce546a34adc5eda9e187c28e1b57873c40357311548edd7fc25bf92a6"
+        },
+        {
+          "view": "left",
+          "file": "african-buffalo-left.png",
+          "bytes": 95957,
+          "sha256": "db0a5aa8b78a495dcc9112e4a6f45acce831296a3ae1755594f7b5ca545880ee"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    },
+    {
+      "id": "nile-monitor",
+      "name": "Nile monitor",
+      "scientificName": "Varanus niloticus",
+      "file": "nile-monitor.glb",
+      "status": "ready",
+      "bytes": 1188368,
+      "sha256": "5e6a29e704f03a95d052697e5cbdc422121f804ba7d06329839399122bf68ce1",
+      "sourceBytes": 4977456,
+      "sourceSha256": "7d0745c09e33df40f94dc3812c5f12465f404d2b897137ca3eefcdc3a160c75c",
+      "polygonCount": 15612,
+      "textures": [
+        {
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
+          "mimeType": "image/jpeg"
+        }
+      ],
+      "embeddedAnimations": [],
+      "skinCount": 0,
+      "generationMethod": "Meshy Image-to-3D, meshy-7.1 standard geometry and textures",
+      "imageTaskId": "01a0c1a5-a56e-7355-83b5-c6608297ecd2",
+      "reportedCredits": 30,
+      "referenceImage": "assets/references/savanna-expansion/nile-monitor.png",
+      "referenceSha256": "5d39886d3953d8e2ed2b61468551cc61e5ac814433655bda62f4a2f7b6bb96be",
+      "reviewThumbnails": [
+        {
+          "view": "front",
+          "file": "nile-monitor-front.png",
+          "bytes": 30302,
+          "sha256": "a0f81adbfe2bf93667e601007633ab3bf7fc10750b97710d041606450128c558"
+        },
+        {
+          "view": "right",
+          "file": "nile-monitor-right.png",
+          "bytes": 41379,
+          "sha256": "938a5ba2c5765d8053222083c0ab8efe88b9184289498def28947d50c6b19a4f"
+        },
+        {
+          "view": "back",
+          "file": "nile-monitor-back.png",
+          "bytes": 18990,
+          "sha256": "0d8b3dfa45e71433ac8eed06029317ff5c73b92e09a60f0a3c2d61a3484ecce3"
+        },
+        {
+          "view": "left",
+          "file": "nile-monitor-left.png",
+          "bytes": 43440,
+          "sha256": "944eef0e0ff642fce1dd8d38904eda5badaf8f601f2035be6796f6b61aad542b"
+        }
+      ],
+      "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "nonImageBuffersPreserved": true,
+      "modifications": "Embedded textures resized to at most 1024px; every non-image buffer and authored model metadata verified unchanged."
+    }
+  ],
+  "originalGeneration": {
+    "batch": "savanna-expansion-20260920-v1",
+    "planHash": "cab9b526f663b88950fc1f6f755d1914b5ae61981d63f3b126a5c1605b233590",
+    "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+    "reportedCredits": 750,
+    "assets": [
+      {
+        "id": "lamarcks-dung-beetle",
+        "imageTaskId": "01a0c197-ab07-76a3-991b-a3a0ea6ac218",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/lamarcks-dung-beetle.png",
+        "referenceSha256": "82e8986d1cdc61fffb77bcab5f549934512f37f90d825757aa7599364d59a2ab",
+        "sourceBytes": 5175492,
+        "sourceSha256": "663b4c5d91d96ab4e5d888600a72521dec7349c8a9828691aaa4ad5418bf90c1",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "lamarcks-dung-beetle-front.png",
+            "bytes": 114538,
+            "sha256": "1d234a0be1fd6855e9de3b3e91c2cfa480ab9c418d3f88fa8a44ebf337ee5852"
+          },
+          {
+            "view": "right",
+            "file": "lamarcks-dung-beetle-right.png",
+            "bytes": 104575,
+            "sha256": "3973097f2a5b7c9ffdf4b3199ff8e8f2fdfd9ea0ec81b7a08ed13e4f9866c1cf"
+          },
+          {
+            "view": "back",
+            "file": "lamarcks-dung-beetle-back.png",
+            "bytes": 95249,
+            "sha256": "1485df66f5bc0f90fb2d7dbaaa8a5e4105e6c306f4104002f88211b85d50510a"
+          },
+          {
+            "view": "left",
+            "file": "lamarcks-dung-beetle-left.png",
+            "bytes": 100486,
+            "sha256": "fb372e1de5e5171f056d4b779bd78eba23160ebcc2487a555c71e9ba2c45377f"
+          }
+        ]
+      },
+      {
+        "id": "mound-building-termite",
+        "imageTaskId": "01a0c197-ab17-7378-970d-897f5bc7bd8f",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/mound-building-termite.png",
+        "referenceSha256": "2f693568380a32579e2b5370fe3b24af5ee306109e26db7ce928c4e8a441b028",
+        "sourceBytes": 4391664,
+        "sourceSha256": "976293a8e1a0afad07c4b780ca73a4d1d7361e16362fbb31eaaee1ccb8e8e282",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "mound-building-termite-front.png",
+            "bytes": 49801,
+            "sha256": "759877427132bf27949c624a632568c6432a7e3388d5c96e9525d6aa9c0b4f96"
+          },
+          {
+            "view": "right",
+            "file": "mound-building-termite-right.png",
+            "bytes": 60854,
+            "sha256": "43151cd29e4597ab3103e71c5da4b85301c6f1ab72a5d6b4d0b987fb145bc621"
+          },
+          {
+            "view": "back",
+            "file": "mound-building-termite-back.png",
+            "bytes": 55351,
+            "sha256": "9f8ce25d7c15e7eeff8d5396b6e7ae84fdf2b5d1294de5bfe56a3c398b78abf4"
+          },
+          {
+            "view": "left",
+            "file": "mound-building-termite-left.png",
+            "bytes": 58973,
+            "sha256": "7be83981138433aaff704149684bdd4366ca0968bab6031cfba354950300708d"
+          }
+        ]
+      },
+      {
+        "id": "mopane-emperor-moth",
+        "imageTaskId": "01a0c198-a11e-7332-8eb7-93484cf860da",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/mopane-emperor-moth.png",
+        "referenceSha256": "c9ba41898b2841890424b96ade803f9bce0af1e8dc9b095ed0254d61c24ec442",
+        "sourceBytes": 5565264,
+        "sourceSha256": "6b066265317f42c118cb7e2ced417027ddfa3d818f86dcdca1e67b76e8e09181",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "mopane-emperor-moth-front.png",
+            "bytes": 124513,
+            "sha256": "7bc58e78b67dc633220c338bf6fa0ed800b6c172c2e1fd4ec52236163c4ad23c"
+          },
+          {
+            "view": "right",
+            "file": "mopane-emperor-moth-right.png",
+            "bytes": 72887,
+            "sha256": "9bf508bcbaaf6ab85a917cec46e6c64f881f1843255a794fb9674a6d9a4ed0ec"
+          },
+          {
+            "view": "back",
+            "file": "mopane-emperor-moth-back.png",
+            "bytes": 88768,
+            "sha256": "a16605cc274728db5dd97baf51109efb79268f812e38ac8b460185aab8674e7f"
+          },
+          {
+            "view": "left",
+            "file": "mopane-emperor-moth-left.png",
+            "bytes": 54889,
+            "sha256": "2c34adcf39c9bc98de9f810ad29071a3b29c9c30915f7571d935d034dd910332"
+          }
+        ]
+      },
+      {
+        "id": "african-monarch",
+        "imageTaskId": "01a0c198-f07c-7545-9f7b-7a996aaaedaf",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/african-monarch.png",
+        "referenceSha256": "fb099ee2eb4e6048306718d8528d2dc2896fae6f1acbf53c272b1a7f6777998e",
+        "sourceBytes": 4575700,
+        "sourceSha256": "911eb8bc0f35e330742744847a0f4a3209555757af70b07e9a43a8acd8aac691",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "african-monarch-front.png",
+            "bytes": 111311,
+            "sha256": "071d22e999efa2c7fb6296e86c8532f622b19769276ac287037a4a64f320d883"
+          },
+          {
+            "view": "right",
+            "file": "african-monarch-right.png",
+            "bytes": 45888,
+            "sha256": "f3083b1ba3f2117af67da6e421e7d9eff3a3a7a942f94d3bbfeb6a1df2d12482"
+          },
+          {
+            "view": "back",
+            "file": "african-monarch-back.png",
+            "bytes": 109625,
+            "sha256": "407ea2205e5784b8691803c0eb503ffed36121229b402cffa99277702e575972"
+          },
+          {
+            "view": "left",
+            "file": "african-monarch-left.png",
+            "bytes": 50386,
+            "sha256": "78ea249511cf673415110a61ad8dc2f330ed2df48c33042d9f88bfc8c59b86f0"
+          }
+        ]
+      },
+      {
+        "id": "desert-locust",
+        "imageTaskId": "01a0c199-97b1-77e1-98ec-5d7f69f44736",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/desert-locust.png",
+        "referenceSha256": "6482bd719a6a4fb99a738ade623b0787ca88bb7eafb28374e677b6eea7fabeab",
+        "sourceBytes": 5428664,
+        "sourceSha256": "0fec64bd6f2e0455277b5b064636dae534716a07c54a4ec46801b931a8438a5e",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "desert-locust-front.png",
+            "bytes": 49457,
+            "sha256": "99a0c4bafc7b111d1478a59f4f71beb9266c54baaa9e74ad447dd5dabfad0d12"
+          },
+          {
+            "view": "right",
+            "file": "desert-locust-right.png",
+            "bytes": 84902,
+            "sha256": "6fb47a13c59cddbdca3241d36a5f0b0d01be77efc78350d98d7c76f3ce44e28e"
+          },
+          {
+            "view": "back",
+            "file": "desert-locust-back.png",
+            "bytes": 49713,
+            "sha256": "370586680087c9b7ca62168a3fd5749d3a8a7cd8d935b6dfdfdf1c45f935372f"
+          },
+          {
+            "view": "left",
+            "file": "desert-locust-left.png",
+            "bytes": 81322,
+            "sha256": "5d603875cb2c79d4cba158b3288539b2876fd485c58abccdccfd54bc81c06a09"
+          }
+        ]
+      },
+      {
+        "id": "cape-porcupine",
+        "imageTaskId": "01a0c199-e5f5-72b0-9e5a-a0e3a49dab7f",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/cape-porcupine.png",
+        "referenceSha256": "3ad79b42c24780006804300f42cdb9935872f5124da2489425ccaf31a89383c6",
+        "sourceBytes": 5622524,
+        "sourceSha256": "aeafeb835a76a3ae2a0bdc74b120b7fa83580286d736edaf7026194a2e6b77ab",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "cape-porcupine-front.png",
+            "bytes": 187713,
+            "sha256": "a34245bdf324ba9446ae8f196700b9e961d4e4e7a4702f171fd70a1a0dc8ae20"
+          },
+          {
+            "view": "right",
+            "file": "cape-porcupine-right.png",
+            "bytes": 66694,
+            "sha256": "671943752fbe71de7b656a98e5d3931eeca58bcda3fa976464fb13bf4437a9e3"
+          },
+          {
+            "view": "back",
+            "file": "cape-porcupine-back.png",
+            "bytes": 175866,
+            "sha256": "31c7d27409563a80349256e232e88ce69275d849942b84e010d91f27117ebca4"
+          },
+          {
+            "view": "left",
+            "file": "cape-porcupine-left.png",
+            "bytes": 66801,
+            "sha256": "e18a8da442d4acd6e299896f599a3bdde282e29d6d04825eb58e1fd8eb2974d3"
+          }
+        ]
+      },
+      {
+        "id": "south-african-springhare",
+        "imageTaskId": "01a0c19b-79f8-760f-ac1f-02547df55455",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/south-african-springhare.png",
+        "referenceSha256": "30487d6657d19a8dbdabd1c1943b6344f5253a1e1ce56722d20908cde0cf72f4",
+        "sourceBytes": 4795912,
+        "sourceSha256": "d042202b80ddde1011698b81722cc3e72e4f66a15ef08bfef3a734939bd4752b",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "south-african-springhare-front.png",
+            "bytes": 86258,
+            "sha256": "a46597c430504e838ab347a9c642732330565fa70cf62e929c7506b04914920b"
+          },
+          {
+            "view": "right",
+            "file": "south-african-springhare-right.png",
+            "bytes": 33772,
+            "sha256": "8af05677b35393321847c2740deaa410653c0e070cf71843287058ec475d9286"
+          },
+          {
+            "view": "back",
+            "file": "south-african-springhare-back.png",
+            "bytes": 89612,
+            "sha256": "3c95b07244fe8e3e03d8d48a6d2f1d404dab5c60edb7d25efb79ed68a94b2ee4"
+          },
+          {
+            "view": "left",
+            "file": "south-african-springhare-left.png",
+            "bytes": 56672,
+            "sha256": "cd3a1cbc61868c8dd0d253d8ed51ebf94866d49c9d29e9c464af1fb3a7985e9a"
+          }
+        ]
+      },
+      {
+        "id": "striped-grass-mouse",
+        "imageTaskId": "01a0c19b-79f9-7639-8d1d-4f0e0e7c3de6",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/striped-grass-mouse.png",
+        "referenceSha256": "dbe649d5c42c5fd7eef9e35e0d5d70a8cbee338c45585b29facbeb94e1843893",
+        "sourceBytes": 4457732,
+        "sourceSha256": "46eac8c763c2a227ce189c75bd9308945cb871dbae51814766a8b1ccf215a5a7",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "striped-grass-mouse-front.png",
+            "bytes": 38882,
+            "sha256": "7165f7067656038d18e7f82e1648334dcf664e297bd8042efecbe5393e08d02b"
+          },
+          {
+            "view": "right",
+            "file": "striped-grass-mouse-right.png",
+            "bytes": 50398,
+            "sha256": "da45c278992c063d7970e451b0417604c0a40df717202cd847fb3621ad2da0a1"
+          },
+          {
+            "view": "back",
+            "file": "striped-grass-mouse-back.png",
+            "bytes": 27273,
+            "sha256": "ca83a83379239daac64a131ccbda444536253472c8c6970bcebdc67e0d76b915"
+          },
+          {
+            "view": "left",
+            "file": "striped-grass-mouse-left.png",
+            "bytes": 56744,
+            "sha256": "c84277b0aa038ae0340bdd782eb7fd96191b226abd56bde2541333084215757f"
+          }
+        ]
+      },
+      {
+        "id": "naked-mole-rat",
+        "imageTaskId": "01a0c19c-6f81-75fa-8cdd-1c8dc14283df",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/naked-mole-rat.png",
+        "referenceSha256": "54106e67007f567b5f5cff208799b7b80e2f383f772d5fdd2a8474c91d993e22",
+        "sourceBytes": 4533360,
+        "sourceSha256": "d67a8cac6228e97422881dfae1279b8752298f9b1c1de0ade0849cbba41c0dc8",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "naked-mole-rat-front.png",
+            "bytes": 50013,
+            "sha256": "f6a2a7502781d822d4eda2c52ba365cebe848ad94b9086b676f657a61872266f"
+          },
+          {
+            "view": "right",
+            "file": "naked-mole-rat-right.png",
+            "bytes": 81295,
+            "sha256": "0a6b9391628bd6002072f3b49a6dcda2898a2b71c1087b8178aaad879e45ee19"
+          },
+          {
+            "view": "back",
+            "file": "naked-mole-rat-back.png",
+            "bytes": 48771,
+            "sha256": "a5ab8f1b777cf1ed67f0c59b098e82efecd92a4c79d9331cd768efc4880496ea"
+          },
+          {
+            "view": "left",
+            "file": "naked-mole-rat-left.png",
+            "bytes": 74699,
+            "sha256": "313d7f4b5f194946340902c2e331f823d089fe7e970fb1467cfbde9a476cde51"
+          }
+        ]
+      },
+      {
+        "id": "secretarybird",
+        "imageTaskId": "01a0c19c-70af-75bd-a007-1db95777c9b7",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/secretarybird.png",
+        "referenceSha256": "5fb8385d9b7d3c79b96e514b1ed3f7de96804004e54d56ac20d70d78fdb89ab1",
+        "sourceBytes": 4673232,
+        "sourceSha256": "e3230147c6e792127b1940f602d80c85bf3c00be7a7252d8db02ac3e742ccf79",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "secretarybird-front.png",
+            "bytes": 66449,
+            "sha256": "3f1668edfea90003b0f82a39e4d9f5fb4860b39bf5853a42d10d489fa5f3df89"
+          },
+          {
+            "view": "right",
+            "file": "secretarybird-right.png",
+            "bytes": 80691,
+            "sha256": "cc9ba46f82457c972b6064e390c8bf5014a01cef4425927eb3f3812c9fc35963"
+          },
+          {
+            "view": "back",
+            "file": "secretarybird-back.png",
+            "bytes": 46062,
+            "sha256": "b71597b261619b9de000a9c1c5b5bd7f74ad53e0f038049e418177adc9ad1fb0"
+          },
+          {
+            "view": "left",
+            "file": "secretarybird-left.png",
+            "bytes": 92163,
+            "sha256": "2b0fa0edb25a2dd78847d0d90cc13edbf4a14decd35084c52ad0863a19e55fb3"
+          }
+        ]
+      },
+      {
+        "id": "lilac-breasted-roller",
+        "imageTaskId": "01a0c19d-6d1b-768c-8008-d680e44137bc",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/lilac-breasted-roller.png",
+        "referenceSha256": "8da69e828dd9831111d2410109e2169a81598636a3a84339f151f47cf61da1c7",
+        "sourceBytes": 5033556,
+        "sourceSha256": "24d538951d67281b473b1f2a5da5d752ad491fbea905451d108fc36db33367c0",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "lilac-breasted-roller-front.png",
+            "bytes": 69970,
+            "sha256": "e7fa8397d7c8ddf5f4b818aed0afc35d48325441a46438bff6c493cac7ed92f5"
+          },
+          {
+            "view": "right",
+            "file": "lilac-breasted-roller-right.png",
+            "bytes": 68319,
+            "sha256": "ccebb87d8848104ce92fff9e77e1be94765b0ddd8a2213ac168f49e5e85bf2ad"
+          },
+          {
+            "view": "back",
+            "file": "lilac-breasted-roller-back.png",
+            "bytes": 41598,
+            "sha256": "730e7873d52439a795f9a64c65d4a583078b68e3f9464de9a61c935c15d90eff"
+          },
+          {
+            "view": "left",
+            "file": "lilac-breasted-roller-left.png",
+            "bytes": 78479,
+            "sha256": "568e1e019cbe00b1556cac33edc21c5834bf8cc8cfea20dd7ae98a35ce8600e4"
+          }
+        ]
+      },
+      {
+        "id": "southern-ground-hornbill",
+        "imageTaskId": "01a0c19d-bc76-7589-a20a-eb19b97e8b27",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/southern-ground-hornbill.png",
+        "referenceSha256": "0b7e1d7782d690a06800de293e65ca27a67c60c88b894c46a2f9f774f03bd8ab",
+        "sourceBytes": 4517956,
+        "sourceSha256": "136dc2a1c0bda39dc7615fa0b5a14258c33d0517c006c4e5b188da91a41b0871",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "southern-ground-hornbill-front.png",
+            "bytes": 67440,
+            "sha256": "d37983d407805bf8462ccb513f8fadb9c6eb4f7c5625144d37dc643e863e8d9b"
+          },
+          {
+            "view": "right",
+            "file": "southern-ground-hornbill-right.png",
+            "bytes": 82121,
+            "sha256": "1aa8b6c0d77cae624237a960ae48c567298716e8e189d27a7a947f84a25b193c"
+          },
+          {
+            "view": "back",
+            "file": "southern-ground-hornbill-back.png",
+            "bytes": 57418,
+            "sha256": "9d1371cf091d835f97a397b143e45e4e33950904369ef9a9b76f32e0572aa001"
+          },
+          {
+            "view": "left",
+            "file": "southern-ground-hornbill-left.png",
+            "bytes": 94055,
+            "sha256": "7f07625b09e3b19f1698b2a799b4b435cad6d03466901ba4100e61371dc90b46"
+          }
+        ]
+      },
+      {
+        "id": "helmeted-guineafowl",
+        "imageTaskId": "01a0c19e-61c8-7380-b446-51a22f195043",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/helmeted-guineafowl.png",
+        "referenceSha256": "328e6e60fe135097457c4edd8792ee43973b264df3cabf52a5d5f1baefe87e16",
+        "sourceBytes": 5322872,
+        "sourceSha256": "846973eb24cf555e32019127c3e3ab3fc0b191fe70f1b418a07c2bf0fab5b42a",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "helmeted-guineafowl-front.png",
+            "bytes": 121418,
+            "sha256": "06fe2d6f6d166b6ecccce56c6ac54acc2e30672bd1c390d621314aefbf8252f0"
+          },
+          {
+            "view": "right",
+            "file": "helmeted-guineafowl-right.png",
+            "bytes": 174039,
+            "sha256": "108becf43876ff4eef81161287c0393a40d170c5b3ebc0494896b35f533bb5bd"
+          },
+          {
+            "view": "back",
+            "file": "helmeted-guineafowl-back.png",
+            "bytes": 107192,
+            "sha256": "44e9a7edfcf0e8a950b5dc47ea65bf91b1770a199d8e9c130d43c56c1d3b1be9"
+          },
+          {
+            "view": "left",
+            "file": "helmeted-guineafowl-left.png",
+            "bytes": 179125,
+            "sha256": "4d8226bddbd25d6e3ec9b206bb32dee3c3bf6a105bf68e95a2291919267e81cb"
+          }
+        ]
+      },
+      {
+        "id": "grey-crowned-crane",
+        "imageTaskId": "01a0c19f-4e89-73cd-bd54-18e4e961d1df",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/grey-crowned-crane.png",
+        "referenceSha256": "f9ced148c76f3faa1014f06750d5b57b212d54a8714c340ca44b7e426f95507c",
+        "sourceBytes": 4559324,
+        "sourceSha256": "32975e56abf54f0ecac047a526f4e59e7e6d18600c579202141d863c6cb50052",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "grey-crowned-crane-front.png",
+            "bytes": 50175,
+            "sha256": "4d3b02ab1692862902c29fc391e3d7d4d5fa1ff25469ef3faa5879b332ccea37"
+          },
+          {
+            "view": "right",
+            "file": "grey-crowned-crane-right.png",
+            "bytes": 76117,
+            "sha256": "641e81e0866f9d4cd247a9ed78059cf29efce061b7cffb638c4b9f339014c206"
+          },
+          {
+            "view": "back",
+            "file": "grey-crowned-crane-back.png",
+            "bytes": 40481,
+            "sha256": "047efa8a4a63f4402b62c1ff7b7bed1c8ade022a4f78f94840d924db30a4c37b"
+          },
+          {
+            "view": "left",
+            "file": "grey-crowned-crane-left.png",
+            "bytes": 77619,
+            "sha256": "8b5a2006c6d3d4982bec7fb0f82df160a1c5edec0da9adea589ff7560634d9dd"
+          }
+        ]
+      },
+      {
+        "id": "white-backed-vulture",
+        "imageTaskId": "01a0c19f-55bc-740f-8eac-75b366facafd",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/white-backed-vulture.png",
+        "referenceSha256": "6bf410e1bbde8f5adbb9e0848750c733f7dd3fd1dcc8097336993461a773553d",
+        "sourceBytes": 5118660,
+        "sourceSha256": "0ca51bc9d52de772f33bd086dfc3b699d43514eff2e45d8451f37525fcb3941d",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "white-backed-vulture-front.png",
+            "bytes": 110203,
+            "sha256": "9f4e098f1cafc647f581b6af0f9ca564501af0ed827aeb42e994bf43f40402b4"
+          },
+          {
+            "view": "right",
+            "file": "white-backed-vulture-right.png",
+            "bytes": 145469,
+            "sha256": "3c1ef5fde048b0d86c0ff604a7b173495c374736ba0cb0ddf20a2bccc3d0ef2f"
+          },
+          {
+            "view": "back",
+            "file": "white-backed-vulture-back.png",
+            "bytes": 90218,
+            "sha256": "2c424b3732a43f5d17e05ed443355906ed8a59cbef03cb954acc74a918c94715"
+          },
+          {
+            "view": "left",
+            "file": "white-backed-vulture-left.png",
+            "bytes": 140219,
+            "sha256": "97b44455068344aa60dbe8545aaade2cc5c864590847947cc0d3caf5724d69a2"
+          }
+        ]
+      },
+      {
+        "id": "red-billed-oxpecker",
+        "imageTaskId": "01a0c1a0-9350-75ca-a395-a17d99299745",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/red-billed-oxpecker.png",
+        "referenceSha256": "3124f4bf911641e61654ad008a163708d5228fa02aa4002173c60c85d862d91e",
+        "sourceBytes": 4574244,
+        "sourceSha256": "2e02ccc2e3479bd35cd87b86bc52e14971ead62aeb6fff366ed58a01dc008e35",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "red-billed-oxpecker-front.png",
+            "bytes": 67994,
+            "sha256": "d935880b841613e6ec6f48dad9cb740572bd2ac8de73662579a3069a95f15be6"
+          },
+          {
+            "view": "right",
+            "file": "red-billed-oxpecker-right.png",
+            "bytes": 82113,
+            "sha256": "82bdb24ac78fc97b7b1d8b04c66e226d243439227794c097ce03eebf448b9877"
+          },
+          {
+            "view": "back",
+            "file": "red-billed-oxpecker-back.png",
+            "bytes": 56628,
+            "sha256": "27aa75c5c3d5122fc0dfabc2a46e7574b72a1185583af5158d95816bafb68180"
+          },
+          {
+            "view": "left",
+            "file": "red-billed-oxpecker-left.png",
+            "bytes": 89158,
+            "sha256": "452e79e3bda4b32508dcccde2da99bfae7f05ad1903b419c52f74e58548c4139"
+          }
+        ]
+      },
+      {
+        "id": "marabou-stork",
+        "imageTaskId": "01a0c1a0-e5fb-7787-85ce-01ccb41aac8b",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/marabou-stork.png",
+        "referenceSha256": "387c136a8f28367b7df4e1565990298a29d8fe3c8d8a4b8dc2300ee54417b69f",
+        "sourceBytes": 4502556,
+        "sourceSha256": "7e5999e0fa4d24f345a35c2cb3c9e91243a042dd1485d41d768b2362878bd6ec",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "marabou-stork-front.png",
+            "bytes": 63730,
+            "sha256": "a523881cb585b7bc481927e290c22528a57b567000cbc7823e88839a5ed4f5b4"
+          },
+          {
+            "view": "right",
+            "file": "marabou-stork-right.png",
+            "bytes": 108075,
+            "sha256": "244dba9dbed6117931309eb7c6527a4ce4bb08997a3889805f7e4672a2eb64c2"
+          },
+          {
+            "view": "back",
+            "file": "marabou-stork-back.png",
+            "bytes": 64958,
+            "sha256": "d14db448b6c8e0acdfe600a0238181281c6bf4cf8ae068b10f197d3483af8cde"
+          },
+          {
+            "view": "left",
+            "file": "marabou-stork-left.png",
+            "bytes": 105425,
+            "sha256": "91e154a2e2a1adeddba5c932c1c448ba0c303158c240a39b2baae24f4343641f"
+          }
+        ]
+      },
+      {
+        "id": "aardvark",
+        "imageTaskId": "01a0c1a1-8766-769f-b9fd-886b40ff65ea",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/aardvark.png",
+        "referenceSha256": "7e5690c09503326a688ed9133127061637d968f68b1cfe8f3f986faba5c6ac87",
+        "sourceBytes": 4458224,
+        "sourceSha256": "498cd37d89111cee17c8e005ebc8bf2c5fad338268c882f7b469f8c91e231167",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "aardvark-front.png",
+            "bytes": 44874,
+            "sha256": "6508979aa5f7368289636995774df8da878bbdf6a0ead16670b8dc996361ebde"
+          },
+          {
+            "view": "right",
+            "file": "aardvark-right.png",
+            "bytes": 55502,
+            "sha256": "8d22f14a1004726b71c625c6842fbb1f95fb842b8e53aa9e1453eb5a8a29c9b4"
+          },
+          {
+            "view": "back",
+            "file": "aardvark-back.png",
+            "bytes": 30462,
+            "sha256": "a98409cf4b1228dc14a7daf53430f132b11c35e89c979848220a3728b20a9323"
+          },
+          {
+            "view": "left",
+            "file": "aardvark-left.png",
+            "bytes": 56043,
+            "sha256": "78c2bb2c8368d4188f9a88eae07f026cd3bc8e101d098c0011c8d103a8686ea3"
+          }
+        ]
+      },
+      {
+        "id": "bat-eared-fox",
+        "imageTaskId": "01a0c1a1-da31-77b3-8941-1c8990454274",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/bat-eared-fox.png",
+        "referenceSha256": "d781b2ec9e7a961c8429d4a0267c88b46a55db5d3ba18d495428d0ad1ccfc2a2",
+        "sourceBytes": 4745060,
+        "sourceSha256": "ae4d2d61f0e794aa2dd8ccbeadcf466314b3da220b27dc205bda68b787cf48e5",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "bat-eared-fox-front.png",
+            "bytes": 119368,
+            "sha256": "8ba6873ec58369a83c57ade690bcc7763e09765def01c0eb1bb1415210c602c8"
+          },
+          {
+            "view": "right",
+            "file": "bat-eared-fox-right.png",
+            "bytes": 49681,
+            "sha256": "c2a175430eccc12d60519e1de96eeb868f5786ad524c17d9de03e317fbe2429e"
+          },
+          {
+            "view": "back",
+            "file": "bat-eared-fox-back.png",
+            "bytes": 110627,
+            "sha256": "ad256324a84e89414e1de199060cf9103a6e902d2ccb52045e352a880b4e7ac8"
+          },
+          {
+            "view": "left",
+            "file": "bat-eared-fox-left.png",
+            "bytes": 50074,
+            "sha256": "425623f6e5c13a212110c493b9e4e979918b15bbd91b6a8969aeb2d520d23ce1"
+          }
+        ]
+      },
+      {
+        "id": "banded-mongoose",
+        "imageTaskId": "01a0c1a2-7ccb-7725-8389-6071b503b4da",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/banded-mongoose.png",
+        "referenceSha256": "0e7b86e008dd52e4b8e3ee63bbbe5f62456591c7fa25c29ce3516e7a388dc679",
+        "sourceBytes": 4268504,
+        "sourceSha256": "6bcf5a0e12ff778d82dadda4f5bebef86351ac2cad4c09444469515071e78b2e",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "banded-mongoose-front.png",
+            "bytes": 34234,
+            "sha256": "e5c3c22ecae7f4272901abee68323e3d19a0b31c5c2edc21aa3d44fb91b97405"
+          },
+          {
+            "view": "right",
+            "file": "banded-mongoose-right.png",
+            "bytes": 51989,
+            "sha256": "f05b064f2138f79f28d5b5146422c7374dab46fd2c7b429479c11e4c9b3b8022"
+          },
+          {
+            "view": "back",
+            "file": "banded-mongoose-back.png",
+            "bytes": 27688,
+            "sha256": "9d33a26944a282ad19ab9caa5f81ed3fff32c5a959eebc92ed442d411eb4a81b"
+          },
+          {
+            "view": "left",
+            "file": "banded-mongoose-left.png",
+            "bytes": 53447,
+            "sha256": "dbbe4f132c92ea9ddca337c3b017a81f4a8c6cd813196f292522e1ca52534029"
+          }
+        ]
+      },
+      {
+        "id": "meerkat",
+        "imageTaskId": "01a0c1a2-ce80-70e4-b542-a47c146bcce5",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/meerkat.png",
+        "referenceSha256": "af73fdb70681a2b958f34f675fdee27617e95a16816e55bbd2d3ee3c87beabf2",
+        "sourceBytes": 5555844,
+        "sourceSha256": "703dc16c680da9aae1e84a0f81217a94fadfc3a94da2e73b20adb66ca47bf3e7",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "meerkat-front.png",
+            "bytes": 67497,
+            "sha256": "aef780cda58d59ca1303256ea36bf87f42a38373034a63b9854f8cb6a65580bb"
+          },
+          {
+            "view": "right",
+            "file": "meerkat-right.png",
+            "bytes": 80967,
+            "sha256": "e7894f6cc32e1bfb3014256a71e8e0f70dbe1bb7949ebc64d0fdecf2db8aa7a4"
+          },
+          {
+            "view": "back",
+            "file": "meerkat-back.png",
+            "bytes": 64675,
+            "sha256": "f4942208db7bda2391574f48632f7aff41ef6d8ebdde21ab94108e0751b9fbef"
+          },
+          {
+            "view": "left",
+            "file": "meerkat-left.png",
+            "bytes": 78917,
+            "sha256": "576c40fba1ab19bba1c045d81eaa1ce260f0d1d31216b51ffe1242a6f0542498"
+          }
+        ]
+      },
+      {
+        "id": "olive-baboon",
+        "imageTaskId": "01a0c1a3-c277-7300-8825-bbc17bd39d16",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/olive-baboon.png",
+        "referenceSha256": "e412b6a72e440a9c4287b63ffd1e2a575f89c7c020f783181b7cf51562d7d0be",
+        "sourceBytes": 4877284,
+        "sourceSha256": "bc3a141cfe3f032d6f35bb94931db8363724593abe3b907b5ee7b183bcbe6890",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "olive-baboon-front.png",
+            "bytes": 64564,
+            "sha256": "06644b0dc8cf450fbd952691f266981ef2c51a08ea014296a4e155eeee0d41ba"
+          },
+          {
+            "view": "right",
+            "file": "olive-baboon-right.png",
+            "bytes": 86095,
+            "sha256": "1fc1e45ec2d73ff0f27a972b9f6763a6c2e672c1a3f280e957c26e10134b97c4"
+          },
+          {
+            "view": "back",
+            "file": "olive-baboon-back.png",
+            "bytes": 49066,
+            "sha256": "63fdebc00e0e38b9dbe3ce3007d79e3291cc2f6a260fb44121570bbd4ee1c567"
+          },
+          {
+            "view": "left",
+            "file": "olive-baboon-left.png",
+            "bytes": 96788,
+            "sha256": "ee1507248549a6be0b5351a9bb3c5075aa7d62a5ad9010885ee48a4bb879343d"
+          }
+        ]
+      },
+      {
+        "id": "vervet-monkey",
+        "imageTaskId": "01a0c1a4-60cf-73c5-bd94-2f2fc55e2227",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/vervet-monkey.png",
+        "referenceSha256": "20fcf7614466c306f46ee89923ab67cce469f72d208ad8247e420bdc62d28b98",
+        "sourceBytes": 5378336,
+        "sourceSha256": "d4f60e153c0ef25d85b1c6bc09515a2dd540994a99a5af194532f2c9c2b41de8",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "vervet-monkey-front.png",
+            "bytes": 47069,
+            "sha256": "4967007a98755b6fa0aad5b5a4b2b946f86c5a7ce1a8c4edcf1aada23cf622d6"
+          },
+          {
+            "view": "right",
+            "file": "vervet-monkey-right.png",
+            "bytes": 61050,
+            "sha256": "879f4b963d4092e89b3313449c634d598e124af3e07fdc8b534e76db2c0bdfb6"
+          },
+          {
+            "view": "back",
+            "file": "vervet-monkey-back.png",
+            "bytes": 35419,
+            "sha256": "3f201fef5422b8e1b25ac4eae5dd21a493d1a7f0824c43053b6cbb627bfa703f"
+          },
+          {
+            "view": "left",
+            "file": "vervet-monkey-left.png",
+            "bytes": 68181,
+            "sha256": "055edd332d4704f0445ddcc8ed8c9d1e759f75d55f5bb71d01fba1f7ada8851b"
+          }
+        ]
+      },
+      {
+        "id": "african-buffalo",
+        "imageTaskId": "01a0c1a5-067f-7588-ad5c-966fa4553851",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/african-buffalo.png",
+        "referenceSha256": "c7899fc0ecaf2381e04b98bb6df3360a0e484b4a1fe2ca95b6ddd7858ca13cc6",
+        "sourceBytes": 4431236,
+        "sourceSha256": "3d42a34fae110905ae862639eab8fd7d5bcd07aeb502c51297b4c0cdeaf9b1a3",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "african-buffalo-front.png",
+            "bytes": 67984,
+            "sha256": "5e1eec8c5e4ca2e0259814982525ce2a2ca0ad5d5cbc4f23be1a6ec4067ed574"
+          },
+          {
+            "view": "right",
+            "file": "african-buffalo-right.png",
+            "bytes": 98466,
+            "sha256": "32f1fe5789b8b0ac368ae30ae1ec82b13f486fe134c221d74040cf67ef298ad7"
+          },
+          {
+            "view": "back",
+            "file": "african-buffalo-back.png",
+            "bytes": 65853,
+            "sha256": "d51acc7ce546a34adc5eda9e187c28e1b57873c40357311548edd7fc25bf92a6"
+          },
+          {
+            "view": "left",
+            "file": "african-buffalo-left.png",
+            "bytes": 95957,
+            "sha256": "db0a5aa8b78a495dcc9112e4a6f45acce831296a3ae1755594f7b5ca545880ee"
+          }
+        ]
+      },
+      {
+        "id": "nile-monitor",
+        "imageTaskId": "01a0c1a5-a56e-7355-83b5-c6608297ecd2",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+        "referenceImage": "assets/references/savanna-expansion/nile-monitor.png",
+        "referenceSha256": "5d39886d3953d8e2ed2b61468551cc61e5ac814433655bda62f4a2f7b6bb96be",
+        "sourceBytes": 4977456,
+        "sourceSha256": "7d0745c09e33df40f94dc3812c5f12465f404d2b897137ca3eefcdc3a160c75c",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "nile-monitor-front.png",
+            "bytes": 30302,
+            "sha256": "a0f81adbfe2bf93667e601007633ab3bf7fc10750b97710d041606450128c558"
+          },
+          {
+            "view": "right",
+            "file": "nile-monitor-right.png",
+            "bytes": 41379,
+            "sha256": "938a5ba2c5765d8053222083c0ab8efe88b9184289498def28947d50c6b19a4f"
+          },
+          {
+            "view": "back",
+            "file": "nile-monitor-back.png",
+            "bytes": 18990,
+            "sha256": "0d8b3dfa45e71433ac8eed06029317ff5c73b92e09a60f0a3c2d61a3484ecce3"
+          },
+          {
+            "view": "left",
+            "file": "nile-monitor-left.png",
+            "bytes": 43440,
+            "sha256": "944eef0e0ff642fce1dd8d38904eda5badaf8f601f2035be6796f6b61aad542b"
+          }
+        ]
+      }
+    ]
+  },
+  "revisionGeneration": {
+    "batch": "savanna-revisions-20260921-v1",
+    "planHash": "bea351a7d0a1ed1a543e325247fa111394cc849a3d5a47725a3b35a5f0767e5e",
+    "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35603815194",
+    "reportedCredits": 90,
+    "reviewedCardinalRenders": true,
+    "assets": [
+      {
+        "id": "cape-porcupine",
+        "imageTaskId": "01a0c416-5c43-7532-a202-5a38f016d670",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35603815194",
+        "referenceImage": "assets/references/savanna-revisions/cape-porcupine.png",
+        "referenceSha256": "a06d738ed7a97d8bc3d38a04358f54ca9658d2d5eea756edd36f3530116509c5",
+        "sourceBytes": 5162612,
+        "sourceSha256": "21760e714748fb47f9c7c794ddf783e987622e8d40114e7c721e7b18f5a65ecd",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "cape-porcupine-front.png",
+            "bytes": 131836,
+            "sha256": "35938577bfd44913735e37fa837cdd137ed12ed3ec0d37d9ec27aefdd0ce387e"
+          },
+          {
+            "view": "right",
+            "file": "cape-porcupine-right.png",
+            "bytes": 134691,
+            "sha256": "105b6749528b9b8630d6c92ccd55f648355aa4943c86c7d55ed334d3a3abd5f0"
+          },
+          {
+            "view": "back",
+            "file": "cape-porcupine-back.png",
+            "bytes": 113525,
+            "sha256": "137c0673a877ad5497d737107f2435d13ab01a2bb14b3a5af13620039025f9d0"
+          },
+          {
+            "view": "left",
+            "file": "cape-porcupine-left.png",
+            "bytes": 110710,
+            "sha256": "0afb2b9ef60fabbab1d80bad73d12255b3d624c2ad392ec73fca0a93265666b9"
+          }
+        ]
+      },
+      {
+        "id": "south-african-springhare",
+        "imageTaskId": "01a0c416-5c32-7285-be75-04a371924e29",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35603815194",
+        "referenceImage": "assets/references/savanna-revisions/south-african-springhare.png",
+        "referenceSha256": "59ab0b528ccd9acf7fb6d85da1f236deba2a7495ec4e3ec1c8a7d6d3f73ec6f0",
+        "sourceBytes": 4852736,
+        "sourceSha256": "8bfd0021bb3c79591a349dde79d877b64bb4e0d95f1e50b18a445c41f3c3a13a",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "south-african-springhare-front.png",
+            "bytes": 63791,
+            "sha256": "32f25dbfb231037201eba4a1a4aead70b269f2b2ba6b630f23c866cdd6aeefd9"
+          },
+          {
+            "view": "right",
+            "file": "south-african-springhare-right.png",
+            "bytes": 65298,
+            "sha256": "57e9b497a3b0dd5601dc04a7a5cccef2a6a90100f157e757d6be7c7ac434918a"
+          },
+          {
+            "view": "back",
+            "file": "south-african-springhare-back.png",
+            "bytes": 48184,
+            "sha256": "8ed6a1997078febb98ea19a0126b476a4e7c7ad986e9552a656c6aa35e375f85"
+          },
+          {
+            "view": "left",
+            "file": "south-african-springhare-left.png",
+            "bytes": 83085,
+            "sha256": "9665ca480618fb62881d42186ced64076efac5b5e7b84714f347f29d6d5ff7aa"
+          }
+        ]
+      },
+      {
+        "id": "bat-eared-fox",
+        "imageTaskId": "01a0c417-52c3-76fd-bbe4-e501bf820576",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35603815194",
+        "referenceImage": "assets/references/savanna-revisions/bat-eared-fox.png",
+        "referenceSha256": "117d5e52824d0d2e94c400a7c07936c1249ad80b2d6422a1457716dac3a3e037",
+        "sourceBytes": 5340176,
+        "sourceSha256": "96152f2cbf82fac4f7fd20a384679e8c4f594a5ca46f9ca1d1de68da09be2868",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "bat-eared-fox-front.png",
+            "bytes": 89654,
+            "sha256": "aa73a3bb0303a223a3c25720d0a92311677ddbd082002fb10ddc0d90ee7b5cd6"
+          },
+          {
+            "view": "right",
+            "file": "bat-eared-fox-right.png",
+            "bytes": 94334,
+            "sha256": "0aa3631d4c9bc16476838165560cdd81c8b37c05f68f244ae4d62e8428801cf3"
+          },
+          {
+            "view": "back",
+            "file": "bat-eared-fox-back.png",
+            "bytes": 95109,
+            "sha256": "c8bc4e16aefd5248fd36946e5d9be1d718b34bffe0ce33914f2ab9ea74ad2548"
+          },
+          {
+            "view": "left",
+            "file": "bat-eared-fox-left.png",
+            "bytes": 93110,
+            "sha256": "3d168db333e9a38d88a21b483fc34dd2d80e272c8456c4ac5ad567fbb01c0a26"
+          }
+        ]
+      }
+    ]
+  },
+  "porcupineGeneration": {
+    "batch": "savanna-porcupine-20260921-v1",
+    "planHash": "97c0f688819766bd343d59cab42dff4e99813ff9d92fa584c6216ea2a058fb74",
+    "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35605009922",
+    "reportedCredits": 30,
+    "reviewedCardinalRenders": true,
+    "assets": [
+      {
+        "id": "cape-porcupine",
+        "imageTaskId": "01a0c420-7580-7047-8554-6791d2a8bd59",
+        "reportedCredits": 30,
+        "workflowRun": "https://github.com/amyleesterling/the-animal-game/actions/runs/35605009922",
+        "referenceImage": "assets/references/savanna-porcupine/cape-porcupine.png",
+        "referenceSha256": "7c5eb7f3338bd309702c1ac443e82496851eaa5a22a3fc4e6259f695b0b19169",
+        "sourceBytes": 5824928,
+        "sourceSha256": "8297ee2b26eed660c77e6ce001b7bb0cc5bcf632391d0ee3f44802ac6a7cf7ae",
+        "reviewThumbnails": [
+          {
+            "view": "front",
+            "file": "cape-porcupine-front.png",
+            "bytes": 114956,
+            "sha256": "f509d67a202168e1b787f53722cfbdb53fa25ab83a857258b3874eea0856926a"
+          },
+          {
+            "view": "right",
+            "file": "cape-porcupine-right.png",
+            "bytes": 164179,
+            "sha256": "2efd020f6f634cab8aa3ed9d67700cf2711bab564761ade3948910132c325514"
+          },
+          {
+            "view": "back",
+            "file": "cape-porcupine-back.png",
+            "bytes": 142968,
+            "sha256": "595710f7e9e86ffc21f1d04c0c4d39cb13e03ea6ec6e92d85e5638987777b9cc"
+          },
+          {
+            "view": "left",
+            "file": "cape-porcupine-left.png",
+            "bytes": 144710,
+            "sha256": "96b09116b677836b183debeb86179681ef0e6913138c0a0467084b2634c9f127"
+          }
+        ]
+      }
+    ]
+  },
+  "authoredPorcupine": {
+    "authored": true,
+    "reviewedAuthoredPorcupine": true,
+    "reportedCredits": 0,
+    "generationMethod": "Locally authored procedural Cape porcupine geometry and textures",
+    "sourceScript": "scripts/build-cape-porcupine.mjs",
+    "sourceScriptBytes": 17534,
+    "sourceScriptSha256": "cc29043d71b6f13270cb06255d2074efd5cf6973e61d3282cb9e774a5a62a300",
+    "sourceFile": "generated/authored-porcupine/cape-porcupine.glb",
+    "sourceBytes": 627840,
+    "sourceSha256": "865949e5ed62a6ad469c6e8dcfde3affddbda78d52a6dc61da1fc3fb987c6ba8",
+    "authorship": "Original procedural geometry and textures authored for Sophia's Wild World using the project's Three.js geometry primitives; no Meshy geometry, photographs, or third-party texture artwork.",
+    "textureProvenance": "Original deterministic 16x16 fur-grain PNG, 1x1 white palette PNG, and 2x128 alternating black-and-cream quill-band PNG generated by the source script. No external image inputs."
+  }
+}

@@ -1,4 +1,5 @@
 import type { SafariStop } from "../safari-contracts";
+import { expansionStops } from "./savanna-expansion";
 
 /** Facts checked against the linked zoo/conservation sources; not a scientific review. */
 export const safariContentReviewedAt = "2026-09-20";
@@ -7,7 +8,7 @@ const zoo = (animal: string, title: string) => ({
   url: `https://animals.sandiegozoo.org/animals/${animal}`,
 });
 
-export const safariStops: SafariStop[] = [
+export const safariStoryStops: SafariStop[] = [
   {
     id: "plains-zebra",
     name: "Plains zebra",
@@ -221,6 +222,11 @@ export const safariStops: SafariStop[] = [
     forwardAxis: "+z",
     position: [28, 0, 30],
   },
+];
+
+export const safariStops: SafariStop[] = [
+  ...safariStoryStops,
+  ...expansionStops,
 ];
 
 export const safariEnding =

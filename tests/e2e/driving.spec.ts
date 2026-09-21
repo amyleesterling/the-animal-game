@@ -39,6 +39,9 @@ const turn = (a: number, b: number) =>
 
 async function openSafari(page: Page) {
   await page.goto("./safari.html");
+  await page.locator("#begin-safari").click();
+  if (await page.locator("#skip-arrival").isVisible())
+    await page.locator("#skip-arrival").click();
   await expect(canvas(page)).toHaveAttribute("data-travel-mode", "walking");
   await expect(page.locator("#enter-jeep")).toBeEnabled();
   await expect(canvas(page)).toHaveAttribute("data-vehicle-x", /-?\d/);
@@ -263,7 +266,6 @@ test("choosing the next driving destination preserves the parked jeep and saved 
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openSafari(page);
-  await page.locator("#begin-safari").click();
   await expect(canvas(page)).toHaveAttribute("data-animal-state", "loaded", {
     timeout: 30000,
   });
@@ -320,7 +322,6 @@ test("driving to a revisited unfinished stop keeps controls active and resumes i
   test.setTimeout(90000);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openSafari(page);
-  await page.locator("#begin-safari").click();
   await expect(canvas(page)).toHaveAttribute("data-animal-state", "loaded", {
     timeout: 30000,
   });

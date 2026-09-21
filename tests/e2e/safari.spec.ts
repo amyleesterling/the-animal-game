@@ -1,5 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 import { safariStoryStops } from "../../src/content/safari";
+async function beginJourney(page: Page) {
+  await page.locator("#begin-safari").click();
+  if (await page.locator("#skip-arrival").isVisible())
+    await page.locator("#skip-arrival").click();
+}
 async function ready(page: Page) {
   await expect(page.locator("#safari-world canvas")).toHaveAttribute(
     "data-animal-state",
@@ -30,7 +35,7 @@ test("seven-stop story saves real photographs, resumes feedback, finishes and re
     "loaded",
     { timeout: 30000 },
   );
-  await page.locator("#begin-safari").click();
+  await beginJourney(page);
   for (const [index, animal] of safariStoryStops.entries()) {
     await meet(page);
     if (index === 0) {
@@ -91,7 +96,7 @@ test("phone story keeps the scene, choices, camera and field book reachable", as
   await page.goto("./safari.html");
   await ready(page);
   await page.screenshot({ path: info.outputPath("safari-welcome-phone.png") });
-  await page.locator("#begin-safari").click();
+  await beginJourney(page);
   await meet(page);
   await page.screenshot({ path: info.outputPath("safari-question-phone.png") });
   const dimensions = await page.evaluate(() => ({
@@ -155,7 +160,7 @@ test("corrupt story save stays protected until an explicit restart", async ({
   });
   await page.reload();
   await expect(page.locator("#save-banner")).toContainText("left untouched");
-  await page.locator("#begin-safari").click();
+  await beginJourney(page);
   await expect(page.locator("#save-banner")).toContainText("protected");
   await page.reload();
   await expect(page.locator("#save-banner")).toContainText("left untouched");
@@ -171,7 +176,7 @@ test("an unavailable animal cannot unlock a clue or photograph", async ({
 }) => {
   await page.route("**/models/zebra.glb", (route) => route.abort());
   await page.goto("./safari.html");
-  await page.locator("#begin-safari").click();
+  await beginJourney(page);
   await expect(page.locator("#safari-world canvas")).toHaveAttribute(
     "data-animal-state",
     "error",
@@ -246,7 +251,7 @@ test("a delayed restart blocks old settings writes until replacement commits", a
   page,
 }) => {
   await page.goto("./safari.html");
-  await page.locator("#begin-safari").click();
+  await beginJourney(page);
   await expect(page.locator("#save-status")).toHaveText(
     "Story saved on this device",
   );

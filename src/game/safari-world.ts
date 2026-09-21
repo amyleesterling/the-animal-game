@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import type {
+  PhotoAdjustAction,
   SafariStop,
   SafariStatus,
   SafariWorld,
@@ -9,6 +10,13 @@ import type {
 import { createPlayer } from "./player";
 import { CORA_CHARACTER } from "../content/characters";
 import { createCompanion } from "./companion";
+import {
+  ARRIVAL_DURATION,
+  sampleArrival,
+  type ArrivalSample,
+  type ArrivalStage,
+} from "./arrival-sequence";
+import { addTarangireScenery, inArrivalCorridor } from "./tarangire-scenery";
 import { collectSafariEncounters, safariEncounterRange } from "./encounters";
 import {
   moveWithCollisions,
@@ -192,6 +200,74 @@ export function frameSafariPhoto(
   camera.lookAt(target);
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld(true);
+}
+
+/** A photograph has one persistent 4:3 composition, independent of its screen. */
+export function createSafariPhotoComposition(
+  bounds: THREE.Box3,
+  viewpoint: THREE.Vector3,
+  closeUp = false,
+) {
+  const camera = new THREE.PerspectiveCamera(48, 4 / 3, 0.1, 320);
+  frameSafariPhoto(camera, bounds, viewpoint, closeUp);
+  const center = bounds.getCenter(new THREE.Vector3());
+  const offset = camera.position.clone().sub(center);
+  const height = bounds.max.y - bounds.min.y;
+  const target = center.clone();
+  const state = { orbit: 0, aim: 0, zoom: 1 };
+  function apply() {
+    camera.position.copy(offset).applyAxisAngle(UP, state.orbit).add(center);
+    // Limit off-centre aiming in the visible lens, including at maximum zoom.
+    // Close-ups may crop extremities, but the animal's centre stays in frame.
+    const aimRange = Math.min(
+      height * 0.45,
+      (offset.length() * Math.tan(THREE.MathUtils.degToRad(24)) * 0.45) /
+        state.zoom,
+    );
+    target.copy(center);
+    target.y += state.aim * aimRange;
+    camera.zoom = state.zoom;
+    camera.lookAt(target);
+    camera.updateProjectionMatrix();
+    camera.updateMatrixWorld(true);
+  }
+  function drag(x: number, y: number) {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+    state.orbit = THREE.MathUtils.clamp(state.orbit - x * 0.005, -1.3, 1.3);
+    state.aim = THREE.MathUtils.clamp(state.aim + y * 0.006, -1, 1);
+    apply();
+  }
+  function zoomBy(factor: number) {
+    if (!Number.isFinite(factor) || factor <= 0) return;
+    state.zoom = THREE.MathUtils.clamp(state.zoom * factor, 0.7, 2.2);
+    apply();
+  }
+  function adjust(action: PhotoAdjustAction) {
+    if (action === "reset") Object.assign(state, { orbit: 0, aim: 0, zoom: 1 });
+    else if (action === "orbit-left") state.orbit -= 0.16;
+    else if (action === "orbit-right") state.orbit += 0.16;
+    else if (action === "aim-up") state.aim += 0.2;
+    else if (action === "aim-down") state.aim -= 0.2;
+    else if (action === "zoom-in") state.zoom *= 1.15;
+    else if (action === "zoom-out") state.zoom /= 1.15;
+    state.orbit = THREE.MathUtils.clamp(state.orbit, -1.3, 1.3);
+    state.aim = THREE.MathUtils.clamp(state.aim, -1, 1);
+    state.zoom = THREE.MathUtils.clamp(state.zoom, 0.7, 2.2);
+    apply();
+  }
+  return { camera, target, state, drag, zoomBy, adjust };
+}
+
+/** Letterboxing keeps the preview identical to the saved 960 by 720 photograph. */
+export function safariPhotoViewport(width: number, height: number) {
+  const photoWidth = Math.min(width, (height * 4) / 3);
+  const photoHeight = (photoWidth * 3) / 4;
+  return {
+    x: (width - photoWidth) / 2,
+    y: (height - photoHeight) / 2,
+    width: photoWidth,
+    height: photoHeight,
+  };
 }
 
 function createLandscape(scene: THREE.Scene, stops: SafariStop[]) {
@@ -456,6 +532,7 @@ function createLandscape(scene: THREE.Scene, stops: SafariStop[]) {
     // including the twelve metres behind Soph used by the phone camera.
     // Apply this to deliberately placed trees as well as the random grove.
     if (
+      inArrivalCorridor(x, z) ||
       cameraCorridors.some(
         (corridor) =>
           Math.abs(x - corridor.x) < 14 &&
@@ -609,6 +686,7 @@ function createLandscape(scene: THREE.Scene, stops: SafariStop[]) {
   }
   rocks.castShadow = true;
   scene.add(rocks);
+  addTarangireScenery(scene);
   return { obstacles, treeMeshes, grass, grassCount: count };
 }
 
@@ -702,7 +780,15 @@ export function createSafariWorld(
   let disposed = false;
   let active = false;
   let photoMode = false;
+  let photo: ReturnType<typeof createSafariPhotoComposition> | null = null;
   let driving = false;
+  let arrival: {
+    elapsed: number;
+    playing: boolean;
+    lastStage: ArrivalStage;
+    onStage?: (stage: ArrivalStage) => void;
+    onFinish?: () => void;
+  } | null = null;
   let braking = false;
   let companionNeedsReset = true;
   let companionPaused = false;
@@ -725,6 +811,7 @@ export function createSafariWorld(
   let dragging = false;
   let pointerX = 0,
     pointerY = 0;
+  const photoPointers = new Map<number, { x: number; y: number }>();
   const movement: Record<Direction, boolean> = {
     forward: false,
     backward: false,
@@ -781,7 +868,12 @@ export function createSafariWorld(
   }
   function interactionAllowed() {
     return (
-      !disposed && active && !photoMode && !contextLost && !document.hidden
+      !disposed &&
+      active &&
+      !photoMode &&
+      !arrival &&
+      !contextLost &&
+      !document.hidden
     );
   }
   function jeepDistance() {
@@ -796,6 +888,10 @@ export function createSafariWorld(
     canvas.dataset.companionX = String(companion?.root.position.x ?? 0);
     canvas.dataset.companionZ = String(companion?.root.position.z ?? 0);
     canvas.dataset.travelMode = driving ? "driving" : "walking";
+    canvas.dataset.arrivalStage = arrival?.lastStage ?? "none";
+    canvas.dataset.arrivalProgress = String(
+      arrival?.elapsed ?? ARRIVAL_DURATION,
+    );
     canvas.dataset.vehicleX = String(vehicle.x);
     canvas.dataset.vehicleZ = String(vehicle.z);
     canvas.dataset.vehicleHeading = String(vehicle.heading);
@@ -807,6 +903,20 @@ export function createSafariWorld(
     canvas.dataset.loadedAnimalIds = [...animals.keys()].join(",");
     canvas.dataset.habitatFeature = stop.habitatFeature ?? "clearing";
     canvas.dataset.viewingNote = stop.viewingNote ?? "";
+    canvas.dataset.photoMode = String(photoMode);
+    if (photo) {
+      canvas.dataset.photoOrbit = String(photo.state.orbit);
+      canvas.dataset.photoAim = String(photo.state.aim);
+      canvas.dataset.photoZoom = String(photo.state.zoom);
+      canvas.dataset.photoAspect = String(photo.camera.aspect);
+      for (const axis of ["x", "y", "z"] as const) {
+        const suffix = axis.toUpperCase();
+        canvas.dataset[`photoCamera${suffix}`] = String(
+          photo.camera.position[axis],
+        );
+        canvas.dataset[`photoTarget${suffix}`] = String(photo.target[axis]);
+      }
+    }
   }
   function syncVehicle() {
     jeep.position.set(vehicle.x, 0, vehicle.z);
@@ -846,10 +956,16 @@ export function createSafariWorld(
       distance <= views.photoRange;
     if (photoReady && photoMode) {
       const target = currentBounds().getCenter(new THREE.Vector3());
-      const direction = target.sub(camera.position);
-      raycaster.set(camera.position, direction.clone().normalize());
+      const photoCamera = photo?.camera ?? camera;
+      const projected = target.clone().project(photoCamera);
+      const direction = target.sub(photoCamera.position);
+      raycaster.set(photoCamera.position, direction.clone().normalize());
       raycaster.far = Math.max(0, direction.length() - 1);
       photoReady =
+        Math.abs(projected.x) < 0.92 &&
+        Math.abs(projected.y) < 0.92 &&
+        projected.z > -1 &&
+        projected.z < 1 &&
         raycaster.intersectObjects([...landscape.treeMeshes, jeep], true)
           .length === 0;
     }
@@ -887,15 +1003,7 @@ export function createSafariWorld(
     return status;
   }
   function updateCamera(snap = false) {
-    if (photoMode) {
-      frameSafariPhoto(
-        camera,
-        currentBounds(),
-        explorer.root.position.clone().add(new THREE.Vector3(0, 1.65, 0)),
-        Boolean(stop.profile),
-      );
-      return;
-    }
+    if (photoMode) return;
     if (driving) {
       const distance = camera.aspect < 0.8 ? 14 : 11;
       const orbit = vehicle.heading + yaw;
@@ -968,11 +1076,51 @@ export function createSafariWorld(
     camera.lookAt(cameraTarget);
     camera.updateProjectionMatrix();
   }
+  function resetPhoto() {
+    photo = createSafariPhotoComposition(
+      currentBounds(),
+      explorer.root.position.clone().add(new THREE.Vector3(0, 1.65, 0)),
+      Boolean(stop.profile),
+    );
+  }
+  function renderScene() {
+    const size = renderer.getSize(new THREE.Vector2());
+    renderer.setScissorTest(false);
+    renderer.setViewport(0, 0, size.x, size.y);
+    if (photoMode && photo) {
+      const viewport = safariPhotoViewport(size.x, size.y);
+      renderer.setClearColor(0x242a24);
+      renderer.clear();
+      renderer.setViewport(
+        viewport.x,
+        viewport.y,
+        viewport.width,
+        viewport.height,
+      );
+      renderer.setScissor(
+        viewport.x,
+        viewport.y,
+        viewport.width,
+        viewport.height,
+      );
+      renderer.setScissorTest(true);
+      renderer.render(scene, photo.camera);
+      renderer.setScissorTest(false);
+      canvas.dataset.photoViewportLeft = String(viewport.x);
+      canvas.dataset.photoViewportTop = String(viewport.y);
+      canvas.dataset.photoViewportWidth = String(viewport.width);
+      canvas.dataset.photoViewportHeight = String(viewport.height);
+    } else renderer.render(scene, camera);
+  }
   function clearMovement() {
     Object.keys(movement).forEach((key) => {
       movement[key as Direction] = false;
     });
     dragging = false;
+    for (const id of photoPointers.keys()) {
+      if (canvas.hasPointerCapture(id)) canvas.releasePointerCapture(id);
+    }
+    photoPointers.clear();
     braking = false;
     previousTime = performance.now();
   }
@@ -980,12 +1128,13 @@ export function createSafariWorld(
     clearMovement();
     stopVehicle(vehicle);
     guide = null;
-    syncCompanion();
+    if (!arrival) syncCompanion();
     diagnosticState();
   }
   function selectStop(id: string, keepPosition = false) {
     const next = options.stops.find((entry) => entry.id === id);
     if (!next || disposed) return;
+    const changed = stop.id !== next.id;
     stop = next;
     views = safariViewpoints(stop);
     guide = null;
@@ -993,6 +1142,7 @@ export function createSafariWorld(
       pauseTravel();
       driving = false;
       photoMode = false;
+      photo = null;
       yaw = 0;
       pitch = 0.3;
       explorer.root.position.copy(views.arrival);
@@ -1003,6 +1153,10 @@ export function createSafariWorld(
       vehicle.heading = -0.12;
       syncVehicle();
       companionNeedsReset = true;
+    }
+    if (changed && photoMode) {
+      clearMovement();
+      resetPhoto();
     }
     syncCompanion();
     canvas.dataset.stopId = stop.id;
@@ -1046,6 +1200,7 @@ export function createSafariWorld(
     }
   }
   function syncCompanion(seconds = 0, moving = false) {
+    if (arrival) return;
     companion?.update(
       seconds,
       explorer.root.position,
@@ -1063,7 +1218,8 @@ export function createSafariWorld(
     if (!companionPaused) companionNeedsReset = false;
   }
   function setMovement(direction: Direction, pressed: boolean) {
-    if (disposed || (!active && pressed) || (photoMode && pressed)) return;
+    if (disposed || (!active && pressed) || ((photoMode || arrival) && pressed))
+      return;
     if (pressed && !Object.values(movement).some(Boolean))
       previousTime = performance.now();
     movement[direction] = pressed;
@@ -1111,14 +1267,52 @@ export function createSafariWorld(
     if (event.code === "Space") setBrake(false);
   };
   const onPointerDown = (event: PointerEvent) => {
-    if (!active || photoMode) return;
+    if (
+      !active ||
+      disposed ||
+      contextLost ||
+      document.hidden ||
+      event.button !== 0
+    )
+      return;
+    if (arrival) return;
+    if (photoMode) {
+      photoPointers.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+      canvas.setPointerCapture(event.pointerId);
+      return;
+    }
     dragging = true;
     pointerX = event.clientX;
     pointerY = event.clientY;
     canvas.setPointerCapture(event.pointerId);
   };
   const onPointerMove = (event: PointerEvent) => {
-    if (!dragging || !active || photoMode) return;
+    if (!active || disposed || contextLost || document.hidden) return;
+    if (photoMode) {
+      const previous = photoPointers.get(event.pointerId);
+      if (!previous || !photo) return;
+      const other = [...photoPointers.entries()].find(
+        ([id]) => id !== event.pointerId,
+      )?.[1];
+      if (other) {
+        const before = Math.hypot(previous.x - other.x, previous.y - other.y);
+        const after = Math.hypot(
+          event.clientX - other.x,
+          event.clientY - other.y,
+        );
+        if (before > 8 && after > 8) photo.zoomBy(after / before);
+      } else photo.drag(event.clientX - previous.x, event.clientY - previous.y);
+      photoPointers.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+      diagnosticState();
+      return;
+    }
+    if (!dragging) return;
     yaw -= (event.clientX - pointerX) * 0.006;
     if (driving) yaw = THREE.MathUtils.clamp(yaw, -1.1, 1.1);
     pitch = THREE.MathUtils.clamp(
@@ -1129,8 +1323,33 @@ export function createSafariWorld(
     pointerX = event.clientX;
     pointerY = event.clientY;
   };
-  const onPointerUp = () => {
+  const onPointerUp = (event: PointerEvent) => {
+    photoPointers.delete(event.pointerId);
+    if (canvas.hasPointerCapture(event.pointerId))
+      canvas.releasePointerCapture(event.pointerId);
     dragging = false;
+  };
+  const onWheel = (event: WheelEvent) => {
+    if (
+      !active ||
+      !photoMode ||
+      !photo ||
+      disposed ||
+      contextLost ||
+      document.hidden
+    )
+      return;
+    event.preventDefault();
+    const unit =
+      event.deltaMode === 1
+        ? 16
+        : event.deltaMode === 2
+          ? canvas.clientHeight
+          : 1;
+    photo.zoomBy(
+      Math.exp(THREE.MathUtils.clamp(-event.deltaY * unit * 0.0015, -2, 2)),
+    );
+    diagnosticState();
   };
   const onVisibility = () => {
     companionPaused = document.hidden || !document.hasFocus();
@@ -1164,6 +1383,8 @@ export function createSafariWorld(
   canvas.addEventListener("pointermove", onPointerMove);
   canvas.addEventListener("pointerup", onPointerUp);
   canvas.addEventListener("pointercancel", onPointerUp);
+  canvas.addEventListener("lostpointercapture", onPointerUp);
+  canvas.addEventListener("wheel", onWheel, { passive: false });
   canvas.addEventListener("webglcontextlost", onContextLost);
   const resize = () => {
     renderer.setSize(
@@ -1204,12 +1425,107 @@ export function createSafariWorld(
       }
     });
 
+  function applyArrivalPose(sample: ArrivalSample, seconds = 0) {
+    vehicle.x = sample.jeep.x;
+    vehicle.z = sample.jeep.z;
+    vehicle.heading = sample.jeep.heading;
+    vehicle.speed = sample.jeep.speed;
+    vehicle.steering = 0;
+    syncVehicle();
+    explorer.root.position.set(sample.sophia.x, 0, sample.sophia.z);
+    explorer.root.rotation.y = sample.sophia.heading;
+    explorer.root.visible = active && sample.sophia.visible;
+    explorer.animate(seconds, sample.sophia.moving, settings.reducedMotion);
+    if (companion) {
+      companion.update(
+        seconds,
+        {
+          x: sample.cora.x - 1.25 * Math.cos(sample.cora.heading),
+          z: sample.cora.z + 1.25 * Math.sin(sample.cora.heading),
+        },
+        sample.cora.heading,
+        {
+          visible: active && sample.cora.visible && !companionPaused,
+          moving: sample.cora.moving,
+          reducedMotion: settings.reducedMotion,
+          teleport: true,
+          paused: companionPaused,
+        },
+        () => {},
+      );
+      companion.root.position.set(sample.cora.x, 0, sample.cora.z);
+      companion.root.rotation.y = sample.cora.heading;
+    }
+    if (sample.stage === "walking" || sample.stage === "boarding") {
+      desiredCamera.set(-10.5, 3.9, 68);
+      cameraTarget.set(-3.5, 1.4, 63.5);
+    } else if (sample.stage === "complete" || sample.stage === "exiting") {
+      desiredCamera.set(5.5, 6.5, 26);
+      cameraTarget.set(1.5, 1.5, 15);
+    } else {
+      const distance = camera.aspect < 0.8 ? 17 : 13;
+      desiredCamera.set(
+        sample.jeep.x - Math.cos(sample.jeep.heading) * distance,
+        6.5,
+        sample.jeep.z + Math.sin(sample.jeep.heading) * distance,
+      );
+      cameraTarget.set(sample.jeep.x, 1.8, sample.jeep.z - 3.5);
+    }
+    camera.position.lerp(
+      desiredCamera,
+      settings.reducedMotion || seconds === 0 ? 1 : 0.11,
+    );
+    camera.fov = 58;
+    camera.lookAt(cameraTarget);
+    camera.updateProjectionMatrix();
+  }
+
+  function finishArrival() {
+    if (!arrival) return;
+    const finish = arrival.onFinish;
+    applyArrivalPose(sampleArrival(ARRIVAL_DURATION));
+    arrival = null;
+    vehicle.speed = 0;
+    companionNeedsReset = true;
+    yaw = 0;
+    pitch = 0.3;
+    syncCompanion();
+    updateCamera(true);
+    updateStatus();
+    finish?.();
+  }
+
   function animate(time: number) {
     if (disposed) return;
     frame = requestAnimationFrame(animate);
     const seconds = Math.max(0, (time - previousTime) / 1000);
     previousTime = time;
     if (document.hidden || contextLost) return;
+    if (arrival) {
+      if (arrival.playing && active && !companionPaused) {
+        arrival.elapsed = Math.min(ARRIVAL_DURATION, arrival.elapsed + seconds);
+      }
+      const sample = sampleArrival(arrival.elapsed);
+      if (sample.stage !== arrival.lastStage) {
+        arrival.lastStage = sample.stage;
+        arrival.onStage?.(sample.stage);
+      }
+      applyArrivalPose(sample, active && arrival.playing ? seconds : 0);
+      sun.position.set(
+        explorer.root.position.x - 26,
+        37,
+        explorer.root.position.z + 20,
+      );
+      sun.target.position.copy(explorer.root.position);
+      diagnosticState();
+      renderScene();
+      if (time - statusTime > 150) {
+        updateStatus();
+        statusTime = time;
+      }
+      if (sample.complete) finishArrival();
+      return;
+    }
     const oldX = explorer.root.position.x,
       oldZ = explorer.root.position.z;
     velocity.set(0, 0, 0);
@@ -1271,7 +1587,7 @@ export function createSafariWorld(
     sun.target.position.copy(explorer.root.position);
     diagnosticState();
     updateCamera();
-    renderer.render(scene, camera);
+    renderScene();
     if (time - statusTime > 150) {
       updateStatus();
       statusTime = time;
@@ -1280,6 +1596,29 @@ export function createSafariWorld(
   frame = requestAnimationFrame(animate);
   return {
     setStop: selectStop,
+    prepareArrival() {
+      if (disposed) return;
+      pauseTravel();
+      driving = false;
+      photoMode = false;
+      arrival = { elapsed: 0, playing: false, lastStage: "walking" };
+      applyArrivalPose(sampleArrival(0));
+      diagnosticState();
+      updateStatus();
+    },
+    startArrival(onStage, onFinish) {
+      if (disposed) return;
+      if (!arrival) this.prepareArrival();
+      if (!arrival) return;
+      arrival.onStage = onStage;
+      arrival.onFinish = onFinish;
+      arrival.playing = true;
+      if (settings.reducedMotion) finishArrival();
+      else onStage(arrival.lastStage);
+    },
+    skipArrival() {
+      finishArrival();
+    },
     enterJeep() {
       if (
         !interactionAllowed() ||
@@ -1336,6 +1675,11 @@ export function createSafariWorld(
     setBrake,
     guideToAnimal() {
       if (disposed || driving) return;
+      if (photoMode) {
+        resetPhoto();
+        updateStatus();
+        return;
+      }
       clearMovement();
       yaw = 0;
       pitch = 0.3;
@@ -1363,21 +1707,47 @@ export function createSafariWorld(
       if (disposed) return;
       if (active !== value) previousTime = performance.now();
       active = value;
-      explorer.root.visible = value && !photoMode && !driving;
+      explorer.root.visible = value && !photoMode && !driving && !arrival;
       if (!value) {
         pauseTravel();
       }
       syncCompanion();
+      if (arrival) applyArrivalPose(sampleArrival(arrival.elapsed));
       updateStatus();
     },
     setPhotoMode(value) {
-      if (disposed || photoMode === value || (value && driving)) return;
+      if (disposed || photoMode === value || (value && (driving || arrival)))
+        return;
       photoMode = value;
       clearMovement();
       guide = null;
+      if (value) {
+        const distance = explorer.root.position.distanceTo(
+          new THREE.Vector3(...stop.position),
+        );
+        if (distance < safeRadius() + 0.4 || distance > views.photoRange) {
+          explorer.root.position.copy(views.observation);
+          companionNeedsReset = true;
+        }
+        resetPhoto();
+      }
       explorer.root.visible = active && !photoMode && !driving;
       syncCompanion();
       updateCamera(true);
+      updateStatus();
+    },
+    adjustPhoto(action) {
+      if (
+        !active ||
+        !photoMode ||
+        !photo ||
+        disposed ||
+        contextLost ||
+        document.hidden
+      )
+        return;
+      if (action === "reset") resetPhoto();
+      else photo.adjust(action);
       updateStatus();
     },
     setMovement,
@@ -1404,16 +1774,12 @@ export function createSafariWorld(
       const size = renderer.getSize(new THREE.Vector2());
       const ratio = renderer.getPixelRatio();
       try {
-        const photoCamera = camera.clone();
-        photoCamera.aspect = 4 / 3;
-        frameSafariPhoto(
-          photoCamera,
-          currentBounds(),
-          explorer.root.position.clone().add(new THREE.Vector3(0, 1.65, 0)),
-          Boolean(stop.profile),
-        );
+        if (!photo) return null;
+        const photoCamera = photo.camera.clone();
         renderer.setPixelRatio(1);
         renderer.setSize(960, 720, false);
+        renderer.setScissorTest(false);
+        renderer.setViewport(0, 0, 960, 720);
         renderer.render(scene, photoCamera);
         return canvas.toDataURL("image/jpeg", 0.86);
       } catch {
@@ -1424,7 +1790,7 @@ export function createSafariWorld(
       } finally {
         renderer.setPixelRatio(ratio);
         renderer.setSize(size.x, size.y, false);
-        renderer.render(scene, camera);
+        renderScene();
       }
     },
     dispose() {
@@ -1443,6 +1809,8 @@ export function createSafariWorld(
       canvas.removeEventListener("pointermove", onPointerMove);
       canvas.removeEventListener("pointerup", onPointerUp);
       canvas.removeEventListener("pointercancel", onPointerUp);
+      canvas.removeEventListener("lostpointercapture", onPointerUp);
+      canvas.removeEventListener("wheel", onWheel);
       canvas.removeEventListener("webglcontextlost", onContextLost);
       explorer.dispose();
       companion?.dispose();

@@ -4,6 +4,12 @@ import { renderSafariProfile } from "./ui/safari-profile";
 import { createSafariWorld } from "./game/safari-world";
 import { matchesAnimalName } from "./content/animal-names";
 import { safariEncounterRange } from "./game/encounters";
+import type { ArrivalStage } from "./game/arrival-sequence";
+import {
+  tarangireArrival,
+  tarangireArrivalSources,
+  tarangireArrivalStages,
+} from "./content/tarangire-arrival";
 import {
   narrate,
   setNarrationVolume,
@@ -27,7 +33,11 @@ import {
   visitStop,
   type SafariProgress,
 } from "./state/safari";
-import type { SafariStatus, SafariWorld } from "./safari-contracts";
+import type {
+  PhotoAdjustAction,
+  SafariStatus,
+  SafariWorld,
+} from "./safari-contracts";
 
 const app = document.querySelector<HTMLDivElement>("#safari-app")!;
 app.innerHTML = `
@@ -88,8 +98,10 @@ let status: SafariStatus = {
   destinationDistance: Infinity,
   destinationBearing: 0,
 };
-type Mode = "intro" | "explore" | "question" | "photo" | "success" | "ending";
+type Mode =
+  "intro" | "arrival" | "explore" | "question" | "photo" | "success" | "ending";
 let mode: Mode = "intro";
+let arrivalStage: ArrivalStage = "walking";
 let currentNarration = "";
 let dirty = false;
 let readFailed = false;
@@ -216,9 +228,15 @@ function render(announce = true) {
   $("scene-chapter").textContent =
     mode === "intro"
       ? "Base camp"
-      : `${index + 1} / ${safariStops.length} · ${animal.name}`;
+      : mode === "arrival"
+        ? "On the way to our study trail"
+        : `${index + 1} / ${safariStops.length} · ${animal.name}`;
   $("scene-hint").textContent =
-    mode === "intro" ? "The jeep is packed. Let’s explore." : animal.chapter;
+    mode === "intro"
+      ? "Sophia and Cora are ready for the road."
+      : mode === "arrival"
+        ? "Inspired by Tarangire National Park, Tanzania"
+        : animal.chapter;
   $("movement").hidden = mode !== "explore" || status.driving;
   $("photo-frame").hidden = mode !== "photo";
   document.body.dataset.mode = mode;
@@ -229,9 +247,21 @@ function render(announce = true) {
   let body = "";
   let narration = "";
   if (mode === "intro") {
-    body = `<p class="eyebrow">Seven story stops · 25 extra discoveries</p><h1 id="story-title" tabindex="-1">Before the sun<br>sets on the savanna.</h1><p>Help Sophia and Cora find seven clues about a healthy savanna. Then meet 25 more neighbors, from beetles to buffalo. Walk or drive, name each animal, and fill your field book.</p><p class="secondary">Take your time. The sunset will wait for you.</p>${button("begin-safari", "Let’s go on safari →", true)}`;
+    body = `<p class="eyebrow">Seven story stops · 25 extra discoveries</p><h1 id="story-title" tabindex="-1">Before the sun<br>sets on the savanna.</h1><p>Help Sophia and Cora find seven clues about a healthy savanna. First, they’ll meet at the jeep and take a short drive toward our wildlife study trail.</p><p class="secondary">${tarangireArrival.journeyNote} ${tarangireArrival.studyTrailNote}</p><p class="secondary">Inspired by <a href="${tarangireArrivalSources[0].url}" target="_blank" rel="noopener noreferrer">Tarangire National Park, Tanzania</a>.</p>${button("begin-safari", "Begin the journey →", true)}`;
     narration =
-      "Help Sophia and Cora find seven clues about a healthy savanna. Then meet 25 more neighbors, from beetles to buffalo. Walk or drive, name each animal, and fill your field book. Take your time. The sunset will wait for you.";
+      "Help Sophia and Cora find seven clues about a healthy savanna. First, they’ll meet at the jeep and take a short drive toward our wildlife study trail.";
+  } else if (mode === "arrival") {
+    const stageId =
+      arrivalStage === "walking"
+        ? "walk-to-jeep"
+        : arrivalStage === "boarding"
+          ? "board-jeep"
+          : arrivalStage === "driving" || arrivalStage === "parking"
+            ? "drive-last-stretch"
+            : "arrive-study-trail";
+    const stage = tarangireArrivalStages.find((item) => item.id === stageId)!;
+    body = `<p class="eyebrow">${tarangireArrival.title}</p><h1 id="story-title" tabindex="-1">${stage.title}</h1><p>${stage.prompt}</p><p class="secondary">${tarangireArrival.journeyNote}</p><p class="secondary">${tarangireArrival.studyTrailNote}</p><p class="secondary">Landscape and approach inspired by <a href="${tarangireArrivalSources[0].url}" target="_blank" rel="noopener noreferrer">Tanzania National Parks</a>.</p>${button("skip-arrival", "Skip the drive →", true)}`;
+    narration = stage.narration;
   } else if (mode === "explore") {
     body = `<p class="eyebrow">${animal.profile ? "Extra discovery" : `Story stop ${index + 1}`} · ${animal.chapter}</p><h1 id="story-title" tabindex="-1">${animal.name}</h1><p>${animal.story}</p><p class="mission">${animal.mission}</p>${animal.viewingNote ? `<p class="viewing-note secondary">${escape(animal.viewingNote)}</p>` : ""}<div class="actions">${button("guide-animal", "Guide Sophia closer")}${discovery.learned ? button("resume-photo", "Photograph this discovery", true) : button("discover-clue", "Discover the clue", true)}</div><p id="approach-status" class="secondary" role="status"></p>`;
     narration = `${animal.story} ${animal.mission} Walk or drive toward an animal to begin a discovery. You can also use Guide Sophia closer.`;
@@ -245,8 +275,8 @@ function render(announce = true) {
       narration = `${correct ? "You spotted it!" : "Let’s discover it together."} ${question.explanation} When you’re ready, choose I’ve got it ${quiz.number < quiz.total ? "for the next question" : "to take a photo"}.`;
     }
   } else if (mode === "photo") {
-    body = `<p class="eyebrow">Add a picture to your field book</p><h1 id="story-title" tabindex="-1">Photograph the ${animal.name.toLowerCase()}</h1><p id="photo-status" role="status">Preparing your view…</p><div class="actions">${button("frame-animal", "Help me frame it")}${button("take-photo", "Take photo", true)}</div>${button("leave-photo", "Back to exploring")}`;
-    narration = `Photograph the ${animal.name.toLowerCase()}. Choose Help me frame it, then Take photo when your view is ready.`;
+    body = `<p class="eyebrow">Add a picture to your field book</p><h1 id="story-title" tabindex="-1">Photograph the ${animal.name.toLowerCase()}</h1><p id="photo-status" role="status">Preparing your view…</p><p class="secondary photo-help">Drag the view to choose an angle. Pinch or scroll to zoom. The frame shows what your photo will capture.</p><div class="photo-controls" role="group" aria-label="Adjust the photo view"><button data-photo-adjust="orbit-left">↶ Turn left</button><button data-photo-adjust="orbit-right">Turn right ↷</button><button data-photo-adjust="aim-up">↑ Aim up</button><button data-photo-adjust="aim-down">↓ Aim down</button><button data-photo-adjust="zoom-in">+ Closer</button><button data-photo-adjust="zoom-out">− Farther</button></div><div class="actions">${button("frame-animal", "Reset view")}${button("take-photo", "Take photo", true)}</div>${button("leave-photo", "Back to exploring")}`;
+    narration = `Photograph the ${animal.name.toLowerCase()}. Drag the scene or use the photo controls to choose your view. Choose Take photo when you like the composition.`;
   } else if (mode === "success") {
     body = `<div class="discovery-top"><img class="photo-thumb" src="${discovery.photo!.dataUrl}" alt="Your photograph of the ${animal.name.toLowerCase()}"><div><p class="eyebrow">${clueCount} of ${safariStops.length} animals recorded</p><h1 id="story-title" tabindex="-1">${animal.clue}</h1></div></div><p>${animal.facts[0]}</p>${nextStop ? button("drive-next-stop", "Back to jeep & drive →", true) : ""}<div class="actions">${button("retake-photo", "Retake photo")}${nextStop ? button("next-stop", "Quick jump to next stop") : ""}${storyComplete ? button("finish-safari", "See our seven clues →", true) : ""}${button("discovery-book", "Explore the animal guide")}</div><p class="secondary">${nextStop ? `Suggested next stop: ${nextStop.name}. Drive there, or take a quick jump.` : "The field book is ready. Let’s bring it all together."}</p>`;
     narration = `${clueCount} of ${safariStops.length} animals recorded. ${animal.clue}. ${animal.facts[0]} ${nextStop ? `Back to the jeep. Suggested next stop: ${nextStop.name}.` : "Your field book is complete. Let’s explore what we found."}`;
@@ -272,9 +302,22 @@ function render(announce = true) {
   };
   bind("begin-safari", () => {
     update(visitStop(progress, progress.currentStopId));
-    mode = deriveMode();
+    mode = world ? "arrival" : deriveMode();
     render();
+    world?.startArrival(
+      (stage) => {
+        if (mode !== "arrival" || stage === arrivalStage) return;
+        arrivalStage = stage;
+        render();
+      },
+      () => {
+        if (mode !== "arrival") return;
+        mode = deriveMode();
+        render();
+      },
+    );
   });
+  bind("skip-arrival", () => world?.skipArrival());
   bind("guide-animal", () => world?.guideToAnimal());
   bind("discover-clue", () => {
     if (status.driving || !status.nearby || !status.animalLoaded) return;
@@ -297,7 +340,16 @@ function render(announce = true) {
     render();
     if (mode === "photo") world?.guideToAnimal();
   });
-  bind("frame-animal", () => world?.guideToAnimal());
+  bind("frame-animal", () => {
+    world?.guideToAnimal();
+    world?.adjustPhoto("reset");
+  });
+  panel
+    .querySelectorAll<HTMLButtonElement>("[data-photo-adjust]")
+    .forEach((control) => {
+      control.onclick = () =>
+        world?.adjustPhoto(control.dataset.photoAdjust as PhotoAdjustAction);
+    });
   bind("leave-photo", () => {
     mode = "explore";
     render();
@@ -313,7 +365,7 @@ function render(announce = true) {
       const photo = world?.capture();
       if (!photo)
         throw new Error(
-          "The picture is not ready. Try Help me frame it, then take another photo.",
+          "The animal is outside the frame. Choose Reset view, then try again.",
         );
       update(photographSafari(progress, photo));
       mode = "success";
@@ -374,20 +426,46 @@ function updateStatus() {
   const photoMessage =
     status.photoReady && status.animalLoaded
       ? "Your animal is in frame. Ready when you are."
-      : "Choose Help me frame it for a clear view.";
+      : "Aim at the animal, or choose Reset view for a clear shot.";
   if (photoStatus && photoStatus.textContent !== photoMessage)
     photoStatus.textContent = photoMessage;
+  alignPhotoFrame();
   updateVehicleControls();
   queueEncounterCheck();
+}
+/** Place the viewfinder on the camera's actual 4:3 viewport. */
+function alignPhotoFrame() {
+  if (mode !== "photo") return;
+  const canvas = $("safari-world").querySelector("canvas");
+  const scene = app.querySelector<HTMLElement>(".scene-area");
+  if (!canvas || !scene) return;
+  const data = canvas.dataset;
+  const left = Number(data.photoViewportLeft);
+  const top = Number(data.photoViewportTop);
+  const width = Number(data.photoViewportWidth);
+  const height = Number(data.photoViewportHeight);
+  if (![left, top, width, height].every(Number.isFinite) || width < 1) return;
+  const canvasRect = canvas.getBoundingClientRect();
+  const sceneRect = scene.getBoundingClientRect();
+  const frame = $("photo-frame");
+  frame.style.left = `${canvasRect.left - sceneRect.left + left}px`;
+  frame.style.top = `${canvasRect.top - sceneRect.top + top}px`;
+  frame.style.width = `${width}px`;
+  frame.style.height = `${height}px`;
 }
 function updateVehicleControls() {
   const driving = status.driving;
   document.body.dataset.driving = String(driving);
   panel.hidden = driving;
-  $("vehicle-card").hidden = !world || mode === "question" || mode === "photo";
+  $("vehicle-card").hidden =
+    !world ||
+    mode === "intro" ||
+    mode === "arrival" ||
+    mode === "question" ||
+    mode === "photo";
   $("walking-vehicle").hidden = driving;
   $("driving-vehicle").hidden = !driving;
-  $("drive-controls").hidden = !driving;
+  $("drive-controls").hidden = !driving || mode === "arrival";
   $("movement").hidden = driving || mode !== "explore";
   $("nearby-encounter").hidden =
     !nearbyDiscovery() ||
@@ -456,7 +534,9 @@ function queueEncounterCheck() {
       document.hidden ||
       document.querySelector("dialog[open]") ||
       mode === "question" ||
-      mode === "photo"
+      mode === "photo" ||
+      mode === "arrival" ||
+      mode === "intro"
     )
       return;
     const animal = nearbyDiscovery();
@@ -931,6 +1011,7 @@ async function start() {
       },
     });
     world.setStop(progress.currentStopId);
+    if (!progress.started) world.prepareArrival();
   } catch {
     $("world-banner").hidden = false;
     $("world-banner").innerHTML =

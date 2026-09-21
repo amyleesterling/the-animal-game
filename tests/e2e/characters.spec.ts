@@ -528,6 +528,8 @@ test("the safari pair walks together, pauses, rides the jeep and stays out of th
   const canvas = page.locator("#safari-world canvas");
   await loadedCharacter(canvas, "explore");
   await page.locator("#begin-safari").click();
+  if (await page.locator("#skip-arrival").isVisible())
+    await page.locator("#skip-arrival").click();
   await pairVisible(canvas);
   await move(page, canvas);
   await page.locator("#settings-button").click();
@@ -615,6 +617,8 @@ test("an unavailable Cora model remains hidden while Sophia can still explore", 
       .toBe("fallback");
     await expect(canvas).toHaveAttribute("data-companion-visible", "false");
     await page.locator(safari ? "#begin-safari" : "#start-button").click();
+    if (safari && (await page.locator("#skip-arrival").isVisible()))
+      await page.locator("#skip-arrival").click();
     await move(page, canvas, "s", false);
     await expect(canvas).toHaveAttribute("data-companion-visible", "false");
   }

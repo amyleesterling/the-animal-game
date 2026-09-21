@@ -2,6 +2,12 @@ import { expect, test, type Page } from "@playwright/test";
 import { safariStops, safariStoryStops } from "../../src/content/safari";
 import type { SafariProgress } from "../../src/state/safari";
 
+async function beginJourney(page: Page) {
+  await page.locator("#begin-safari").click();
+  if (await page.locator("#skip-arrival").isVisible())
+    await page.locator("#skip-arrival").click();
+}
+
 const world = (page: Page) => page.locator("#safari-world canvas");
 const encounter = (page: Page) => page.locator("#encounter-dialog");
 const animal = (id: string) => safariStops.find((stop) => stop.id === id)!;
@@ -119,7 +125,7 @@ test("a bonus bird keeps three-question progress through retry, reload and its r
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("./safari.html");
-  await page.locator("#begin-safari").click();
+  await beginJourney(page);
   await visit(page, "secretarybird");
   await meet(page, "secretarybird", false);
   const questions = animal("secretarybird").profile!.questions;
@@ -283,7 +289,7 @@ test("small-animal study displays explain their scale and produce insect and bur
 }, info) => {
   test.setTimeout(120000);
   await page.goto("./safari.html");
-  await page.locator("#begin-safari").click();
+  await beginJourney(page);
   for (const [id, feature] of [
     ["lamarcks-dung-beetle", "insect"],
     ["naked-mole-rat", "burrow"],
@@ -315,7 +321,7 @@ test("evicted animals reload within cache bounds and a dismissed discovery rearm
 }) => {
   test.setTimeout(120000);
   await page.goto("./safari.html");
-  await page.locator("#begin-safari").click();
+  await beginJourney(page);
   await ready(page, "plains-zebra");
   await page.locator("#guide-animal").click();
   await expect(encounter(page)).toBeVisible({ timeout: 15000 });

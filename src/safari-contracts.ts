@@ -1,4 +1,5 @@
 import type { SavannaProfile } from "./content/savanna-profile";
+import type { ArrivalStage } from "./game/arrival-sequence";
 
 /** Story stops and optional discoveries share the same accessible encounter flow. */
 export type SafariStop = {
@@ -53,8 +54,23 @@ export type SafariWorldOptions = {
   onError: (message: string) => void;
 };
 
+export type PhotoAdjustAction =
+  | "orbit-left"
+  | "orbit-right"
+  | "aim-up"
+  | "aim-down"
+  | "zoom-in"
+  | "zoom-out"
+  | "reset";
+
 export interface SafariWorld {
   setStop(id: string, keepPosition?: boolean): void;
+  prepareArrival(): void;
+  startArrival(
+    onStage: (stage: ArrivalStage) => void,
+    onFinish: () => void,
+  ): void;
+  skipArrival(): void;
   enterJeep(): boolean;
   exitJeep(): boolean;
   returnToJeep(): void;
@@ -62,6 +78,8 @@ export interface SafariWorld {
   guideToAnimal(): void;
   setActive(active: boolean): void;
   setPhotoMode(active: boolean): void;
+  /** Nudge the manual photo composition without moving the explorer. */
+  adjustPhoto(action: PhotoAdjustAction): void;
   setMovement(
     direction: "forward" | "backward" | "left" | "right",
     pressed: boolean,

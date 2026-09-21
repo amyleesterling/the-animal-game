@@ -1,7 +1,7 @@
 {
-  "purpose": "Notebook merged with the observation flow: sighting, notes, quiz, photo, book page",
+  "purpose": "The real Tarangire National Park map in the field notebook, plus two layout fixes",
   "sourceBranch": "claude/notebook-observation-merge",
-  "sourceCommit": "48acd9b40bb2978f65b50f92e75cab6603899380",
-  "builtAt": "2026-09-21T20:19:30.904211+00:00",
-  "publishedAt": "2026-09-21T20:19:30.904211+00:00"
+  "sourceCommit": "19429c34883f3018ab8db311b3d2a85940d65ceb",
+  "builtAt": "2026-09-21T20:58:21.293373+00:00",
+  "publishedAt": "2026-09-21T20:58:21.293373+00:00"
 }

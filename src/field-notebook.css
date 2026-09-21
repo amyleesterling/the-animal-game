@@ -698,3 +698,33 @@ h4.entry-label {
   flex-shrink: 0;
   filter: drop-shadow(0 1px 2px #2a170a4d);
 }
+
+/* ---- The opening ----------------------------------------------------- */
+
+/*
+ * Amy's render arrives as h264 on black, so there is no alpha to key. Screen
+ * blending over a near black layer drops the black and keeps the warm glow,
+ * which an alpha cutout would have thrown away at the edges.
+ */
+.notebook-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  background: #120a05;
+  cursor: pointer;
+}
+
+.notebook-intro video {
+  width: min(82vw, 760px);
+  max-height: 84svh;
+  height: auto;
+  mix-blend-mode: screen;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notebook-intro {
+    display: none;
+  }
+}

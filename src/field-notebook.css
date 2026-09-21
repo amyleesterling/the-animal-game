@@ -1,0 +1,700 @@
+/*
+ * The field notebook.
+ *
+ * Amy's art direction: the field book is a bound leather journal, not a panel.
+ * Her rendered covers live in public/assets/notebook and are used where a real
+ * render belongs (the closed book). Everything that is paper, ink and ruling is
+ * drawn here in CSS rather than faked with a photograph of paper.
+ *
+ * Contracts this file must not break, asserted by tests/e2e/savanna-expansion:
+ *   #book-search, #book-group (a real <select>), #book-view, #route-list,
+ *   #book-pages and .book-page keep their ids, classes and roles.
+ *   Every visible control stays at 16px or larger, every visible text node at
+ *   12px or larger, and the dialog never scrolls sideways.
+ */
+
+#book-dialog {
+  /* Leather */
+  --nb-leather: #5e3621;
+  --nb-leather-dark: #38200f;
+  --nb-leather-lit: #834e2f;
+  --nb-stitch: #d9a862;
+  --nb-brass: #c2952f;
+
+  /* Paper */
+  --nb-paper: #f4e9d1;
+  --nb-paper-warm: #efe0c1;
+  --nb-paper-edge: #dfcda4;
+  --nb-rule: #c8b48d;
+  --nb-margin: #b0654e;
+
+  /* Ink on paper. Both clear 4.5:1 on --nb-paper. */
+  --nb-ink: #33291d;
+  --nb-ink-soft: #6a5a42;
+
+  width: min(1120px, calc(100% - 24px));
+  max-height: 88svh;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 8px 16px 16px 8px;
+  background: linear-gradient(
+    158deg,
+    var(--nb-leather-lit),
+    var(--nb-leather) 38%,
+    var(--nb-leather-dark)
+  );
+  color: var(--nb-ink);
+  box-shadow:
+    0 2px 0 #00000040,
+    0 26px 70px #1b100866,
+    0 60px 120px #1b100833;
+}
+
+/* The raised spine bands, from Amy's rendered plate. */
+#book-dialog::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 26px;
+  background: url("/assets/notebook/spine.webp") center / 100% 100% no-repeat;
+  box-shadow: inset -7px 0 12px -6px #00000070;
+  pointer-events: none;
+  z-index: 3;
+}
+
+#book-dialog::backdrop {
+  background: #1b100866;
+  backdrop-filter: blur(4px);
+}
+
+.notebook-body {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  max-height: inherit;
+  margin: 10px 10px 10px 30px;
+  border-radius: 3px 10px 10px 3px;
+  background: linear-gradient(176deg, var(--nb-paper), var(--nb-paper-warm));
+  box-shadow:
+    inset 0 0 0 1px #00000014,
+    0 1px 3px #00000055;
+  overflow: hidden;
+}
+
+/* ---- The head of the book ------------------------------------------ */
+
+.notebook-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 20px 13px;
+  border-bottom: 1px solid var(--nb-paper-edge);
+  background: linear-gradient(#fbf3e0, #00000000);
+}
+
+/* Keep Close on the title's line; wrapping it costs a third of a phone header. */
+.notebook-head > div {
+  min-width: 0;
+}
+
+.notebook-head .eyebrow {
+  margin: 0 0 3px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--nb-margin);
+}
+
+.notebook-head h2 {
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--nb-ink);
+}
+
+.notebook-head button {
+  flex-shrink: 0;
+}
+
+/* ---- The spread ----------------------------------------------------- */
+
+/* Stacked by default. Block flow, not grid: a grid with a definite height and
+   min-height:0 items shrinks both rows below their content, and the two pages
+   then overlap instead of stacking. */
+.notebook-spread {
+  display: block;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.notebook-spread,
+.notebook-page {
+  scrollbar-width: thin;
+  scrollbar-color: #b9a37b #00000000;
+}
+
+.notebook-page::-webkit-scrollbar {
+  width: 9px;
+}
+
+.notebook-page::-webkit-scrollbar-track {
+  background: #00000000;
+}
+
+.notebook-page::-webkit-scrollbar-thumb {
+  background: #b9a37b;
+  border: 2px solid #00000000;
+  border-radius: 9px;
+  background-clip: padding-box;
+}
+
+.notebook-page {
+  min-width: 0;
+  padding: 18px 20px 26px;
+}
+
+/* Faint ruling, and a margin rule down the left of the index page. */
+.notebook-page--index {
+  background-image:
+    linear-gradient(var(--nb-margin) 0 0),
+    repeating-linear-gradient(
+      var(--nb-paper) 0 27px,
+      color-mix(in srgb, var(--nb-rule) 55%, transparent) 27px 28px
+    );
+  background-size:
+    1px 100%,
+    100% 100%;
+  background-position:
+    14px 0,
+    0 0;
+  background-repeat: no-repeat, repeat;
+  background-blend-mode: normal, multiply;
+  padding-left: 26px;
+}
+
+.notebook-page--entries {
+  background: linear-gradient(#00000000, #00000000);
+}
+
+#book-dialog .dialog-intro {
+  margin: 0 0 16px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--nb-ink-soft);
+}
+
+/* ---- Tools: search, group, browse ----------------------------------- */
+
+#book-dialog .book-tools {
+  margin: 0 0 12px;
+  gap: 12px;
+}
+
+#book-dialog .book-tools label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--nb-ink-soft);
+}
+
+#book-dialog .book-tools input,
+#book-dialog .book-tools select {
+  font-size: 16px;
+  color: var(--nb-ink);
+  background: #fffdf4;
+  border: 1px solid #b09a71;
+  border-radius: 7px;
+  box-shadow: inset 0 1px 2px #00000012;
+}
+
+#book-dialog .book-tools input:hover,
+#book-dialog .book-tools select:hover {
+  border-color: var(--nb-margin);
+}
+
+#book-dialog #book-view {
+  background: #fffdf4;
+  border: 1px solid #a98f66;
+  color: var(--nb-ink);
+}
+
+#book-dialog #book-view:hover:not(:disabled) {
+  background: #f6ead0;
+}
+
+/* Pressed must beat :hover, or the pointer left over the button after a click
+   leaves pale text on a pale background. */
+#book-dialog #book-view[aria-pressed="true"],
+#book-dialog #book-view[aria-pressed="true"]:hover:not(:disabled) {
+  background: var(--nb-leather);
+  border-color: var(--nb-leather-dark);
+  color: #fdf4e2;
+}
+
+#book-dialog #book-view[aria-pressed="true"]:hover:not(:disabled) {
+  background: var(--nb-leather-lit);
+}
+
+#book-dialog #book-results {
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nb-ink-soft);
+}
+
+/* ---- The index: a hand written route list --------------------------- */
+
+#book-dialog .route-list {
+  gap: 4px;
+  max-height: none;
+  overflow: visible;
+  padding: 0;
+}
+
+#book-dialog .route-list button {
+  gap: 11px;
+  align-items: start;
+  padding: 9px 10px;
+  min-height: 52px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: #00000000;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--nb-ink);
+}
+
+#book-dialog .route-list button:hover:not(:disabled) {
+  background: #ffffff8c;
+  border-color: var(--nb-paper-edge);
+}
+
+#book-dialog .route-list button:disabled {
+  opacity: 1;
+  color: var(--nb-ink-soft);
+}
+
+#book-dialog .route-list button[aria-current] {
+  background: #fff8e6;
+  border: 1px solid var(--nb-margin);
+  box-shadow: 0 1px 4px #00000018;
+}
+
+#book-dialog .route-number {
+  flex: 0 0 29px;
+  height: 29px;
+  margin-top: 1px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--nb-ink-soft);
+  background: #00000000;
+  border: 1.5px solid var(--nb-rule);
+  border-radius: 50%;
+}
+
+/* A discovered animal gets the ring filled in, the way you would tick an index. */
+#book-dialog .route-list button:not(:disabled) .route-number {
+  border-color: var(--nb-margin);
+}
+
+#book-dialog .route-list small {
+  font-size: 13px;
+  color: var(--nb-ink-soft);
+}
+
+/* ---- The entries: specimens taped onto the page --------------------- */
+
+#book-dialog .book-pages {
+  margin: 0;
+  gap: 20px;
+  /* auto-fit so a single search result fills the page instead of hugging
+     the left column, while a full guide still runs two entries wide. */
+  grid-template-columns: repeat(auto-fit, minmax(264px, 1fr));
+}
+
+#book-dialog .book-pages > h3,
+.notebook-page--entries > h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--nb-margin);
+  border-bottom: 1px solid var(--nb-paper-edge);
+  padding-bottom: 7px;
+}
+
+#book-dialog .book-page {
+  position: relative;
+  gap: 8px;
+  padding: 14px 15px 15px;
+  background: #fffaec;
+  border: 1px solid var(--nb-paper-edge);
+  border-radius: 3px;
+  box-shadow:
+    0 1px 0 #ffffffcc inset,
+    0 2px 6px #0000001c;
+}
+
+#book-dialog .book-page img {
+  border: 6px solid #fffdf6;
+  border-radius: 2px;
+  box-shadow: 0 2px 7px #0000002e;
+}
+
+#book-dialog .book-page h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--nb-ink);
+}
+
+#book-dialog .pending-photo {
+  display: grid;
+  place-items: center;
+  min-height: 96px;
+  padding: 14px;
+  font-size: 14px;
+  text-align: center;
+  color: var(--nb-ink-soft);
+  background: #00000000;
+  border: 1.5px dashed var(--nb-rule);
+  border-radius: 3px;
+}
+
+#book-dialog .empty-book {
+  font-size: 15px;
+  color: var(--nb-ink-soft);
+}
+
+#book-dialog .animal-stats > div,
+#book-dialog .book-page details {
+  border-color: var(--nb-paper-edge);
+}
+
+#book-dialog .secondary {
+  color: var(--nb-ink-soft);
+}
+
+#book-dialog .viewing-note {
+  background: #fff5df;
+  border-left-color: var(--nb-margin);
+}
+
+#book-dialog .book-page button {
+  background: #fffdf4;
+  border-color: #a98f66;
+  color: var(--nb-ink);
+}
+
+#book-dialog .book-page button:hover:not(:disabled) {
+  background: #f6ead0;
+}
+
+/* ---- The empty notebook: show the closed book ----------------------- */
+
+.notebook-empty {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 10px 0 4px;
+  text-align: center;
+}
+
+.notebook-empty img {
+  width: min(248px, 62%);
+  height: auto;
+  filter: drop-shadow(0 12px 22px #2a170a3d);
+}
+
+.notebook-empty p {
+  max-width: 42ch;
+  font-size: 15px;
+  color: var(--nb-ink-soft);
+}
+
+/* ---- Desktop: a true two page spread -------------------------------- */
+
+@media (min-width: 900px) and (min-height: 560px) {
+  .notebook-spread {
+    display: grid;
+    grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+    grid-template-rows: minmax(0, 1fr);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .notebook-page {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 20px 24px 30px;
+  }
+
+  /* The gutter: two pages meeting, with the crease shadow on both sides. */
+  .notebook-page--index {
+    box-shadow: inset -14px 0 18px -14px #4a30168c;
+    padding-left: 30px;
+    padding-right: 26px;
+  }
+
+  #book-dialog .route-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #book-dialog .book-tools {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .notebook-page--entries {
+    padding-left: 30px;
+  }
+
+  .notebook-page--entries {
+    border-left: 1px solid var(--nb-paper-edge);
+    box-shadow: inset 14px 0 18px -14px #4a30168c;
+  }
+
+  /* Amy's pencil, slid into the crease the way you leave one in a journal.
+     It sits in the two pages' inner margins, so it never crosses text. */
+  .notebook-spread::after {
+    content: "";
+    position: absolute;
+    left: 43%;
+    top: 7%;
+    width: 24px;
+    height: 86%;
+    margin-left: -12px;
+    background: url("/assets/notebook/pencil-green.webp") center / contain
+      no-repeat;
+    transform: rotate(1.2deg);
+    filter: drop-shadow(-3px 1px 5px #3a24102e);
+    pointer-events: none;
+    z-index: 2;
+  }
+}
+
+@media (max-width: 899px), (max-height: 559px) {
+  .notebook-body {
+    margin: 8px 8px 8px 28px;
+  }
+
+  /* Stacked, the 32 entry index would be a 2600px wall in front of your own
+     pages. Keep it a bounded scroller so the entries stay reachable. */
+  #book-dialog .route-list {
+    max-height: 44svh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #b9a37b #00000000;
+  }
+
+  .notebook-page--entries {
+    border-top: 1px solid var(--nb-paper-edge);
+  }
+}
+
+/* ---- Opening the book ----------------------------------------------- */
+
+@keyframes notebook-open {
+  from {
+    opacity: 0;
+    transform: perspective(1400px) rotateY(-26deg) translateY(10px) scale(0.955);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+#book-dialog[open] {
+  animation: notebook-open 320ms cubic-bezier(0.22, 0.72, 0.3, 1) both;
+  transform-origin: left center;
+}
+
+/* ---- The entry as a pre printed specimen form ----------------------- */
+
+#book-dialog .field-entry {
+  gap: 12px;
+  padding: 13px 15px 16px;
+}
+
+.entry-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding-bottom: 7px;
+  border-bottom: 1.5px solid var(--nb-paper-edge);
+}
+
+.entry-no {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--nb-ink-soft);
+}
+
+/* A stamp, the way a specimen sheet is marked off once the record is complete. */
+.entry-stamp {
+  flex-shrink: 0;
+  margin-left: auto;
+  white-space: nowrap;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--nb-margin);
+  border: 2px solid var(--nb-margin);
+  border-radius: 3px;
+  transform: rotate(-3deg);
+  opacity: 0.85;
+}
+
+/* Every printed label on the form shares one voice. */
+.entry-label,
+#book-dialog .entry-fields dt,
+#book-dialog .field-entry .animal-stats dt {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nb-ink-soft);
+}
+
+h4.entry-label {
+  font-size: 13px;
+  color: var(--nb-margin);
+}
+
+.entry-plate {
+  display: grid;
+  gap: 6px;
+  position: relative;
+}
+
+/* Two strips of paper tape holding the photograph down. */
+.entry-plate:has(img)::before,
+.entry-plate:has(img)::after {
+  content: "";
+  position: absolute;
+  top: 16px;
+  width: 50px;
+  height: 16px;
+  background: #e5d8b79e;
+  border-left: 1px solid #00000010;
+  border-right: 1px solid #00000010;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.entry-plate:has(img)::before {
+  left: -4px;
+  transform: rotate(-7deg);
+}
+
+.entry-plate:has(img)::after {
+  right: -4px;
+  transform: rotate(7deg);
+}
+
+.entry-title {
+  display: grid;
+  gap: 2px;
+}
+
+#book-dialog .entry-title h3 {
+  margin: 1px 0 0;
+  line-height: 1.15;
+}
+
+.entry-sci {
+  font-size: 14px;
+  color: var(--nb-ink-soft);
+}
+
+/* Ruled rows: printed label on the left, the value written in on the right. */
+#book-dialog .entry-fields,
+#book-dialog .field-entry .animal-stats {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+#book-dialog .entry-field,
+#book-dialog .field-entry .animal-stats > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 14px;
+  padding: 7px 1px 6px;
+  border: 0;
+  border-bottom: 1px dotted var(--nb-rule);
+}
+
+#book-dialog .entry-fields > :last-child,
+#book-dialog .field-entry .animal-stats > :last-child {
+  border-bottom: 0;
+}
+
+#book-dialog .entry-field dd,
+#book-dialog .field-entry .animal-stats dd {
+  margin: 0;
+  flex: 1 1 58%;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 1.45;
+  text-align: right;
+  color: var(--nb-ink);
+}
+
+/* A field nobody has filled in yet still shows its printed label. */
+#book-dialog .entry-field.is-blank dd {
+  color: #8d8066;
+  font-style: italic;
+}
+
+.entry-aside {
+  font-size: 13px;
+  color: var(--nb-ink-soft);
+}
+
+.entry-block {
+  display: grid;
+  gap: 7px;
+}
+
+#book-dialog .entry-block .profile-summary {
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+#book-dialog .entry-block details {
+  margin: 0;
+}
+
+#book-dialog .field-entry .fact-citations a {
+  color: var(--nb-margin);
+}
+
+/* ---- The notebook as the button's icon ------------------------------ */
+
+#route-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.route-icon {
+  width: auto;
+  height: 26px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px #2a170a4d);
+}

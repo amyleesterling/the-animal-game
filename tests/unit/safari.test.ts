@@ -16,6 +16,7 @@ import {
   newSafari,
   nextSafariStop,
   photographSafari,
+  recordSafariObservation,
   retrySafariAnswer,
   safariQuizProgress,
   safariStoryComplete,
@@ -168,14 +169,18 @@ describe("seven-stop story content and progression", () => {
     expect(photographSafari(p, PHOTO).completedAt).toBe(NOW);
     expect(discoveredCount(p)).toBe(7);
   });
-  it("keeps a valid typed identification and makes help explicit", () => {
+  it("keeps a child's guess and reveals the official name separately", () => {
     const initial = newSafari();
     expect(() => identifySafari(initial, "zebra")).toThrow("Come closer");
     const visited = encounterStop(initial, "plains-zebra");
-    expect(() => identifySafari(visited, "giraffe")).toThrow(
-      "Take another look",
-    );
+    expect(() => identifySafari(visited, "   ")).toThrow("Write your best");
     expect(visited.entries["plains-zebra"].identification).toBeNull();
+    const guessed = identifySafari(visited, "gerry");
+    expect(guessed.entries["plains-zebra"].identification).toEqual({
+      name: "gerry",
+      skipped: false,
+    });
+    expect(isSafariProgress(guessed)).toBe(true);
     const named = identifySafari(visited, "  ZEBRAS!  ");
     expect(named.entries["plains-zebra"].identification).toEqual({
       name: "ZEBRAS!",
@@ -191,6 +196,41 @@ describe("seven-stop story content and progression", () => {
     expect(elephant.entries["plains-zebra"]).toEqual(
       named.entries["plains-zebra"],
     );
+  });
+  it("saves ungraded height, color and count observations without changing old saves", async () => {
+    const factory = new IDBFactory();
+    const store = createSafariStore(factory, "field-observations");
+    const named = identifySafari(
+      encounterStop(newSafari(), "giraffe"),
+      "gerry",
+    );
+    expect(isSafariProgress(named)).toBe(true);
+    expect(() =>
+      recordSafariObservation(named, {
+        heightValue: 0,
+        heightUnit: "m",
+        colors: "brown",
+        count: 1,
+      }),
+    ).toThrow();
+    const observed = recordSafariObservation(named, {
+      heightValue: 5.2,
+      heightUnit: "m",
+      colors: "  brown   and cream  ",
+      count: 1,
+    });
+    expect(observed.entries.giraffe.observations).toEqual({
+      heightValue: 5.2,
+      heightUnit: "m",
+      colors: "brown and cream",
+      count: 1,
+    });
+    expect(isSafariProgress(observed)).toBe(true);
+    await store.save(observed);
+    expect(await store.load()).toEqual(observed);
+    const legacyShape = structuredClone(observed);
+    delete legacyShape.entries.giraffe.observations;
+    expect(isSafariProgress(legacyShape)).toBe(true);
   });
   it("supports an elephant-first encounter, visited route jumps and all seven discoveries", () => {
     let p = newSafari();
@@ -268,7 +308,7 @@ describe("seven-stop story content and progression", () => {
       expect(isSafariProgress(bad)).toBe(false);
     }
   });
-  it("rejects mismatched names, fabricated skip names, answers before naming and invalid photos", () => {
+  it("rejects malformed names, fabricated skip names, answers before naming and invalid photos", () => {
     const p = finishCurrent(encounterStop(newSafari(), "african-elephant"));
     for (const mutate of [
       (v: typeof p) => {
@@ -276,7 +316,7 @@ describe("seven-stop story content and progression", () => {
       },
       (v: typeof p) => {
         v.entries["african-elephant"].identification = {
-          name: "giraffe",
+          name: "   ",
           skipped: false,
         };
       },

@@ -86,6 +86,8 @@ export interface SafariWorld {
   setBrake(pressed: boolean): void;
   guideToAnimal(): void;
   setActive(active: boolean): void;
+  /** Keep characters visible and allow camera looking while travel is paused. */
+  setInspecting(inspecting: boolean): void;
   setPhotoMode(active: boolean): void;
   /** Nudge the manual photo composition without moving the explorer. */
   adjustPhoto(action: PhotoAdjustAction): void;

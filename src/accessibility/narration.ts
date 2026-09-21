@@ -2,6 +2,10 @@ let volume = 0.8;
 export function stopNarration(): void {
   if ("speechSynthesis" in window) window.speechSynthesis.cancel();
 }
+window.addEventListener("blur", stopNarration);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopNarration();
+});
 export function setNarrationVolume(value: number): void {
   volume = value;
 }

@@ -90,7 +90,7 @@ function notice(message: string): void {
 }
 function speak(text: string, force = false): void {
   speechText = text;
-  if ((progress.settings.narration || force) && !narrate(text) && force)
+  if (force && !narrate(text))
     notice(
       "A local English voice is not available on this device. All instructions are also written on screen.",
     );
@@ -326,26 +326,26 @@ function openBook(): void {
 }
 function openSettings(): void {
   openDialog(
-    `<div class="settings-page">${closeButton}<div class="eyebrow">MAKE YOURSELF COMFORTABLE</div><h2 id="dialog-title">Your way to explore.</h2><p>Change these whenever you like.</p><label class="setting"><span><strong>Read aloud</strong><small>Use an available local English device voice.</small></span><input type="checkbox" id="narration-toggle" ${progress.settings.narration ? "checked" : ""}></label><label class="setting"><span><strong>Voice volume</strong></span><input type="range" id="volume" min="0" max="1" step="0.1" value="${progress.settings.volume}"></label><label class="setting"><span><strong>Reduced motion</strong><small>Calmer camera movements and still previews.</small></span><input type="checkbox" id="motion-toggle" ${progress.settings.reducedMotion ? "checked" : ""}></label><label class="setting"><span><strong>Simple graphics</strong><small>A lighter world for smaller computers.</small></span><input type="checkbox" id="quality-toggle" ${progress.settings.lowQuality ? "checked" : ""}></label><div class="controls-help"><h3>Find your feet</h3><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys to walk. Drag the landscape to look around. On a touchscreen, use the arrow buttons.</p><p>“Guide me” takes you to a comfortable viewing spot. You can complete the whole adventure with buttons.</p></div><button class="primary" data-close>Ready to explore ${icon("arrow")}</button></div>`,
+    `<div class="settings-page">${closeButton}<div class="eyebrow">MAKE YOURSELF COMFORTABLE</div><h2 id="dialog-title">Your way to explore.</h2><p>Change these whenever you like.</p><label class="setting"><span><strong>Voice volume</strong></span><input type="range" id="volume" min="0" max="1" step="0.1" value="${progress.settings.volume}"></label><label class="setting"><span><strong>Reduced motion</strong><small>Calmer camera movements and still previews.</small></span><input type="checkbox" id="motion-toggle" ${progress.settings.reducedMotion ? "checked" : ""}></label><label class="setting"><span><strong>Simple graphics</strong><small>A lighter world for smaller computers.</small></span><input type="checkbox" id="quality-toggle" ${progress.settings.lowQuality ? "checked" : ""}></label><div class="controls-help"><h3>Find your feet</h3><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys to walk. Drag the landscape to look around. On a touchscreen, use the arrow buttons.</p><p>“Guide me” takes you to a comfortable viewing spot. You can complete the whole adventure with buttons.</p></div><button class="primary" data-close>Ready to explore ${icon("arrow")}</button></div>`,
   );
   const update = () => {
     progress.settings = {
-      narration: $<HTMLInputElement>("narration-toggle").checked,
+      narration: false,
       volume: Number($<HTMLInputElement>("volume").value),
       reducedMotion: $<HTMLInputElement>("motion-toggle").checked,
       lowQuality: $<HTMLInputElement>("quality-toggle").checked,
     };
     setNarrationVolume(progress.settings.volume);
     world?.setOptions(progress.settings);
-    if (!progress.settings.narration) stopNarration();
+    stopNarration();
     document.documentElement.classList.toggle(
       "reduce-motion",
       progress.settings.reducedMotion,
     );
     persist();
   };
-  ["narration-toggle", "volume", "motion-toggle", "quality-toggle"].forEach(
-    (id) => $(id).addEventListener("change", update),
+  ["volume", "motion-toggle", "quality-toggle"].forEach((id) =>
+    $(id).addEventListener("change", update),
   );
 }
 function modelCredits(): string {

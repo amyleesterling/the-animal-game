@@ -6,6 +6,11 @@ import {
   type Page,
 } from "@playwright/test";
 import { safariStops } from "../../src/content/safari";
+import {
+  closePhotoBook,
+  saveFieldNotes,
+  startNaming,
+} from "./observation-helpers";
 
 type Vehicle = {
   x: number;
@@ -53,9 +58,10 @@ async function openSafari(page: Page) {
 async function identifyNearbyAnimal(page: Page) {
   await page.locator("#guide-animal").click();
   await expect(page.locator("#encounter-dialog")).toBeVisible();
+  await startNaming(page);
   await page.locator("#skip-animal").click();
   await expect(page.locator("#encounter-dialog")).not.toBeVisible();
-  await expect(page.locator("[data-answer]")).toHaveCount(3);
+  await saveFieldNotes(page);
 }
 async function keyboardActivate(page: Page, button: Locator) {
   await expect(button).toBeEnabled();
@@ -306,6 +312,7 @@ test("choosing the next driving destination preserves the parked jeep and saved 
   await page.locator("#resume-photo").click();
   await expect(page.locator("#take-photo")).toBeEnabled();
   await page.locator("#take-photo").click();
+  await closePhotoBook(page);
   await expect(page.locator("#save-status")).toHaveText(
     "Story saved on this device",
   );
@@ -355,6 +362,7 @@ test("driving to a revisited unfinished stop keeps controls active and resumes i
   await page.locator('[data-answer="grass"]').click();
   await page.locator("#learn-clue").click();
   await page.locator("#take-photo").click();
+  await closePhotoBook(page);
   await expect(page.locator("#save-status")).toHaveText(
     "Story saved on this device",
   );
@@ -399,6 +407,7 @@ test("driving to a revisited unfinished stop keeps controls active and resumes i
   await page.locator("#frame-animal").click();
   await expect(page.locator("#take-photo")).toBeEnabled();
   await page.locator("#take-photo").click();
+  await closePhotoBook(page);
   await expect(page.locator("#clue-count")).toHaveText("2/32");
   await expect(page.locator("#save-status")).toHaveText(
     "Story saved on this device",

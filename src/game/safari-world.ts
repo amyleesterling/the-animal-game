@@ -782,6 +782,7 @@ export function createSafariWorld(
   let jeepModel: SafariModel | undefined;
   let disposed = false;
   let active = false;
+  let inspecting = false;
   let photoMode = false;
   let photo: ReturnType<typeof createSafariPhotoComposition> | null = null;
   let driving = false;
@@ -895,6 +896,8 @@ export function createSafariWorld(
   function diagnosticState() {
     canvas.dataset.characterMode = photoMode ? "photo" : "explore";
     canvas.dataset.companionVisible = String(companion?.root.visible ?? false);
+    canvas.dataset.explorerVisible = String(explorer.root.visible);
+    canvas.dataset.lookYaw = String(yaw);
     canvas.dataset.companionX = String(companion?.root.position.x ?? 0);
     canvas.dataset.companionZ = String(companion?.root.position.z ?? 0);
     canvas.dataset.travelMode = driving ? "driving" : "walking";
@@ -1268,7 +1271,11 @@ export function createSafariWorld(
       explorer.root.rotation.y,
       {
         visible:
-          active && !photoMode && !driving && !document.hidden && !contextLost,
+          (active || inspecting) &&
+          !photoMode &&
+          !driving &&
+          !document.hidden &&
+          !contextLost,
         moving,
         reducedMotion: settings.reducedMotion,
         teleport: companionNeedsReset,
@@ -1303,7 +1310,7 @@ export function createSafariWorld(
   const onKeyDown = (event: KeyboardEvent) => {
     if (
       event.defaultPrevented ||
-      !active ||
+      (!active && !inspecting) ||
       photoMode ||
       event.altKey ||
       event.ctrlKey ||
@@ -1365,7 +1372,7 @@ export function createSafariWorld(
   };
   const onPointerDown = (event: PointerEvent) => {
     if (
-      !active ||
+      (!active && !inspecting) ||
       disposed ||
       contextLost ||
       document.hidden ||
@@ -1391,7 +1398,8 @@ export function createSafariWorld(
     canvas.setPointerCapture(event.pointerId);
   };
   const onPointerMove = (event: PointerEvent) => {
-    if (!active || disposed || contextLost || document.hidden) return;
+    if ((!active && !inspecting) || disposed || contextLost || document.hidden)
+      return;
     if (photoMode) {
       const previous = photoPointers.get(event.pointerId);
       if (!previous || !photo) return;
@@ -1829,12 +1837,21 @@ export function createSafariWorld(
       if (disposed) return;
       if (active !== value) previousTime = performance.now();
       active = value;
-      explorer.root.visible = value && !photoMode && !driving && !arrival;
+      explorer.root.visible =
+        (value || inspecting) && !photoMode && !driving && !arrival;
       if (!value) {
         pauseTravel();
       }
       syncCompanion();
       if (arrival) applyArrivalPose(sampleArrival(arrival.elapsed));
+      updateStatus();
+    },
+    setInspecting(value) {
+      if (disposed || inspecting === value) return;
+      inspecting = value;
+      explorer.root.visible =
+        (active || inspecting) && !photoMode && !driving && !arrival;
+      syncCompanion();
       updateStatus();
     },
     setPhotoMode(value) {

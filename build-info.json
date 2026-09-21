@@ -1,7 +1,7 @@
 {
-  "purpose": "32-animal safari: 25 new researched discoveries, 75 quiz questions and expanded field book",
-  "sourceBranch": "codex/savanna-25-species",
-  "sourceCommit": "bf658e85ca4287780415f7618c3e171666f4af13",
-  "builtAt": "2026-09-21T14:26:11.4084630Z",
-  "publishedAt": "2026-09-21T14:26:50.2320309Z"
+  "purpose": "Tarangire-inspired opening drive and adjustable field-book camera",
+  "sourceBranch": "codex/park-arrival-photo-compose",
+  "sourceCommit": "f1f38a74751e2d74aac0d6ec233b904e1e529124",
+  "builtAt": "2026-09-21T15:55:20.5000496Z",
+  "publishedAt": "2026-09-21T15:57:56.9912129Z"
 }

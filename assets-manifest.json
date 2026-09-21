@@ -269,7 +269,7 @@
       "type": "image-set",
       "path": "public/assets/notebook/",
       "title": "Field Notes notebook and writing tools",
-      "provenance": "Rendered by Amy and supplied as PNG plates with alpha: a closed leather Field Notes cover lettered Tanzania, 2026 (front, back, spine, fore edge and two three-quarter angles) and one sheet of four pens and pencils. Claude cut the four tools apart on the alpha channel already present in the sheet, trimmed each plate to its alpha bounding box, resized and re-encoded to WebP. No repainting, recolouring or generated detail. Full resolution plates kept in assets/references/notebook. A second batch adds section tabs for Birds, Insects, Mammals and Rodents, a leather corner and two tape strips, also rendered by Amy and supplied with alpha; same treatment, trimmed to the alpha bounding box and re-encoded. Tabs for Reptiles and for All animals were not supplied, so the tab strip is not wired yet.",
+      "provenance": "Rendered by Amy and supplied as PNG plates with alpha: a closed leather Field Notes cover lettered Tanzania, 2026 (front, back, spine, fore edge and two three-quarter angles) and one sheet of four pens and pencils. Claude cut the four tools apart on the alpha channel already present in the sheet, trimmed each plate to its alpha bounding box, resized and re-encoded to WebP. No repainting, recolouring or generated detail. Full resolution plates kept in assets/references/notebook. A second batch adds section tabs for Birds, Insects, Mammals and Rodents, a leather corner and two tape strips, also rendered by Amy and supplied with alpha; same treatment, trimmed to the alpha bounding box and re-encoded. A third batch adds a Tarangire National Park rubber stamp and two more tabs, Plants and Predators. The stamp is struck on a completed entry. The tab strip is still not wired: the group filter offers All animals, Insect, Rodent, Bird, Mammal and Reptile, and no Reptiles tab or All animals tab was supplied, while Plants and Predators name categories the content data does not record.",
       "sources": [
         {
           "file": "pens and pencils.png",
@@ -292,6 +292,11 @@
           "file": "cover-icon.webp",
           "bytes": 3684,
           "sha256": "504fc7466e2a59d5b0a713ad1233b8ec88064535a054caeae7e31977a47a15b0"
+        },
+        {
+          "file": "park-stamp.webp",
+          "bytes": 50028,
+          "sha256": "52a5b301bfbafaad76ba9ea11e7af734c0fe026dbcd422c86db008c39fd6bcc3"
         },
         {
           "file": "pen-steel.webp",
@@ -332,6 +337,16 @@
           "file": "tab-mammal.webp",
           "bytes": 17028,
           "sha256": "706a871460481ca24dc7b1c5ddef67993d4eef58a39b2f6b5d31bb0e921d5901"
+        },
+        {
+          "file": "tab-plant.webp",
+          "bytes": 16088,
+          "sha256": "b0c1475fff4adb3bed41bd52fa91b79ee77a563be4518a114a0f80512d129682"
+        },
+        {
+          "file": "tab-predator.webp",
+          "bytes": 16486,
+          "sha256": "340cfbcc28499ef33f571356a018ed383f907d575c996698b2d028692aa77a75"
         },
         {
           "file": "tab-rodent.webp",

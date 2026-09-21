@@ -1,7 +1,7 @@
 {
-  "purpose": "Field notebook redesign: bound journal, specimen form entries, rendered opening, background music",
+  "purpose": "Field notebook: bound journal, specimen forms, rendered opening, music, Tarangire stamp",
   "sourceBranch": "claude/field-notebook-design",
-  "sourceCommit": "cfebe414818ab2497af8fd653c0677fd148ea846",
-  "builtAt": "2026-09-21T18:20:36.371062+00:00",
-  "publishedAt": "2026-09-21T18:20:36.371062+00:00"
+  "sourceCommit": "cfcf29a0ce49bc4951d071e44a9b06f9493f8806",
+  "builtAt": "2026-09-21T18:58:39.997727+00:00",
+  "publishedAt": "2026-09-21T18:58:39.997727+00:00"
 }

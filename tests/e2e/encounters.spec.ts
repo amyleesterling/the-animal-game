@@ -22,6 +22,8 @@ async function position(page: Page) {
 async function begin(page: Page) {
   await page.goto("./safari.html");
   await page.locator("#begin-safari").click();
+  if (await page.locator("#skip-arrival").isVisible())
+    await page.locator("#skip-arrival").click();
   await expect(world(page)).toHaveAttribute("data-animal-state", "loaded", {
     timeout: 30000,
   });
@@ -169,7 +171,7 @@ test("driving off route stops at the elephant and skip safely exits into its qui
   page,
 }) => {
   test.setTimeout(90000);
-  await page.goto("./safari.html");
+  await begin(page);
   await page.locator("#enter-jeep").click();
   await expect(world(page)).toHaveAttribute("data-travel-mode", "driving");
   await expect(world(page)).toHaveAttribute("data-stop-id", "plains-zebra");

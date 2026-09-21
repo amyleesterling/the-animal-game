@@ -355,8 +355,32 @@ p {
 }
 #photo-frame {
   position: absolute;
-  inset: 14% 19% 18% 38%;
+  inset: auto;
   pointer-events: none;
+}
+.photo-help {
+  line-height: 1.5;
+}
+.photo-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.photo-controls button {
+  min-width: 0;
+  padding: 9px 7px;
+  font-size: 16px;
+}
+body[data-mode="photo"] .scene-label,
+body[data-mode="photo"] .scene-keyboard,
+body[data-mode="intro"] .scene-keyboard,
+body[data-mode="arrival"] .scene-keyboard {
+  display: none;
+}
+@media (min-width: 900px) {
+  body[data-mode="photo"] #safari-world {
+    left: min(33vw, 470px);
+  }
 }
 #photo-frame i {
   position: absolute;
@@ -913,9 +937,6 @@ details p {
   #movement button {
     min-height: 46px;
     background: #fffbeedc;
-  }
-  #photo-frame {
-    inset: 23% 14% 12% 14%;
   }
   .safari-footer {
     padding: 15px 20px;

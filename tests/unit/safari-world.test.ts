@@ -8,7 +8,9 @@ import {
   loadSafariModel,
 } from "../../src/game/safari-model";
 import {
+  createSafariPhotoComposition,
   frameSafariPhoto,
+  safariPhotoViewport,
   safariViewpoints,
 } from "../../src/game/safari-world";
 import { disposeModelResources } from "../../src/game/zebra-model";
@@ -89,6 +91,23 @@ describe("32-animal safari world", () => {
               expect(projected.z).toBeLessThan(1);
             }
       }
+      const photo = createSafariPhotoComposition(
+        bounds,
+        eye,
+        Boolean(stop.profile),
+      );
+      for (const side of [-1, 1]) {
+        photo.drag(side * 10000, side * 10000);
+        photo.zoomBy(10000);
+        const center = bounds
+          .getCenter(new THREE.Vector3())
+          .project(photo.camera);
+        expect(Math.abs(center.x)).toBeLessThan(0.92);
+        expect(Math.abs(center.y)).toBeLessThan(0.92);
+        expect(center.z).toBeGreaterThan(-1);
+        expect(center.z).toBeLessThan(1);
+        expect(photo.camera.position.y).toBeGreaterThan(0);
+      }
       const geometry = model.root.children[0] as THREE.Mesh;
       const dispose = vi.spyOn(geometry.geometry, "dispose");
       model.dispose();
@@ -96,6 +115,73 @@ describe("32-animal safari world", () => {
       expect(dispose).toHaveBeenCalledOnce();
     },
   );
+
+  it("composes independently of input bounds, with reversible reset and no explorer movement", () => {
+    const bounds = new THREE.Box3(
+      new THREE.Vector3(-2, 0, -1),
+      new THREE.Vector3(2, 2, 1),
+    );
+    const eye = new THREE.Vector3(0, 1.65, 7.5);
+    const originalEye = eye.clone();
+    const photo = createSafariPhotoComposition(bounds, eye);
+    const originalCamera = photo.camera.clone();
+    photo.adjust("orbit-right");
+    photo.adjust("aim-up");
+    photo.adjust("zoom-in");
+    expect(
+      photo.camera.position.distanceTo(originalCamera.position),
+    ).toBeGreaterThan(0.5);
+    expect(photo.target.y).toBeGreaterThan(1);
+    expect(photo.camera.zoom).toBeGreaterThan(1);
+    expect(eye).toEqual(originalEye);
+    const composed = photo.camera.matrixWorld.clone();
+    // A late model replacement cannot mutate the captured composition inputs.
+    bounds.expandByScalar(20);
+    eye.set(50, 2, 50);
+    expect(photo.camera.matrixWorld).toEqual(composed);
+    photo.adjust("reset");
+    expect(
+      photo.camera.position.distanceTo(originalCamera.position),
+    ).toBeLessThan(1e-10);
+    expect(
+      photo.camera.quaternion.angleTo(originalCamera.quaternion),
+    ).toBeLessThan(1e-7);
+    expect(photo.camera.projectionMatrix).toEqual(
+      originalCamera.projectionMatrix,
+    );
+  });
+
+  it("uses exactly the saved camera projection inside differently shaped preview screens", () => {
+    const photo = createSafariPhotoComposition(
+      new THREE.Box3(new THREE.Vector3(-2, 0, -1), new THREE.Vector3(2, 2, 1)),
+      new THREE.Vector3(0, 1.65, 7.5),
+    );
+    photo.drag(90, -35);
+    photo.zoomBy(1.4);
+    const capturedCamera = photo.camera.clone();
+    const subject = new THREE.Vector3(1.2, 1.6, 0.4);
+    const captured = subject.clone().project(capturedCamera);
+    for (const [width, height] of [
+      [390, 340],
+      [667, 220],
+      [1280, 760],
+    ]) {
+      const viewport = safariPhotoViewport(width, height);
+      expect(viewport.width / viewport.height).toBeCloseTo(4 / 3);
+      expect(viewport.x * 2 + viewport.width).toBeCloseTo(width);
+      expect(viewport.y * 2 + viewport.height).toBeCloseTo(height);
+      const preview = subject.clone().project(photo.camera);
+      const previewX = viewport.x + ((preview.x + 1) * viewport.width) / 2;
+      const previewY = viewport.y + ((1 - preview.y) * viewport.height) / 2;
+      expect((previewX - viewport.x) / viewport.width).toBeCloseTo(
+        (captured.x + 1) / 2,
+      );
+      expect((previewY - viewport.y) / viewport.height).toBeCloseTo(
+        (1 - captured.y) / 2,
+      );
+      expect(photo.state).toEqual({ orbit: -0.45, aim: -0.21, zoom: 1.4 });
+    }
+  });
 
   it("keeps every guide approach short, side-on, safe from the jeep, and stable at two FPS", () => {
     for (const stop of safariStops) {

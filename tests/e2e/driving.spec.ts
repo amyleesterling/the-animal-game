@@ -12,6 +12,8 @@ type Vehicle = {
   z: number;
   heading: number;
   speed: number;
+  wheelRoll: number;
+  wheelSteer: number;
   explorerX: number;
   explorerZ: number;
 };
@@ -24,6 +26,8 @@ async function vehicle(page: Page): Promise<Vehicle> {
       z: Number(data.vehicleZ),
       heading: Number(data.vehicleHeading),
       speed: Number(data.vehicleSpeed),
+      wheelRoll: Number(data.wheelRoll),
+      wheelSteer: Number(data.wheelSteer),
       explorerX: Number(data.explorerX),
       explorerZ: Number(data.explorerZ),
     };
@@ -39,6 +43,9 @@ const turn = (a: number, b: number) =>
 
 async function openSafari(page: Page) {
   await page.goto("./safari.html");
+  await page.locator("#begin-safari").click();
+  if (await page.locator("#skip-arrival").isVisible())
+    await page.locator("#skip-arrival").click();
   await expect(canvas(page)).toHaveAttribute("data-travel-mode", "walking");
   await expect(page.locator("#enter-jeep")).toBeEnabled();
   await expect(canvas(page)).toHaveAttribute("data-vehicle-x", /-?\d/);
@@ -86,7 +93,9 @@ async function expectStoppedAcrossFrames(page: Page) {
     const initial = { x: Number(data.vehicleX), z: Number(data.vehicleZ) };
     let maxDistance = 0,
       maxSpeed = 0,
+      maxWheelChange = 0,
       frames = 0;
+    const initialWheelRoll = Number(data.wheelRoll);
     const start = performance.now();
     await new Promise<void>((resolve) => {
       const inspect = () => {
@@ -98,18 +107,28 @@ async function expectStoppedAcrossFrames(page: Page) {
           ),
         );
         maxSpeed = Math.max(maxSpeed, Math.abs(Number(data.vehicleSpeed)));
+        maxWheelChange = Math.max(
+          maxWheelChange,
+          Math.abs(
+            Math.atan2(
+              Math.sin(Number(data.wheelRoll) - initialWheelRoll),
+              Math.cos(Number(data.wheelRoll) - initialWheelRoll),
+            ),
+          ),
+        );
         if (++frames >= 3 && performance.now() - start >= 750) resolve();
         else requestAnimationFrame(inspect);
       };
       requestAnimationFrame(inspect);
     });
-    return { maxDistance, maxSpeed };
+    return { maxDistance, maxSpeed, maxWheelChange };
   });
   expect(
     report.maxDistance,
     "Paused/released vehicle should remain stopped across rendered frames",
   ).toBeLessThan(0.05);
   expect(report.maxSpeed).toBeLessThan(0.05);
+  expect(report.maxWheelChange).toBeLessThan(0.01);
 }
 async function accelerate(page: Page, minimumDistance = 1) {
   const before = await vehicle(page);
@@ -148,6 +167,12 @@ test("keyboard entry starts the story and supports driving, steering, reversing,
     await expect
       .poll(async () => turn(start.heading, (await vehicle(page)).heading))
       .toBeGreaterThan(0.12);
+    await expect
+      .poll(async () => turn(start.wheelRoll, (await vehicle(page)).wheelRoll))
+      .toBeGreaterThan(0.5);
+    await expect
+      .poll(async () => (await vehicle(page)).wheelSteer)
+      .toBeLessThan(-0.1);
     await expect(page.locator("#exit-jeep")).toBeDisabled();
   });
   await brake(page);
@@ -251,7 +276,11 @@ test("a missing jeep GLB keeps the procedural roof-rack jeep drivable", async ({
   await expect(canvas(page)).toHaveAttribute("data-jeep-state", "fallback");
   await page.locator("#enter-jeep").click();
   await expect(canvas(page)).toHaveAttribute("data-travel-mode", "driving");
+  const start = await vehicle(page);
   await accelerate(page);
+  expect(
+    turn(start.wheelRoll, (await vehicle(page)).wheelRoll),
+  ).toBeGreaterThan(0.5);
   await brake(page);
   await page.locator("#exit-jeep").click();
   await expect(canvas(page)).toHaveAttribute("data-travel-mode", "walking");
@@ -263,7 +292,6 @@ test("choosing the next driving destination preserves the parked jeep and saved 
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openSafari(page);
-  await page.locator("#begin-safari").click();
   await expect(canvas(page)).toHaveAttribute("data-animal-state", "loaded", {
     timeout: 30000,
   });
@@ -320,7 +348,6 @@ test("driving to a revisited unfinished stop keeps controls active and resumes i
   test.setTimeout(90000);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openSafari(page);
-  await page.locator("#begin-safari").click();
   await expect(canvas(page)).toHaveAttribute("data-animal-state", "loaded", {
     timeout: 30000,
   });

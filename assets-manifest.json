@@ -27,7 +27,10 @@
       "sha256": "b33aaf59196febfbc2e3816195cbec7423ee7d95b2365567d1542f9e74bcc7d5",
       "embeddedSkeleton": true,
       "boneCount": 23,
-      "embeddedAnimations": ["Walking_Woman", "Wave_for_Help_4"],
+      "embeddedAnimations": [
+        "Walking_Woman",
+        "Wave_for_Help_4"
+      ],
       "animations": [
         {
           "name": "Walking_Woman",
@@ -50,7 +53,9 @@
           "sampleBytesPreserved": true
         }
       ],
-      "textureSizes": ["1024 x 1024 base color"],
+      "textureSizes": [
+        "1024 x 1024 base color"
+      ],
       "modifications": "Combined the compatible supplied walking and waving clips with one mesh and optimized texture. Runtime normalizes height/orientation and removes horizontal root travel from clip copies.",
       "preparationScript": "scripts/prepare-cora.py",
       "preparationRecord": "docs/SOPHIA_ASSET_PREPARATION.json",
@@ -87,7 +92,10 @@
       "sha256": "375794c2a621b9c569f359a4c4c32ea87d159daea8702d3ae3a3eec2839b88f4",
       "embeddedSkeleton": true,
       "boneCount": 23,
-      "embeddedAnimations": ["Walking_Woman", "Wave_for_Help_4"],
+      "embeddedAnimations": [
+        "Walking_Woman",
+        "Wave_for_Help_4"
+      ],
       "animations": [
         {
           "name": "Walking_Woman",
@@ -110,7 +118,9 @@
           "sampleBytesPreserved": true
         }
       ],
-      "textureSizes": ["1024 x 1024 base color"],
+      "textureSizes": [
+        "1024 x 1024 base color"
+      ],
       "modifications": "Combined compatible authored clips with a single mesh, skeleton and optimized texture. Original non-image buffers and animation sample bytes verified unchanged. Runtime normalizes height/orientation and removes horizontal root travel from clip copies.",
       "preparationScript": "scripts/prepare-cora.py",
       "preparationRecord": "docs/CORA_ASSET_PREPARATION.json",
@@ -135,8 +145,14 @@
       "polygonCount": 25292,
       "textures": [
         {
-          "sourceSize": [2048, 2048],
-          "outputSize": [1024, 1024],
+          "sourceSize": [
+            2048,
+            2048
+          ],
+          "outputSize": [
+            1024,
+            1024
+          ],
           "mimeType": "image/jpeg"
         }
       ],
@@ -184,10 +200,14 @@
       "sha256": "a34b5d96025fa57cbf9711a54c89e74ad8b866caf3c4b25272d6144c5ebdeea5",
       "polygonCount": 12795,
       "vertexCount": 24409,
-      "textureSizes": ["1024 x 1024 base color"],
+      "textureSizes": [
+        "1024 x 1024 base color"
+      ],
       "embeddedSkeleton": true,
       "boneCount": 23,
-      "embeddedAnimations": ["Walking_Woman"],
+      "embeddedAnimations": [
+        "Walking_Woman"
+      ],
       "animationDurationSeconds": 1,
       "modifications": "Opaque 2048px PNG resized to 1024px JPEG; geometry, skin and animation buffers preserved. Runtime normalizes height/orientation and makes a copy of the walk clip with horizontal root travel removed so collision controls own movement.",
       "preparationScript": "scripts/optimize-character.py",
@@ -231,7 +251,13 @@
       "provenance": "Generated in this repository from Three.js primitive geometry and a procedural stripe texture. No third-party animal mesh or photograph is included.",
       "promptVersion": "Meet the Zebra vertical slice, rig v1",
       "reviewStatus": "Stylized fallback while the GLB loads or if loading fails; anatomical and movement review pending",
-      "animations": ["graze", "walk", "alert", "retreat", "tail-flick"],
+      "animations": [
+        "graze",
+        "walk",
+        "alert",
+        "retreat",
+        "tail-flick"
+      ],
       "polygonCount": "Generated at runtime; measure before release",
       "textureSizes": "Procedural canvas stripe texture; inspect implementation for dimensions",
       "licenseSource": "Repository-authored prototype; repository has not selected a distribution license"
@@ -250,6 +276,19 @@
       "provenance": "Browser speech synthesis using text stored in the game. Voice availability depends on the browser and device.",
       "reviewStatus": "Prototype; pronunciation and complete device testing pending",
       "audioFilesIncluded": false
+    },
+    {
+      "id": "meshy-savanna-expansion-20260920-v1",
+      "type": "glb-model-batch",
+      "title": "25 African savanna animals: 24 Meshy models and one authored Cape porcupine",
+      "path": "public/models/savanna-expansion/manifest.json",
+      "modelCount": 25,
+      "bytes": 30231928,
+      "reportedGenerationCredits": 870,
+      "source": "https://github.com/amyleesterling/the-animal-game/actions/runs/35551203840",
+      "preparationRecord": "docs/SAVANNA_EXPANSION_GENERATION.json",
+      "provenance": "24 Meshy Image-to-3D models plus a locally authored Cape porcupine. All three rejected Meshy porcupine attempts remain in the generation history. No asset license is inferred from an API credential.",
+      "reviewStatus": "Four cardinal renders reviewed before preparation; generated models remain subject to in-game anatomy review."
     }
   ],
   "missingProductionAssets": [

@@ -78,7 +78,7 @@ app.innerHTML = `
   </main>
   <footer class="safari-footer"><span id="save-status" role="status">Opening your field book…</span><span>Created by Sophia, age 7, with AI and help from her mom.</span></footer>
   <dialog id="encounter-dialog" aria-labelledby="encounter-title" aria-describedby="encounter-intro"><div class="dialog-top"><div><p class="eyebrow">A wildlife discovery</p><h2 id="encounter-title">What animal did you find?</h2></div><button id="encounter-later" data-close>Keep exploring</button></div><p id="encounter-intro" class="dialog-intro">Look at your nearby neighbor. Type its name, or skip and we’ll help you.</p><form id="name-animal"><div id="animal-name-field"><label for="animal-name">Animal name</label><input id="animal-name" name="animal" type="text" maxlength="60" autocomplete="off" autocapitalize="none" placeholder="Type an animal name" aria-describedby="name-feedback" required></div><p id="name-feedback" role="status" aria-live="polite"></p><div class="actions"><button id="confirm-animal" class="primary" type="submit">Continue to quiz</button><button id="skip-animal" type="button">Skip · tell me the name</button></div></form><p id="encounter-driving-note" class="secondary" hidden>The jeep is paused. We’ll step out when you continue.</p></dialog>
-  <div id="notebook-intro" class="notebook-intro" hidden aria-hidden="true"><video id="notebook-intro-video" src="${publicAsset("/assets/notebook/opening.mp4")}" muted playsinline preload="auto"></video></div>
+  <div id="notebook-intro" class="notebook-intro" hidden aria-hidden="true"><div class="notebook-intro-stage"><video id="notebook-intro-video" src="${publicAsset("/assets/notebook/opening.mp4")}" muted playsinline preload="auto"></video><div class="notebook-intro-title"><p class="intro-mark">Field Notes</p><p class="intro-place">Tanzania, 2026</p><p class="intro-count" id="notebook-intro-count"></p><p class="intro-by">Kept by Sophia</p></div></div></div>
   <dialog id="book-dialog" aria-labelledby="book-title"><div class="notebook-body"><div class="notebook-head"><div><p class="eyebrow">Tanzania, 2026</p><h2 id="book-title">Route & field book</h2></div><button data-close aria-label="Close field book">Close</button></div><div class="notebook-spread"><section class="notebook-page notebook-page--index" aria-label="Route index"><p class="dialog-intro">Seven story clues and 25 more animals to discover, from insects to birds. This imagined reserve brings together wildlife from different African regions. Check each profile for its real range.</p><div class="book-tools"><label for="book-search">Find an animal<input id="book-search" type="search" placeholder="Name or scientific name"></label><label for="book-group">Animal group<select id="book-group"><option value="all">All animals</option><option value="Insect">Insects</option><option value="Rodent">Rodents</option><option value="Bird">Birds</option><option value="Mammal">Other mammals</option><option value="Reptile">Reptiles</option></select></label><button id="book-view" aria-pressed="false">Browse all animal profiles</button></div><p id="book-results" class="secondary" role="status"></p><ol id="route-list" class="route-list"></ol></section><section class="notebook-page notebook-page--entries" aria-label="Your field book pages"><div id="book-pages" class="book-pages"></div></section></div></div></dialog>
   <dialog id="settings-dialog" aria-labelledby="settings-title"><div class="dialog-top"><h2 id="settings-title">Make it yours</h2><button data-close aria-label="Close settings">Close</button></div><div class="settings-fields"><label><span>Read the story aloud</span><input id="narration-setting" type="checkbox"></label><label><span>Background music</span><input id="music-setting" type="checkbox"></label><label class="volume"><span>Narration volume</span><input id="volume-setting" type="range" min="0" max="1" step="0.05"></label><label><span>Reduce motion</span><input id="motion-setting" type="checkbox"></label><label><span>Lighter graphics</span><input id="quality-setting" type="checkbox"></label></div><p class="secondary">Narration uses an available local English voice. Every instruction also appears on screen.</p><details><summary>About this safari</summary><p class="secondary">An imagined savanna adventure with sourced natural history. Animal models and poses are prototypes. Sources are listed beside each discovery in your field book.</p></details><button id="restart-button" class="danger">Restart this story</button><p class="secondary">This replaces only the story safari. Your classic zebra encounter stays separate.</p></dialog>
   <p id="announcement" class="sr-only" aria-live="polite"></p>`;
@@ -283,7 +283,7 @@ function render(announce = true) {
       narration = `${correct ? "You spotted it!" : "Let’s discover it together."} ${question.explanation} When you’re ready, choose I’ve got it ${quiz.number < quiz.total ? "for the next question" : "to take a photo"}.`;
     }
   } else if (mode === "photo") {
-    body = `<p class="eyebrow">Add a picture to your field book</p><h1 id="story-title" tabindex="-1">Photograph the ${animal.name.toLowerCase()}</h1><p id="photo-status" role="status">Preparing your view…</p><p class="secondary photo-help">Drag the view to choose an angle. Pinch or scroll to zoom. The frame shows what your photo will capture.</p><div class="photo-controls" role="group" aria-label="Adjust the photo view"><button data-photo-adjust="orbit-left">↶ Turn left</button><button data-photo-adjust="orbit-right">Turn right ↷</button><button data-photo-adjust="aim-up">↑ Aim up</button><button data-photo-adjust="aim-down">↓ Aim down</button><button data-photo-adjust="zoom-in">+ Closer</button><button data-photo-adjust="zoom-out">− Farther</button></div><div class="actions">${button("frame-animal", "Reset view")}${button("take-photo", "Take photo", true)}</div>${button("leave-photo", "Back to exploring")}`;
+    body = `<p class="eyebrow">Add a picture to your field book</p><h1 id="story-title" tabindex="-1">Photograph the ${animal.name.toLowerCase()}</h1><p id="photo-status" role="status">Preparing your view…</p><p class="secondary photo-help">Drag the view to choose an angle. Pinch or scroll to zoom. The frame shows what your photo will capture.</p><div class="photo-controls" role="group" aria-label="Adjust the photo view"><button data-photo-adjust="orbit-left" aria-label="Turn left"><span class="ctl-icon" aria-hidden="true">↶</span><span class="ctl-label">Turn left</span></button><button data-photo-adjust="orbit-right" aria-label="Turn right"><span class="ctl-icon" aria-hidden="true">↷</span><span class="ctl-label">Turn right</span></button><button data-photo-adjust="aim-up" aria-label="Aim up"><span class="ctl-icon" aria-hidden="true">↑</span><span class="ctl-label">Aim up</span></button><button data-photo-adjust="aim-down" aria-label="Aim down"><span class="ctl-icon" aria-hidden="true">↓</span><span class="ctl-label">Aim down</span></button><button data-photo-adjust="zoom-in" aria-label="Closer"><span class="ctl-icon" aria-hidden="true">+</span><span class="ctl-label">Closer</span></button><button data-photo-adjust="zoom-out" aria-label="Farther"><span class="ctl-icon" aria-hidden="true">−</span><span class="ctl-label">Farther</span></button></div><div class="actions">${button("frame-animal", "Reset view")}${button("take-photo", "Take photo", true)}</div>${button("leave-photo", "Back to exploring")}`;
     narration = `Photograph the ${animal.name.toLowerCase()}. Drag the scene or use the photo controls to choose your view. Choose Take photo when you like the composition.`;
   } else if (mode === "success") {
     body = `<div class="discovery-top"><img class="photo-thumb" src="${discovery.photo!.dataUrl}" alt="Your photograph of the ${animal.name.toLowerCase()}"><div><p class="eyebrow">${clueCount} of ${safariStops.length} animals recorded</p><h1 id="story-title" tabindex="-1">${animal.clue}</h1></div></div><p>${animal.facts[0]}</p>${nextStop ? button("drive-next-stop", "Back to jeep & drive →", true) : ""}<div class="actions">${button("retake-photo", "Retake photo")}${nextStop ? button("next-stop", "Quick jump to next stop") : ""}${storyComplete ? button("finish-safari", "See our seven clues →", true) : ""}${button("discovery-book", "Explore the animal guide")}</div><p class="secondary">${nextStop ? `Suggested next stop: ${nextStop.name}. Drive there, or take a quick jump.` : "The field book is ready. Let’s bring it all together."}</p>`;
@@ -806,7 +806,19 @@ function renderBook() {
     .map((animal) => {
       const saved = progress.entries[animal.id];
       const index = safariStops.indexOf(animal);
-      return `<li><button data-visit="${animal.id}" ${!isStopUnlocked(progress, animal.id) ? "disabled" : ""} ${animal.id === progress.currentStopId ? 'aria-current="step"' : ""}><span class="route-number">${saved.photo ? "✓" : index + 1}</span><span>${escape(animal.name)}<small>${saved.photo ? "In your field book" : animal.profile ? "Extra discovery · " + animal.profile.group.toLowerCase() : isStopUnlocked(progress, animal.id) ? "Story discovery" : "Further along the story route"}</small></span></button></li>`;
+      const unlocked = isStopUnlocked(progress, animal.id);
+      // Reading about an animal and travelling to it are different intents, so
+      // the name opens its page and a separate control goes there.
+      const note = saved.photo
+        ? "In your field book"
+        : saved.identification
+          ? "Named. Its photograph is still to come"
+          : unlocked
+            ? animal.profile
+              ? "Ready to find · " + animal.profile.group.toLowerCase()
+              : "Ready to find"
+            : "Keep exploring to find this one";
+      return `<li><button class="route-open" data-leaf-to="${animal.id}" ${animal.id === progress.currentStopId ? 'aria-current="step"' : ""}><span class="route-number">${saved.photo ? "✓" : index + 1}</span><span>${escape(animal.name)}<small>${note}</small></span></button><button class="route-go" data-visit="${animal.id}" ${!unlocked ? "disabled" : ""} aria-label="Travel to the ${escape(animal.name.toLowerCase())}">Go</button></li>`;
     })
     .join("");
   const pages = matching.filter(
@@ -843,6 +855,23 @@ function renderBook() {
     .forEach(
       (button) => (button.onclick = () => travel(button.dataset.visit!)),
     );
+  $("book-dialog")
+    .querySelectorAll<HTMLButtonElement>("[data-leaf-to]")
+    .forEach((button) => {
+      button.onclick = () => {
+        const leaf = pages.findIndex(
+          (animal) => animal.id === button.dataset.leafTo,
+        );
+        if (leaf >= 0) return turnTo(leaf);
+        // Its page is not in the book being shown, so widen to the full guide.
+        browseAllProfiles = true;
+        bookLeaf = Math.max(
+          0,
+          matching.findIndex((animal) => animal.id === button.dataset.leafTo),
+        );
+        renderBook();
+      };
+    });
   const back = document.getElementById("book-back");
   if (back) back.onclick = () => turnTo(bookLeaf - 1);
   const forward = document.getElementById("book-forward");
@@ -875,6 +904,9 @@ function playNotebookOpening() {
     video.onerror = finish;
     layer.onpointerdown = skip;
     window.addEventListener("keydown", skip, { once: true });
+    const found = discoveredCount(progress);
+    $("notebook-intro-count").textContent =
+      `${found} of ${safariStops.length} species recorded`;
     layer.hidden = false;
     video.currentTime = 0;
     void video.play().catch(finish);

@@ -27,10 +27,7 @@
       "sha256": "b33aaf59196febfbc2e3816195cbec7423ee7d95b2365567d1542f9e74bcc7d5",
       "embeddedSkeleton": true,
       "boneCount": 23,
-      "embeddedAnimations": [
-        "Walking_Woman",
-        "Wave_for_Help_4"
-      ],
+      "embeddedAnimations": ["Walking_Woman", "Wave_for_Help_4"],
       "animations": [
         {
           "name": "Walking_Woman",
@@ -53,9 +50,7 @@
           "sampleBytesPreserved": true
         }
       ],
-      "textureSizes": [
-        "1024 x 1024 base color"
-      ],
+      "textureSizes": ["1024 x 1024 base color"],
       "modifications": "Combined the compatible supplied walking and waving clips with one mesh and optimized texture. Runtime normalizes height/orientation and removes horizontal root travel from clip copies.",
       "preparationScript": "scripts/prepare-cora.py",
       "preparationRecord": "docs/SOPHIA_ASSET_PREPARATION.json",
@@ -92,10 +87,7 @@
       "sha256": "375794c2a621b9c569f359a4c4c32ea87d159daea8702d3ae3a3eec2839b88f4",
       "embeddedSkeleton": true,
       "boneCount": 23,
-      "embeddedAnimations": [
-        "Walking_Woman",
-        "Wave_for_Help_4"
-      ],
+      "embeddedAnimations": ["Walking_Woman", "Wave_for_Help_4"],
       "animations": [
         {
           "name": "Walking_Woman",
@@ -118,9 +110,7 @@
           "sampleBytesPreserved": true
         }
       ],
-      "textureSizes": [
-        "1024 x 1024 base color"
-      ],
+      "textureSizes": ["1024 x 1024 base color"],
       "modifications": "Combined compatible authored clips with a single mesh, skeleton and optimized texture. Original non-image buffers and animation sample bytes verified unchanged. Runtime normalizes height/orientation and removes horizontal root travel from clip copies.",
       "preparationScript": "scripts/prepare-cora.py",
       "preparationRecord": "docs/CORA_ASSET_PREPARATION.json",
@@ -145,14 +135,8 @@
       "polygonCount": 25292,
       "textures": [
         {
-          "sourceSize": [
-            2048,
-            2048
-          ],
-          "outputSize": [
-            1024,
-            1024
-          ],
+          "sourceSize": [2048, 2048],
+          "outputSize": [1024, 1024],
           "mimeType": "image/jpeg"
         }
       ],
@@ -200,14 +184,10 @@
       "sha256": "a34b5d96025fa57cbf9711a54c89e74ad8b866caf3c4b25272d6144c5ebdeea5",
       "polygonCount": 12795,
       "vertexCount": 24409,
-      "textureSizes": [
-        "1024 x 1024 base color"
-      ],
+      "textureSizes": ["1024 x 1024 base color"],
       "embeddedSkeleton": true,
       "boneCount": 23,
-      "embeddedAnimations": [
-        "Walking_Woman"
-      ],
+      "embeddedAnimations": ["Walking_Woman"],
       "animationDurationSeconds": 1,
       "modifications": "Opaque 2048px PNG resized to 1024px JPEG; geometry, skin and animation buffers preserved. Runtime normalizes height/orientation and makes a copy of the walk clip with horizontal root travel removed so collision controls own movement.",
       "preparationScript": "scripts/optimize-character.py",
@@ -251,13 +231,7 @@
       "provenance": "Generated in this repository from Three.js primitive geometry and a procedural stripe texture. No third-party animal mesh or photograph is included.",
       "promptVersion": "Meet the Zebra vertical slice, rig v1",
       "reviewStatus": "Stylized fallback while the GLB loads or if loading fails; anatomical and movement review pending",
-      "animations": [
-        "graze",
-        "walk",
-        "alert",
-        "retreat",
-        "tail-flick"
-      ],
+      "animations": ["graze", "walk", "alert", "retreat", "tail-flick"],
       "polygonCount": "Generated at runtime; measure before release",
       "textureSizes": "Procedural canvas stripe texture; inspect implementation for dimensions",
       "licenseSource": "Repository-authored prototype; repository has not selected a distribution license"
@@ -289,6 +263,93 @@
       "preparationRecord": "docs/SAVANNA_EXPANSION_GENERATION.json",
       "provenance": "24 Meshy Image-to-3D models plus a locally authored Cape porcupine. All three rejected Meshy porcupine attempts remain in the generation history. No asset license is inferred from an API credential.",
       "reviewStatus": "Four cardinal renders reviewed before preparation; generated models remain subject to in-game anatomy review."
+    },
+    {
+      "id": "field-notebook-art-v1",
+      "type": "image-set",
+      "path": "public/assets/notebook/",
+      "title": "Field Notes notebook and writing tools",
+      "provenance": "Rendered by Amy and supplied as PNG plates with alpha: a closed leather Field Notes cover lettered Tanzania, 2026 (front, back, spine, fore edge and two three-quarter angles) and one sheet of four pens and pencils. Claude cut the four tools apart on the alpha channel already present in the sheet, trimmed each plate to its alpha bounding box, resized and re-encoded to WebP. No repainting, recolouring or generated detail. Full resolution plates kept in assets/references/notebook.",
+      "sources": [
+        {
+          "file": "pens and pencils.png",
+          "bytes": 2039688,
+          "sha256": "e2f080b78e14784d1937be546f43ce9875aaa303a645d1e50bcfcc41f4ad96be"
+        }
+      ],
+      "files": [
+        {
+          "file": "cover-hero.webp",
+          "bytes": 94552,
+          "sha256": "490ad51f49fb7bbfec854a38e9eadb1b6ef0ae13a6cfa94fe996c733f610ca0f"
+        },
+        {
+          "file": "cover-icon.webp",
+          "bytes": 3684,
+          "sha256": "504fc7466e2a59d5b0a713ad1233b8ec88064535a054caeae7e31977a47a15b0"
+        },
+        {
+          "file": "pen-steel.webp",
+          "bytes": 22500,
+          "sha256": "4e9ed8a77788d31c12d5c04573d84d4f4e96d78b8c3fd821dc07e01083a822b2"
+        },
+        {
+          "file": "pen-wood.webp",
+          "bytes": 29666,
+          "sha256": "99c4bbf55ef6b68effaca0b6cb0237d8b94a9ed4eb066553da15f0a4021c2271"
+        },
+        {
+          "file": "pencil-green.webp",
+          "bytes": 10502,
+          "sha256": "1d4b101db9588b269bbda460980998111b6bc914fdcd98906a150853bb8f14b9"
+        },
+        {
+          "file": "pencil-mechanical.webp",
+          "bytes": 17828,
+          "sha256": "93c302bae4d1eb1116ceb2de56e83605b21ff46d260f4ac25ef0be8a2b7fe186"
+        },
+        {
+          "file": "spine.webp",
+          "bytes": 31804,
+          "sha256": "a0b105aa2821797fe9d037146d5c60c2785e4da03e26afc4075c70b78e4d9658"
+        }
+      ]
+    },
+    {
+      "id": "field-notebook-opening-v1",
+      "type": "video",
+      "path": "public/assets/notebook/opening.mp4",
+      "title": "The field notebook opening",
+      "provenance": "Rendered by Amy: 1764x1176, 24 fps, 4.04 s, h264 on black with a warm glow, no alpha channel. Claude trimmed it to frames 6 to 78, the part that reads as the book opening, set the speed to 1.6x, scaled to 880 px wide and re-encoded at CRF 30. No frames were generated or interpolated. Played screen blended over a near black layer, which drops the black background and keeps the glow.",
+      "sources": [
+        {
+          "file": "field notebook opens video.mp4",
+          "bytes": 5501410,
+          "sha256": "b492577820f76cd1263323923d8eeed48e4f762e5955c607c316ac604563ba34"
+        }
+      ],
+      "bytes": 114179,
+      "sha256": "7a88a6a193131bf3f9aa0003fd1ad11beaaac3ab82696f5c3a70bedb48cf3f4b",
+      "durationSeconds": 1.96
+    },
+    {
+      "id": "background-music-mazingira-mpya-v1",
+      "type": "audio",
+      "path": "public/assets/audio/mazingira-mpya-loop.m4a",
+      "title": "Mazingira Mpya",
+      "provenance": "Supplied by Amy as a 48 kHz 16 bit stereo WAV master, 193.28 s, integrated loudness -16.1 LUFS. Claude cut a seamless loop from it: the source fades out from about 187 s, so the body 5 s to 186 s was taken and its tail cross faded over 3 s back into 2 s to 5 s using a constant power curve, then normalised to -20 LUFS with a -1.5 dBTP ceiling and encoded to AAC at 96 kbps. Loop is 181 s; measured level across the loop join differs by 1.8 dB.",
+      "sources": [
+        {
+          "file": "Mazingira Mpya safari game background WAV.wav",
+          "bytes": 37123612,
+          "sha256": "275c256f8231cf5b4b1d49cc0b892304ab607e01027b31c2d43f14eeb669eb22",
+          "location": "Not committed. The WAV master, 37 MB, stays outside the repository because this repo is public and the track's redistribution licence is unrecorded. Amy holds it in her Music folder. The sha256 above identifies it."
+        }
+      ],
+      "bytes": 2222242,
+      "sha256": "03587c3eaca39ae1044b7fc48fc77c7b49aa681a4d178c5f28c586a8544abbb1",
+      "durationSeconds": 181.0,
+      "licenseStatus": "UNRECORDED. Amy generated this track on a paid music service and downloaded the WAV. The service, its terms and the redistribution licence for a public GitHub Pages build are not known to this record and must be filled in by Amy before release. Do not infer them."
     }
   ],
   "missingProductionAssets": [

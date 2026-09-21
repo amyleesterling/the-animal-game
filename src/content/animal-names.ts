@@ -1,4 +1,7 @@
 import { safariStops } from "./safari";
+import { birdProfiles } from "./savanna-birds";
+import { mammalProfiles } from "./savanna-mammals";
+import { smallLifeProfiles } from "./savanna-small-life";
 
 const commonAliases: Readonly<Record<string, readonly string[]>> = {
   "plains-zebra": ["zebra", "plains zebra", "plain zebra"],
@@ -31,7 +34,10 @@ function normalizeName(text: string): string {
     .trim()
     .replace(/^(?:a|an|the) /, "");
   // Only the final word is the animal noun: keep the “s” in “plains” and “Thomsons”.
-  return normalized.endsWith("s") ? normalized.slice(0, -1) : normalized;
+  const singular = normalized
+    .replace(/\bmice$/, "mouse")
+    .replace(/\b(fox|buffalo)es$/, "$1");
+  return singular.endsWith("s") ? singular.slice(0, -1) : singular;
 }
 
 /** One insertion, deletion, replacement or adjacent transposition is a gentle typo. */
@@ -57,19 +63,52 @@ function oneEditApart(left: string, right: string): boolean {
     : left.slice(at + 1) === right.slice(at);
 }
 
+const expansionProfiles = [
+  ...birdProfiles,
+  ...mammalProfiles,
+  ...smallLifeProfiles,
+];
+const animalNames = new Map(
+  [...safariStops, ...expansionProfiles].map((animal) => {
+    const profile = expansionProfiles.find(
+      (profile) => profile.id === animal.id,
+    );
+    return [
+      animal.id,
+      {
+        scientificName: normalizeName(animal.scientificName),
+        commonNames: Array.from(
+          new Set(
+            [
+              animal.name,
+              ...(commonAliases[animal.id] ?? []),
+              ...(profile?.aliases ?? []),
+            ].map(normalizeName),
+          ),
+        ),
+      },
+    ];
+  }),
+);
+
 /** Broad animal words ("cat", "pig", "antelope") and other species are not guesses of this animal. */
 export function matchesAnimalName(id: string, text: string): boolean {
-  const stop = safariStops.find((stop) => stop.id === id);
   const answer = normalizeName(text);
-  if (!stop || !answer) return false;
-  const aliases = (commonAliases[id] ?? []).map(normalizeName);
-  if (
-    [
-      ...aliases,
-      normalizeName(stop.name),
-      normalizeName(stop.scientificName),
-    ].includes(answer)
-  )
-    return true;
-  return aliases.some((alias) => oneEditApart(answer, alias));
+  if (!animalNames.has(id) || !answer) return false;
+
+  // An exact name for another species must never be accepted as a typo here.
+  // Shared aliases are ambiguous and therefore do not identify either species.
+  const exactMatches = [...animalNames].filter(
+    ([, names]) =>
+      names.scientificName === answer || names.commonNames.includes(answer),
+  );
+  if (exactMatches.length)
+    return exactMatches.length === 1 && exactMatches[0][0] === id;
+
+  // Apply gentle spelling help to common names only, and only when the result
+  // identifies one catalog animal. Do not fuzzy-match arbitrary scientific names.
+  const typoMatches = [...animalNames].filter(([, names]) =>
+    names.commonNames.some((alias) => oneEditApart(answer, alias)),
+  );
+  return typoMatches.length === 1 && typoMatches[0][0] === id;
 }

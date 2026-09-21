@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { safariStops } from "../../src/content/safari";
+import { safariStoryStops } from "../../src/content/safari";
 async function ready(page: Page) {
   await expect(page.locator("#safari-world canvas")).toHaveAttribute(
     "data-animal-state",
@@ -31,7 +31,7 @@ test("seven-stop story saves real photographs, resumes feedback, finishes and re
     { timeout: 30000 },
   );
   await page.locator("#begin-safari").click();
-  for (const [index, animal] of safariStops.entries()) {
+  for (const [index, animal] of safariStoryStops.entries()) {
     await meet(page);
     if (index === 0) {
       const wrong = animal.question.choices.find(
@@ -56,13 +56,13 @@ test("seven-stop story saves real photographs, resumes feedback, finishes and re
       "src",
       /^data:image\/jpeg;base64,/,
     );
-    await expect(page.locator("#clue-count")).toHaveText(`${index + 1}/7`);
+    await expect(page.locator("#clue-count")).toHaveText(`${index + 1}/32`);
     await expect(page.locator("#save-status")).toHaveText(
       "Story saved on this device",
     );
     if (index === 2) {
       await page.reload();
-      await expect(page.locator("#clue-count")).toHaveText("3/7");
+      await expect(page.locator("#clue-count")).toHaveText("3/32");
       await expect(page.locator(".photo-thumb")).toBeVisible();
     }
     if (index < 6) await page.locator("#next-stop").click();
@@ -72,14 +72,14 @@ test("seven-stop story saves real photographs, resumes feedback, finishes and re
   await page.screenshot({ path: info.outputPath("safari-ending-desktop.png") });
   await page.locator("#open-finished-book").click();
   await expect(page.locator(".book-page img")).toHaveCount(7);
-  await page.locator('[data-visit="plains-zebra"]').click();
+  await page.locator('#route-list [data-visit="plains-zebra"]').click();
   await expect(page.locator("#scene-chapter")).toContainText("Plains zebra");
   await expect(page.locator("#save-status")).toHaveText(
     "Story saved on this device",
   );
   await page.reload();
   await expect(page.locator("#scene-chapter")).toContainText("Plains zebra");
-  await expect(page.locator("#clue-count")).toHaveText("7/7");
+  await expect(page.locator("#clue-count")).toHaveText("7/32");
   expect(errors).toEqual([]);
 });
 
@@ -119,8 +119,12 @@ test("phone story keeps the scene, choices, camera and field book reachable", as
   await page.locator("#take-photo").click();
   await page.locator("#route-button").click();
   await expect(page.locator(".book-page img")).toHaveCount(1);
-  await expect(page.locator('[data-visit="african-elephant"]')).toBeEnabled();
-  await expect(page.locator('[data-visit="giraffe"]')).toBeDisabled();
+  await expect(
+    page.locator('#route-list [data-visit="african-elephant"]'),
+  ).toBeEnabled();
+  await expect(
+    page.locator('#route-list [data-visit="giraffe"]'),
+  ).toBeDisabled();
   await page.keyboard.press("Escape");
   await expect(page.locator("#book-dialog")).not.toBeVisible();
 });
@@ -175,7 +179,7 @@ test("an unavailable animal cannot unlock a clue or photograph", async ({
   await expect(page.locator("#world-banner")).toBeVisible();
   await page.locator("#guide-animal").click();
   await expect(page.locator("#discover-clue")).toBeDisabled();
-  await expect(page.locator("#clue-count")).toHaveText("0/7");
+  await expect(page.locator("#clue-count")).toHaveText("0/32");
 });
 
 /** Hold the next open success until the test releases it, without changing stored values. */

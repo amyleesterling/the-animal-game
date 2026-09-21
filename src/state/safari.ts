@@ -1,4 +1,4 @@
-import { safariStops } from "../content/safari";
+import { safariStops, safariStoryStops } from "../content/safari";
 import { matchesAnimalName } from "../content/animal-names";
 import type { SafariStop } from "../safari-contracts";
 import {
@@ -15,12 +15,16 @@ export interface SafariEntry {
   identification: { name: string; skipped: boolean } | null;
   attempts: number;
   answer: string | null;
+  /** Zero-based active question; completed quizzes remain on their final question. */
+  questionIndex: number;
+  /** Prior answers survive retries and reloads; the active slot mirrors answer. */
+  quizAnswers: (string | null)[];
   learned: boolean;
   photo: { dataUrl: string; capturedAt: string } | null;
   visits: number;
 }
 export interface SafariProgress {
-  schemaVersion: 2;
+  schemaVersion: 3;
   started: boolean;
   currentStopId: string;
   entries: Record<string, SafariEntry>;
@@ -31,35 +35,64 @@ export function newSafari(
   settings: Partial<GameSettings> = {},
 ): SafariProgress {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     started: false,
     currentStopId: safariStops[0].id,
-    entries: Object.fromEntries(
-      safariStops.map((s) => [
-        s.id,
-        {
-          identification: null,
-          attempts: 0,
-          answer: null,
-          learned: false,
-          photo: null,
-          visits: 0,
-        },
-      ]),
-    ),
+    entries: Object.fromEntries(safariStops.map((s) => [s.id, emptyEntry(s)])),
     settings: { ...defaultSettings, ...settings },
     completedAt: null,
+  };
+}
+function questionsForStop(stop: SafariStop): SafariStop["question"][] {
+  return stop.profile?.questions ?? [stop.question];
+}
+function emptyEntry(stop: SafariStop): SafariEntry {
+  return {
+    identification: null,
+    attempts: 0,
+    answer: null,
+    questionIndex: 0,
+    quizAnswers: questionsForStop(stop).map(() => null),
+    learned: false,
+    photo: null,
+    visits: 0,
+  };
+}
+export function currentSafariQuestion(
+  p: SafariProgress,
+  id = p.currentStopId,
+): SafariStop["question"] {
+  const stop = safariStops.find((stop) => stop.id === id);
+  const question = stop && questionsForStop(stop)[p.entries[id]?.questionIndex];
+  if (!question) throw new Error("That safari question is not available.");
+  return question;
+}
+export function safariQuizProgress(p: SafariProgress, id = p.currentStopId) {
+  const stop = safariStops.find((stop) => stop.id === id);
+  if (!stop || !p.entries[id])
+    throw new Error("That animal is not part of this safari yet.");
+  const entry = p.entries[id];
+  return {
+    index: entry.questionIndex,
+    number: entry.questionIndex + 1,
+    total: questionsForStop(stop).length,
+    complete: entry.learned,
   };
 }
 export function discoveredCount(p: SafariProgress): number {
   return safariStops.filter((s) => p.entries[s.id].photo).length;
 }
+/** The original story ends after its seven photographs; optional discoveries do not delay it. */
+export function safariStoryComplete(p: SafariProgress): boolean {
+  return safariStoryStops.every((stop) => Boolean(p.entries[stop.id]?.photo));
+}
 export function isStopUnlocked(p: SafariProgress, id: string): boolean {
-  const index = safariStops.findIndex((s) => s.id === id);
+  if (!safariStops.some((stop) => stop.id === id)) return false;
+  const index = safariStoryStops.findIndex((s) => s.id === id);
   return (
-    index >= 0 &&
-    (p.entries[id].visits > 0 ||
-      safariStops.slice(0, index).every((s) => p.entries[s.id].photo))
+    index < 0 ||
+    p.entries[id].visits > 0 ||
+    safariStoryStops.slice(0, index).every((s) => p.entries[s.id].photo)
   );
 }
 function changeEntry(
@@ -116,7 +149,10 @@ export function identifySafari(
 
 /** The first remaining route stop is always unlocked, even after an off-route discovery. */
 export function nextSafariStop(p: SafariProgress): SafariStop | undefined {
-  return safariStops.find((stop) => !p.entries[stop.id].photo);
+  return (
+    safariStoryStops.find((stop) => !p.entries[stop.id].photo) ??
+    safariStops.find((stop) => !p.entries[stop.id].photo)
+  );
 }
 export function answerSafari(
   p: SafariProgress,
@@ -128,17 +164,33 @@ export function answerSafari(
     throw new Error("Read the current clue before answering again.");
   if (!entry.identification)
     throw new Error("Name this animal first, or choose Tell me the name.");
-  if (!stop.question.choices.some((c) => c.id === choiceId))
+  if (!currentSafariQuestion(p).choices.some((c) => c.id === choiceId))
     throw new Error("Choose one of the three answers.");
-  return changeEntry(p, { answer: choiceId, attempts: entry.attempts + 1 });
+  const quizAnswers = [...entry.quizAnswers];
+  quizAnswers[entry.questionIndex] = choiceId;
+  return changeEntry(p, {
+    answer: choiceId,
+    quizAnswers,
+    attempts: entry.attempts + 1,
+  });
 }
 export function retrySafariAnswer(p: SafariProgress): SafariProgress {
-  if (p.entries[p.currentStopId].learned) return p;
-  return changeEntry(p, { answer: null });
+  const entry = p.entries[p.currentStopId];
+  if (entry.learned) return p;
+  const quizAnswers = [...entry.quizAnswers];
+  quizAnswers[entry.questionIndex] = null;
+  return changeEntry(p, { answer: null, quizAnswers });
 }
 export function learnSafariClue(p: SafariProgress): SafariProgress {
-  if (!p.entries[p.currentStopId].answer)
+  const entry = p.entries[p.currentStopId];
+  if (entry.learned) return p;
+  if (!entry.answer)
     throw new Error("Choose an answer and read its explanation first.");
+  if (entry.questionIndex + 1 < safariQuizProgress(p).total)
+    return changeEntry(p, {
+      questionIndex: entry.questionIndex + 1,
+      answer: null,
+    });
   return changeEntry(p, { learned: true });
 }
 export function photographSafari(
@@ -154,8 +206,7 @@ export function photographSafari(
   return {
     ...next,
     completedAt:
-      p.completedAt ??
-      (discoveredCount(next) === safariStops.length ? capturedAt : null),
+      p.completedAt ?? (safariStoryComplete(next) ? capturedAt : null),
   };
 }
 function object(value: unknown): value is Record<string, unknown> {
@@ -169,23 +220,26 @@ function isDate(value: unknown): value is string {
   );
 }
 
-type LegacySafariEntry = Omit<SafariEntry, "identification">;
-type LegacySafariProgress = Omit<
+type PreviousSafariEntry = Omit<SafariEntry, "questionIndex" | "quizAnswers">;
+type LegacySafariEntry = Omit<PreviousSafariEntry, "identification">;
+type PreviousSafariProgress = Omit<
   SafariProgress,
   "schemaVersion" | "entries"
 > & {
-  schemaVersion: 1;
-  entries: Record<string, LegacySafariEntry>;
+  schemaVersion: 1 | 2;
+  entries: Record<string, LegacySafariEntry | PreviousSafariEntry>;
 };
 
-/** The old schema keeps its original sequential rules; migration must not bless corrupt saves. */
-function isLegacySafariProgress(value: unknown): value is LegacySafariProgress {
-  return validProgress(value, 1);
+/** Old saves must satisfy their original seven-stop rules before adding new entries. */
+function isPreviousSafariProgress(
+  value: unknown,
+): value is PreviousSafariProgress {
+  return validProgress(value, 1) || validProgress(value, 2);
 }
 export function isSafariProgress(value: unknown): value is SafariProgress {
-  return validProgress(value, 2);
+  return validProgress(value, 3);
 }
-function validProgress(value: unknown, version: 1 | 2): boolean {
+function validProgress(value: unknown, version: 1 | 2 | 3): boolean {
   if (
     !object(value) ||
     value.schemaVersion !== version ||
@@ -205,14 +259,15 @@ function validProgress(value: unknown, version: 1 | 2): boolean {
     settings.volume > 1
   )
     return false;
+  const stops = version === 3 ? safariStops : safariStoryStops;
   if (
-    Object.keys(value.entries).length !== safariStops.length ||
+    Object.keys(value.entries).length !== stops.length ||
     typeof value.currentStopId !== "string" ||
-    !safariStops.some((s) => s.id === value.currentStopId)
+    !stops.some((s) => s.id === value.currentStopId)
   )
     return false;
   let missingPhoto = false;
-  for (const stop of safariStops) {
+  for (const stop of stops) {
     const entry = value.entries[stop.id];
     if (
       !object(entry) ||
@@ -223,16 +278,52 @@ function validProgress(value: unknown, version: 1 | 2): boolean {
       typeof entry.learned !== "boolean"
     )
       return false;
+    const questions = version === 3 ? questionsForStop(stop) : [stop.question];
+    const questionIndex = version === 3 ? entry.questionIndex : 0;
+    if (
+      !Number.isSafeInteger(questionIndex) ||
+      (questionIndex as number) < 0 ||
+      (questionIndex as number) >= questions.length
+    )
+      return false;
+    const question = questions[questionIndex as number];
     if (
       entry.answer !== null &&
-      (!stop.question.choices.some((c) => c.id === entry.answer) ||
+      (!question.choices.some((c) => c.id === entry.answer) ||
         (entry.attempts as number) < 1)
     )
       return false;
     if (entry.learned && entry.answer === null) return false;
     if ((entry.attempts as number) > 0 && (entry.visits as number) === 0)
       return false;
-    if (version === 2) {
+    if (version === 3) {
+      if (
+        !Array.isArray(entry.quizAnswers) ||
+        entry.quizAnswers.length !== questions.length
+      )
+        return false;
+      let answered = 0;
+      for (let i = 0; i < questions.length; i++) {
+        const answer = entry.quizAnswers[i];
+        if (answer !== null) {
+          if (!questions[i].choices.some((choice) => choice.id === answer))
+            return false;
+          answered++;
+        }
+        if (
+          (i < (questionIndex as number) && answer === null) ||
+          (i > (questionIndex as number) && answer !== null)
+        )
+          return false;
+      }
+      if (
+        entry.quizAnswers[questionIndex as number] !== entry.answer ||
+        (entry.attempts as number) < answered ||
+        (entry.learned && questionIndex !== questions.length - 1)
+      )
+        return false;
+    }
+    if (version >= 2) {
       const identification = entry.identification;
       if (identification !== null) {
         if (
@@ -252,7 +343,10 @@ function validProgress(value: unknown, version: 1 | 2): boolean {
           return false;
       }
       if (
-        (entry.answer !== null || entry.learned || entry.photo !== null) &&
+        (entry.answer !== null ||
+          (questionIndex as number) > 0 ||
+          entry.learned ||
+          entry.photo !== null) &&
         !identification
       )
         return false;
@@ -280,41 +374,54 @@ function validProgress(value: unknown, version: 1 | 2): boolean {
   }
   const p = value as unknown as SafariProgress;
   if (version === 1) {
-    const current = safariStops.findIndex(
+    const current = safariStoryStops.findIndex(
       (stop) => stop.id === p.currentStopId,
     );
     if (
-      !safariStops.slice(0, current).every((stop) => p.entries[stop.id].photo)
+      !safariStoryStops
+        .slice(0, current)
+        .every((stop) => p.entries[stop.id].photo)
     )
       return false;
   }
   if (
     !p.started &&
-    (p.currentStopId !== safariStops[0].id ||
+    (p.currentStopId !== safariStoryStops[0].id ||
       Object.values(p.entries).some((e) => e.visits > 0 || e.attempts > 0))
   )
     return false;
   if (p.started && p.entries[p.currentStopId].visits === 0) return false;
-  return discoveredCount(p) === safariStops.length
+  return safariStoryComplete(p)
     ? isDate(p.completedAt)
     : p.completedAt === null;
 }
 
-function migrateLegacyProgress(value: LegacySafariProgress): SafariProgress {
+function migratePreviousProgress(
+  value: PreviousSafariProgress,
+): SafariProgress {
   return {
     ...value,
-    schemaVersion: 2,
+    schemaVersion: 3,
     entries: Object.fromEntries(
       safariStops.map((stop) => {
         const entry = value.entries[stop.id];
+        if (!entry) return [stop.id, emptyEntry(stop)];
         return [
           stop.id,
           {
-            ...entry,
+            ...emptyEntry(stop),
+            attempts: entry.attempts,
+            answer: entry.answer,
+            quizAnswers: [entry.answer],
+            learned: entry.learned,
+            photo: entry.photo,
+            visits: entry.visits,
             identification:
-              entry.answer !== null || entry.learned || entry.photo !== null
-                ? { name: stop.name, skipped: true }
-                : null,
+              value.schemaVersion === 2
+                ? (entry as PreviousSafariEntry).identification
+                : entry.answer !== null || entry.learned || entry.photo !== null
+                  ? { name: stop.name, skipped: true }
+                  : null,
           },
         ];
       }),
@@ -432,14 +539,15 @@ export function createSafariStore(
           object(value) &&
           Object.hasOwn(value, "schemaVersion") &&
           value.schemaVersion !== 1 &&
-          value.schemaVersion !== 2
+          value.schemaVersion !== 2 &&
+          value.schemaVersion !== 3
         )
           throw new SaveError(
             "unsupported-version",
             "This story save uses an unsupported version. It has been left untouched.",
           );
-        const progress = isLegacySafariProgress(value)
-          ? migrateLegacyProgress(value)
+        const progress = isPreviousSafariProgress(value)
+          ? migratePreviousProgress(value)
           : value;
         if (!isSafariProgress(progress))
           throw new SaveError(

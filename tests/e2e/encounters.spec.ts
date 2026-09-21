@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { safariStops } from "../../src/content/safari";
+import { safariStops, safariStoryStops } from "../../src/content/safari";
 
 const world = (page: Page) => page.locator("#safari-world canvas");
 const encounter = (page: Page) => page.locator("#encounter-dialog");
@@ -123,17 +123,19 @@ test("walking off route finds the elephant, retries its name and saves its first
     path: info.outputPath("elephant-off-route-question.png"),
   });
   await finishAnimal(page, "african-elephant");
-  await expect(page.locator("#clue-count")).toHaveText("1/7");
+  await expect(page.locator("#clue-count")).toHaveText("1/32");
   const photo = await page.locator(".photo-thumb").getAttribute("src");
   await page.reload();
   await expect(page.locator("#scene-chapter")).toContainText(
     "African savanna elephant",
   );
-  await expect(page.locator("#clue-count")).toHaveText("1/7");
+  await expect(page.locator("#clue-count")).toHaveText("1/32");
   await expect(page.locator(".photo-thumb")).toHaveAttribute("src", photo!);
   await page.locator("#route-button").click();
   await expect(page.locator(".book-page img")).toHaveCount(1);
-  await expect(page.locator('[data-visit="african-elephant"]')).toBeEnabled();
+  await expect(
+    page.locator('#route-list [data-visit="african-elephant"]'),
+  ).toBeEnabled();
 });
 
 /** Real keyboard steering toward a scene coordinate; never changes the world state. */
@@ -277,7 +279,7 @@ test("dismissal stays quiet until leaving the animal and a photographed zebra do
   );
   await assertStill(page);
   await expect(encounter(page)).not.toBeVisible();
-  await expect(page.locator("#clue-count")).toHaveText("1/7");
+  await expect(page.locator("#clue-count")).toHaveText("1/32");
 });
 
 test.describe("phone animal naming", () => {
@@ -413,13 +415,13 @@ test("a version-one save keeps its photo, settings and pending feedback through 
       };
     });
     return dataUrl;
-  }, safariStops);
+  }, safariStoryStops);
   await page.reload();
   await expect(page.locator("#retry-answer")).toBeVisible();
   await expect(page.locator("#scene-chapter")).toContainText(
     "African savanna elephant",
   );
-  await expect(page.locator("#clue-count")).toHaveText("1/7");
+  await expect(page.locator("#clue-count")).toHaveText("1/32");
   await page.locator("#route-button").click();
   await expect(page.locator(".book-page img")).toHaveAttribute("src", photo);
   await page.keyboard.press("Escape");
@@ -460,7 +462,7 @@ test("a version-one save keeps its photo, settings and pending feedback through 
         };
       }),
   );
-  expect(saved.schemaVersion).toBe(2);
+  expect(saved.schemaVersion).toBe(3);
   expect(saved.entries["plains-zebra"].photo!.dataUrl).toBe(photo);
   expect(saved.entries["african-elephant"].identification).toEqual({
     name: "African savanna elephant",

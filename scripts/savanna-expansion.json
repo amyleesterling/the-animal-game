@@ -1,0 +1,194 @@
+{
+  "batch": "savanna-expansion-20260920-v1",
+  "estimatedCreditsPerAsset": 30,
+  "concurrency": 2,
+  "request": {
+    "model_type": "standard",
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": false,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "image_enhancement": false,
+    "target_formats": ["glb"],
+    "multi_view_thumbnails": true
+  },
+  "assets": [
+    {
+      "id": "lamarcks-dung-beetle",
+      "name": "Lamarck’s dung beetle",
+      "reference": "assets/references/savanna-expansion/lamarcks-dung-beetle.png",
+      "targetPolycount": 15000,
+      "scientificName": "Scarabaeus lamarcki"
+    },
+    {
+      "id": "mound-building-termite",
+      "name": "Mound-building termite",
+      "reference": "assets/references/savanna-expansion/mound-building-termite.png",
+      "targetPolycount": 15000,
+      "scientificName": "Macrotermes bellicosus"
+    },
+    {
+      "id": "mopane-emperor-moth",
+      "name": "Mopane emperor moth",
+      "reference": "assets/references/savanna-expansion/mopane-emperor-moth.png",
+      "targetPolycount": 15000,
+      "scientificName": "Gonimbrasia belina"
+    },
+    {
+      "id": "african-monarch",
+      "name": "African monarch",
+      "reference": "assets/references/savanna-expansion/african-monarch.png",
+      "targetPolycount": 15000,
+      "scientificName": "Danaus chrysippus"
+    },
+    {
+      "id": "desert-locust",
+      "name": "Desert locust",
+      "reference": "assets/references/savanna-expansion/desert-locust.png",
+      "targetPolycount": 15000,
+      "scientificName": "Schistocerca gregaria"
+    },
+    {
+      "id": "cape-porcupine",
+      "name": "Cape porcupine",
+      "reference": "assets/references/savanna-expansion/cape-porcupine.png",
+      "targetPolycount": 15000,
+      "scientificName": "Hystrix africaeaustralis"
+    },
+    {
+      "id": "south-african-springhare",
+      "name": "South African springhare",
+      "reference": "assets/references/savanna-expansion/south-african-springhare.png",
+      "targetPolycount": 15000,
+      "scientificName": "Pedetes capensis"
+    },
+    {
+      "id": "striped-grass-mouse",
+      "name": "Striped grass mouse",
+      "reference": "assets/references/savanna-expansion/striped-grass-mouse.png",
+      "targetPolycount": 15000,
+      "scientificName": "Lemniscomys striatus"
+    },
+    {
+      "id": "naked-mole-rat",
+      "name": "Naked mole-rat",
+      "reference": "assets/references/savanna-expansion/naked-mole-rat.png",
+      "targetPolycount": 15000,
+      "scientificName": "Heterocephalus glaber"
+    },
+    {
+      "id": "secretarybird",
+      "name": "Secretarybird",
+      "reference": "assets/references/savanna-expansion/secretarybird.png",
+      "targetPolycount": 15000,
+      "scientificName": "Sagittarius serpentarius"
+    },
+    {
+      "id": "lilac-breasted-roller",
+      "name": "Lilac-breasted roller",
+      "reference": "assets/references/savanna-expansion/lilac-breasted-roller.png",
+      "targetPolycount": 15000,
+      "scientificName": "Coracias caudatus"
+    },
+    {
+      "id": "southern-ground-hornbill",
+      "name": "Southern ground hornbill",
+      "reference": "assets/references/savanna-expansion/southern-ground-hornbill.png",
+      "targetPolycount": 15000,
+      "scientificName": "Bucorvus leadbeateri"
+    },
+    {
+      "id": "helmeted-guineafowl",
+      "name": "Helmeted guineafowl",
+      "reference": "assets/references/savanna-expansion/helmeted-guineafowl.png",
+      "targetPolycount": 15000,
+      "scientificName": "Numida meleagris"
+    },
+    {
+      "id": "grey-crowned-crane",
+      "name": "Grey crowned crane",
+      "reference": "assets/references/savanna-expansion/grey-crowned-crane.png",
+      "targetPolycount": 15000,
+      "scientificName": "Balearica regulorum"
+    },
+    {
+      "id": "white-backed-vulture",
+      "name": "White-backed vulture",
+      "reference": "assets/references/savanna-expansion/white-backed-vulture.png",
+      "targetPolycount": 15000,
+      "scientificName": "Gyps africanus"
+    },
+    {
+      "id": "red-billed-oxpecker",
+      "name": "Red-billed oxpecker",
+      "reference": "assets/references/savanna-expansion/red-billed-oxpecker.png",
+      "targetPolycount": 15000,
+      "scientificName": "Buphagus erythrorynchus"
+    },
+    {
+      "id": "marabou-stork",
+      "name": "Marabou stork",
+      "reference": "assets/references/savanna-expansion/marabou-stork.png",
+      "targetPolycount": 15000,
+      "scientificName": "Leptoptilos crumenifer"
+    },
+    {
+      "id": "aardvark",
+      "name": "Aardvark",
+      "reference": "assets/references/savanna-expansion/aardvark.png",
+      "targetPolycount": 15000,
+      "scientificName": "Orycteropus afer"
+    },
+    {
+      "id": "bat-eared-fox",
+      "name": "Bat-eared fox",
+      "reference": "assets/references/savanna-expansion/bat-eared-fox.png",
+      "targetPolycount": 15000,
+      "scientificName": "Otocyon megalotis"
+    },
+    {
+      "id": "banded-mongoose",
+      "name": "Banded mongoose",
+      "reference": "assets/references/savanna-expansion/banded-mongoose.png",
+      "targetPolycount": 15000,
+      "scientificName": "Mungos mungo"
+    },
+    {
+      "id": "meerkat",
+      "name": "Meerkat",
+      "reference": "assets/references/savanna-expansion/meerkat.png",
+      "targetPolycount": 15000,
+      "scientificName": "Suricata suricatta"
+    },
+    {
+      "id": "olive-baboon",
+      "name": "Olive baboon",
+      "reference": "assets/references/savanna-expansion/olive-baboon.png",
+      "targetPolycount": 15000,
+      "scientificName": "Papio anubis"
+    },
+    {
+      "id": "vervet-monkey",
+      "name": "Vervet monkey",
+      "reference": "assets/references/savanna-expansion/vervet-monkey.png",
+      "targetPolycount": 15000,
+      "scientificName": "Chlorocebus pygerythrus"
+    },
+    {
+      "id": "african-buffalo",
+      "name": "African buffalo",
+      "reference": "assets/references/savanna-expansion/african-buffalo.png",
+      "targetPolycount": 15000,
+      "scientificName": "Syncerus caffer"
+    },
+    {
+      "id": "nile-monitor",
+      "name": "Nile monitor",
+      "reference": "assets/references/savanna-expansion/nile-monitor.png",
+      "targetPolycount": 15000,
+      "scientificName": "Varanus niloticus"
+    }
+  ]
+}

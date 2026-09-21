@@ -204,7 +204,8 @@ afterEach(() => {
   }
 });
 
-describe("offline image-guided safari generation", () => {
+// These cases launch several real Node processes; allow Windows startup time.
+describe("offline image-guided safari generation", { timeout: 20000 }, () => {
   it("submits exactly four authorized image tasks and saves GLBs plus all cardinal views", () => {
     const batch = harness();
     const run = batch.run();

@@ -1,0 +1,40 @@
+{
+  "batch": "savanna-revisions-20260921-v1",
+  "estimatedCreditsPerAsset": 30,
+  "concurrency": 2,
+  "request": {
+    "model_type": "standard",
+    "ai_model": "meshy-7.1",
+    "should_texture": true,
+    "enable_pbr": false,
+    "texture_resolution": "2k",
+    "should_remesh": true,
+    "topology": "triangle",
+    "image_enhancement": false,
+    "target_formats": ["glb"],
+    "multi_view_thumbnails": true
+  },
+  "assets": [
+    {
+      "id": "cape-porcupine",
+      "name": "Cape porcupine",
+      "reference": "assets/references/savanna-revisions/cape-porcupine.png",
+      "targetPolycount": 15000,
+      "scientificName": "Hystrix africaeaustralis"
+    },
+    {
+      "id": "south-african-springhare",
+      "name": "South African springhare",
+      "reference": "assets/references/savanna-revisions/south-african-springhare.png",
+      "targetPolycount": 15000,
+      "scientificName": "Pedetes capensis"
+    },
+    {
+      "id": "bat-eared-fox",
+      "name": "Bat-eared fox",
+      "reference": "assets/references/savanna-revisions/bat-eared-fox.png",
+      "targetPolycount": 15000,
+      "scientificName": "Otocyon megalotis"
+    }
+  ]
+}

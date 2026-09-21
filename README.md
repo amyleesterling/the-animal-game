@@ -30,9 +30,14 @@ See [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md) for the full product, education
 
 ## Play the Sunset Safari
 
-[Start the seven-stop story safari](https://amyleesterling.github.io/the-animal-game/safari.html).
-Help Sophia gather seven clues before sunset, meet seven species, and photograph
-each animal for a saved field book. The vintage Land Cruiser with roof rack is
+[Start the story safari and its 25 extra discoveries](https://amyleesterling.github.io/the-animal-game/safari.html).
+Help Sophia and Cora gather seven story clues, then explore 25 more animals,
+from insects and rodents to birds. Each new animal has three quiz questions,
+a short and long description, size, lifespan and social-life facts, a Wikipedia
+link, and research citations. Search or filter **Route & field book**, or walk
+and drive to discover all 32 species. See [the expansion and research notes](docs/SAVANNA_EXPANSION.md).
+
+Photograph each animal for a saved field book. The vintage Land Cruiser with roof rack is
 now drivable. Choose **Get in the jeep**, then use **W/S** or **↑/↓** for
 forward/reverse, **A/D** or **←/→** to steer, and **Space** to brake.
 **E** boards or exits when stopped with room beside the jeep. On a phone, hold
@@ -73,7 +78,7 @@ Progress, photographs, and preferences are saved in this browser using
 IndexedDB. There are no accounts or backend services.
 
 This original slice focuses on the plains zebra. Its field book and save remain
-separate from the new seven-species story safari.
+separate from the story safari and its additional discoveries.
 The zebra uses Amy's supplied Meshy model, **Zebra Portrait** by
 **amyleerobinson**, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 Its textures are optimized for the game; the source has no skeleton or animation clips.

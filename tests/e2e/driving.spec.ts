@@ -183,7 +183,7 @@ test("keyboard entry starts the story and supports driving, steering, reversing,
       .toBeGreaterThan(0.5);
   });
   expect(distance(onFoot, await vehicle(page))).toBeLessThan(0.05);
-  await expect(page.locator("#clue-count")).toHaveText("0/7");
+  await expect(page.locator("#clue-count")).toHaveText("0/32");
   await expect(page.locator("#save-status")).toHaveText(
     "Story saved on this device",
   );
@@ -274,7 +274,7 @@ test("choosing the next driving destination preserves the parked jeep and saved 
   await page.locator("#leave-photo").click();
   await expect(page.locator("#resume-photo")).toBeVisible();
   await expect(page.locator("#enter-jeep")).toBeEnabled();
-  await expect(page.locator("#clue-count")).toHaveText("0/7");
+  await expect(page.locator("#clue-count")).toHaveText("0/32");
   await page.locator("#resume-photo").click();
   await expect(page.locator("#take-photo")).toBeEnabled();
   await page.locator("#take-photo").click();
@@ -309,7 +309,7 @@ test("choosing the next driving destination preserves the parked jeep and saved 
   );
   await page.reload();
   await expect(page.locator("#scene-chapter")).toContainText(destinationName);
-  await expect(page.locator("#clue-count")).toHaveText("1/7");
+  await expect(page.locator("#clue-count")).toHaveText("1/32");
   await page.locator("#route-button").click();
   await expect(page.locator(".book-page img")).toHaveAttribute("src", photo!);
 });
@@ -345,7 +345,7 @@ test("driving to a revisited unfinished stop keeps controls active and resumes i
       "Story saved on this device",
     );
     await page.locator("#route-button").click();
-    await page.locator('[data-visit="plains-zebra"]').click();
+    await page.locator('#route-list [data-visit="plains-zebra"]').click();
     await page.locator("#drive-next-stop").click();
     await expect(canvas(page)).toHaveAttribute("data-travel-mode", "driving");
     await expect(page.locator("#drive-controls")).toBeVisible();
@@ -372,12 +372,12 @@ test("driving to a revisited unfinished stop keeps controls active and resumes i
   await page.locator("#frame-animal").click();
   await expect(page.locator("#take-photo")).toBeEnabled();
   await page.locator("#take-photo").click();
-  await expect(page.locator("#clue-count")).toHaveText("2/7");
+  await expect(page.locator("#clue-count")).toHaveText("2/32");
   await expect(page.locator("#save-status")).toHaveText(
     "Story saved on this device",
   );
   await page.reload();
-  await expect(page.locator("#clue-count")).toHaveText("2/7");
+  await expect(page.locator("#clue-count")).toHaveText("2/32");
 });
 
 async function touchPoint(locator: Locator, id: number) {

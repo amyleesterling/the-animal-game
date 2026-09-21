@@ -18,7 +18,8 @@ body {
   line-height: 1.5;
 }
 button,
-input {
+input,
+select {
   font: inherit;
 }
 button,
@@ -607,6 +608,76 @@ dialog::backdrop {
   display: grid;
   gap: 8px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.book-tools {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 20px 0 14px;
+}
+.book-tools label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+.book-tools input,
+.book-tools select {
+  min-width: 0;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px;
+  border: 1px solid #81916e;
+  border-radius: 9px;
+  color: var(--ink);
+  background: #fffef8;
+}
+.book-tools button {
+  grid-column: 1/-1;
+}
+#book-results {
+  margin-bottom: 12px;
+}
+.animal-stats {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0;
+}
+.animal-stats > div {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+.animal-stats dt {
+  font-weight: 700;
+}
+.animal-stats dd {
+  margin: 3px 0 0;
+  line-height: 1.5;
+}
+.fact-citations {
+  font-size: 14px;
+  white-space: normal;
+}
+.fact-citations a {
+  display: inline-block;
+  padding: 2px;
+}
+.viewing-note {
+  border-left: 3px solid #728047;
+  padding: 8px 12px;
+  background: #e8edd9;
+}
+.quiz-review ol {
+  padding-left: 24px;
+}
+.quiz-review ol > li {
+  padding-bottom: 16px;
+}
+.animal-profile summary {
+  font-weight: 600;
 }
 .route-list button {
   width: 100%;
@@ -726,6 +797,9 @@ details p {
   }
 }
 @media (max-width: 700px) {
+  .book-tools {
+    grid-template-columns: 1fr;
+  }
   .vehicle-card {
     position: relative;
     top: auto;

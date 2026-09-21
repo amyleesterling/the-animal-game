@@ -45,7 +45,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("seven-stop safari world", () => {
+describe("32-animal safari world", () => {
   it.each(safariStops)(
     "grounds $name and fits its full real mesh into phone and landscape photos",
     async (stop) => {
@@ -78,7 +78,7 @@ describe("seven-stop safari world", () => {
       const eye = views.observation.clone().add(new THREE.Vector3(0, 1.65, 0));
       for (const aspect of [0.5, 4 / 3, 3.6]) {
         const camera = new THREE.PerspectiveCamera(48, aspect, 0.1, 320);
-        frameSafariPhoto(camera, bounds, eye);
+        frameSafariPhoto(camera, bounds, eye, Boolean(stop.profile));
         for (const x of [bounds.min.x, bounds.max.x])
           for (const y of [bounds.min.y, bounds.max.y])
             for (const z of [bounds.min.z, bounds.max.z]) {

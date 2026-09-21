@@ -1,7 +1,7 @@
 {
-  "purpose": "Tap the ground to walk, discoveries only for animals in view, photo opens its page",
-  "sourceBranch": "claude/field-notebook-design",
-  "sourceCommit": "385035fffcc195e9a8b29e705bdee5cde03aaeda",
-  "builtAt": "2026-09-21T19:44:24.766972+00:00",
-  "publishedAt": "2026-09-21T19:44:24.766972+00:00"
+  "purpose": "Notebook merged with the observation flow: sighting, notes, quiz, photo, book page",
+  "sourceBranch": "claude/notebook-observation-merge",
+  "sourceCommit": "48acd9b40bb2978f65b50f92e75cab6603899380",
+  "builtAt": "2026-09-21T20:19:30.904211+00:00",
+  "publishedAt": "2026-09-21T20:19:30.904211+00:00"
 }

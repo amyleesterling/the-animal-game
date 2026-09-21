@@ -2,6 +2,7 @@ import "./safari.css";
 import "./field-notebook.css";
 import { safariStops, safariStoryStops, safariEnding } from "./content/safari";
 import { renderFieldEntry } from "./ui/field-entry";
+import { publicAsset } from "./public-asset";
 import {
   armBackgroundMusic,
   musicEnabled,
@@ -49,7 +50,7 @@ const app = document.querySelector<HTMLDivElement>("#safari-app")!;
 app.innerHTML = `
   <header class="safari-header">
     <a class="brand" href="./"><span class="brand-mark" aria-hidden="true">S</span><span>Sophia’s Wild World<span class="brand-sub">The Sunset Safari</span></span></a>
-    <nav aria-label="Safari tools"><button id="route-button"><img class="route-icon" src="/assets/notebook/cover-icon.webp" alt="" width="74" height="96">Route & field book <span id="clue-count">0/${safariStops.length}</span></button><button id="settings-button" aria-label="Settings">Settings</button></nav>
+    <nav aria-label="Safari tools"><button id="route-button"><img class="route-icon" src="${publicAsset("/assets/notebook/cover-icon.webp")}" alt="" width="74" height="96">Route & field book <span id="clue-count">0/${safariStops.length}</span></button><button id="settings-button" aria-label="Settings">Settings</button></nav>
   </header>
   <div id="save-banner" class="notice" role="alert" hidden></div>
   <main class="safari-stage">
@@ -77,7 +78,7 @@ app.innerHTML = `
   </main>
   <footer class="safari-footer"><span id="save-status" role="status">Opening your field book…</span><span>Created by Sophia, age 7, with AI and help from her mom.</span></footer>
   <dialog id="encounter-dialog" aria-labelledby="encounter-title" aria-describedby="encounter-intro"><div class="dialog-top"><div><p class="eyebrow">A wildlife discovery</p><h2 id="encounter-title">What animal did you find?</h2></div><button id="encounter-later" data-close>Keep exploring</button></div><p id="encounter-intro" class="dialog-intro">Look at your nearby neighbor. Type its name, or skip and we’ll help you.</p><form id="name-animal"><div id="animal-name-field"><label for="animal-name">Animal name</label><input id="animal-name" name="animal" type="text" maxlength="60" autocomplete="off" autocapitalize="none" placeholder="Type an animal name" aria-describedby="name-feedback" required></div><p id="name-feedback" role="status" aria-live="polite"></p><div class="actions"><button id="confirm-animal" class="primary" type="submit">Continue to quiz</button><button id="skip-animal" type="button">Skip · tell me the name</button></div></form><p id="encounter-driving-note" class="secondary" hidden>The jeep is paused. We’ll step out when you continue.</p></dialog>
-  <div id="notebook-intro" class="notebook-intro" hidden aria-hidden="true"><video id="notebook-intro-video" src="/assets/notebook/opening.mp4" muted playsinline preload="auto"></video></div>
+  <div id="notebook-intro" class="notebook-intro" hidden aria-hidden="true"><video id="notebook-intro-video" src="${publicAsset("/assets/notebook/opening.mp4")}" muted playsinline preload="auto"></video></div>
   <dialog id="book-dialog" aria-labelledby="book-title"><div class="notebook-body"><div class="notebook-head"><div><p class="eyebrow">Tanzania, 2026</p><h2 id="book-title">Route & field book</h2></div><button data-close aria-label="Close field book">Close</button></div><div class="notebook-spread"><section class="notebook-page notebook-page--index" aria-label="Route index"><p class="dialog-intro">Seven story clues and 25 more animals to discover, from insects to birds. This imagined reserve brings together wildlife from different African regions. Check each profile for its real range.</p><div class="book-tools"><label for="book-search">Find an animal<input id="book-search" type="search" placeholder="Name or scientific name"></label><label for="book-group">Animal group<select id="book-group"><option value="all">All animals</option><option value="Insect">Insects</option><option value="Rodent">Rodents</option><option value="Bird">Birds</option><option value="Mammal">Other mammals</option><option value="Reptile">Reptiles</option></select></label><button id="book-view" aria-pressed="false">Browse all animal profiles</button></div><p id="book-results" class="secondary" role="status"></p><ol id="route-list" class="route-list"></ol></section><section class="notebook-page notebook-page--entries" aria-label="Your field book pages"><div id="book-pages" class="book-pages"></div></section></div></div></dialog>
   <dialog id="settings-dialog" aria-labelledby="settings-title"><div class="dialog-top"><h2 id="settings-title">Make it yours</h2><button data-close aria-label="Close settings">Close</button></div><div class="settings-fields"><label><span>Read the story aloud</span><input id="narration-setting" type="checkbox"></label><label><span>Background music</span><input id="music-setting" type="checkbox"></label><label class="volume"><span>Narration volume</span><input id="volume-setting" type="range" min="0" max="1" step="0.05"></label><label><span>Reduce motion</span><input id="motion-setting" type="checkbox"></label><label><span>Lighter graphics</span><input id="quality-setting" type="checkbox"></label></div><p class="secondary">Narration uses an available local English voice. Every instruction also appears on screen.</p><details><summary>About this safari</summary><p class="secondary">An imagined savanna adventure with sourced natural history. Animal models and poses are prototypes. Sources are listed beside each discovery in your field book.</p></details><button id="restart-button" class="danger">Restart this story</button><p class="secondary">This replaces only the story safari. Your classic zebra encounter stays separate.</p></dialog>
   <p id="announcement" class="sr-only" aria-live="polite"></p>`;
@@ -824,7 +825,7 @@ function renderBook() {
         )
         .join("")}`
     : matching.length
-      ? `<div class="notebook-empty"><img src="/assets/notebook/cover-hero.webp" alt="" width="574" height="620" loading="lazy"><p class="empty-book">No pages yet. Walk or drive near an animal to start its page, or choose Browse all animal profiles to read ahead.</p></div>`
+      ? `<div class="notebook-empty"><img src="${publicAsset("/assets/notebook/cover-hero.webp")}" alt="" width="574" height="620" loading="lazy"><p class="empty-book">No pages yet. Walk or drive near an animal to start its page, or choose Browse all animal profiles to read ahead.</p></div>`
       : `<p class="empty-book">No animals match. Try a shorter name or another group.</p>`;
   $("book-dialog")
     .querySelectorAll<HTMLButtonElement>("[data-visit]")

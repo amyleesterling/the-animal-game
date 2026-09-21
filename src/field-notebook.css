@@ -579,29 +579,52 @@ h4.entry-label {
   position: relative;
 }
 
-/* Two strips of paper tape holding the photograph down. */
+/* Amy's tape, two strips holding the photograph down. */
 .entry-plate:has(img)::before,
 .entry-plate:has(img)::after {
   content: "";
   position: absolute;
-  top: 16px;
-  width: 50px;
-  height: 16px;
-  background: #e5d8b79e;
-  border-left: 1px solid #00000010;
-  border-right: 1px solid #00000010;
+  top: 15px;
+  width: 74px;
+  height: 13px;
+  background: url("/assets/notebook/tape.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 1px 1px #00000026);
   pointer-events: none;
   z-index: 1;
 }
 
 .entry-plate:has(img)::before {
-  left: -4px;
-  transform: rotate(-7deg);
+  left: -7px;
+  transform: rotate(-8deg);
 }
 
 .entry-plate:has(img)::after {
-  right: -4px;
+  right: -7px;
   transform: rotate(7deg);
+}
+
+/* Her leather corner, on the two outer corners of the open book. The spine
+   already covers the binding edge, so only the fore edge corners are dressed. */
+.notebook-body::before,
+.notebook-body::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  width: 38px;
+  height: 38px;
+  background: url("/assets/notebook/corner.webp") center / contain no-repeat;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.notebook-body::before {
+  top: 10px;
+  transform: scaleX(-1);
+}
+
+.notebook-body::after {
+  bottom: 10px;
+  transform: scale(-1);
 }
 
 .entry-title {

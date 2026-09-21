@@ -18,6 +18,8 @@
  * save settings later is a content migration, not a rewrite of this file.
  */
 
+import { publicAsset } from "../public-asset";
+
 const STORAGE_KEY = "sophias-wild-world-music";
 const TRACK = "/assets/audio/mazingira-mpya-loop.m4a";
 
@@ -86,7 +88,7 @@ function watchNarration() {
 
 function ensureAudio() {
   if (audio) return audio;
-  audio = new Audio(TRACK);
+  audio = new Audio(publicAsset(TRACK));
   audio.loop = true;
   audio.preload = "none";
   audio.volume = 0;

@@ -269,7 +269,7 @@
       "type": "image-set",
       "path": "public/assets/notebook/",
       "title": "Field Notes notebook and writing tools",
-      "provenance": "Rendered by Amy and supplied as PNG plates with alpha: a closed leather Field Notes cover lettered Tanzania, 2026 (front, back, spine, fore edge and two three-quarter angles) and one sheet of four pens and pencils. Claude cut the four tools apart on the alpha channel already present in the sheet, trimmed each plate to its alpha bounding box, resized and re-encoded to WebP. No repainting, recolouring or generated detail. Full resolution plates kept in assets/references/notebook.",
+      "provenance": "Rendered by Amy and supplied as PNG plates with alpha: a closed leather Field Notes cover lettered Tanzania, 2026 (front, back, spine, fore edge and two three-quarter angles) and one sheet of four pens and pencils. Claude cut the four tools apart on the alpha channel already present in the sheet, trimmed each plate to its alpha bounding box, resized and re-encoded to WebP. No repainting, recolouring or generated detail. Full resolution plates kept in assets/references/notebook. A second batch adds section tabs for Birds, Insects, Mammals and Rodents, a leather corner and two tape strips, also rendered by Amy and supplied with alpha; same treatment, trimmed to the alpha bounding box and re-encoded. Tabs for Reptiles and for All animals were not supplied, so the tab strip is not wired yet.",
       "sources": [
         {
           "file": "pens and pencils.png",
@@ -278,6 +278,11 @@
         }
       ],
       "files": [
+        {
+          "file": "corner.webp",
+          "bytes": 11414,
+          "sha256": "61b202bdd3defaf655f277737454fc06e95fdaa8f769d677fa9d86290926fe01"
+        },
         {
           "file": "cover-hero.webp",
           "bytes": 94552,
@@ -312,6 +317,36 @@
           "file": "spine.webp",
           "bytes": 31804,
           "sha256": "a0b105aa2821797fe9d037146d5c60c2785e4da03e26afc4075c70b78e4d9658"
+        },
+        {
+          "file": "tab-bird.webp",
+          "bytes": 14844,
+          "sha256": "248780f67be650a4d15003c797907ae0da04fc83222457c49147c9378f6d2db5"
+        },
+        {
+          "file": "tab-insect.webp",
+          "bytes": 14954,
+          "sha256": "9e66547fe24646aa99f2c35cf117a13964d96421b2ac35b99001a83f77c3edef"
+        },
+        {
+          "file": "tab-mammal.webp",
+          "bytes": 17028,
+          "sha256": "706a871460481ca24dc7b1c5ddef67993d4eef58a39b2f6b5d31bb0e921d5901"
+        },
+        {
+          "file": "tab-rodent.webp",
+          "bytes": 13608,
+          "sha256": "018312e4ee783d2be9834e231b8be3a6c25732e9b4143a979346720880056a75"
+        },
+        {
+          "file": "tape-canvas.webp",
+          "bytes": 22998,
+          "sha256": "99a52060ccbcf367593c1c7e26e72134adc8b6435eca8169ecca6c1761c3fa1d"
+        },
+        {
+          "file": "tape.webp",
+          "bytes": 6760,
+          "sha256": "6e7cd4b62d68e08f1c4ad1abecd0d9095300ad3e68740d25ebe969fe6c8fd0f8"
         }
       ]
     },
@@ -343,13 +378,13 @@
           "file": "Mazingira Mpya safari game background WAV.wav",
           "bytes": 37123612,
           "sha256": "275c256f8231cf5b4b1d49cc0b892304ab607e01027b31c2d43f14eeb669eb22",
-          "location": "Not committed. The WAV master, 37 MB, stays outside the repository because this repo is public and the track's redistribution licence is unrecorded. Amy holds it in her Music folder. The sha256 above identifies it."
+          "location": "Master WAV not committed; Amy holds it in her Music folder. The sha256 above identifies it."
         }
       ],
       "bytes": 2222242,
       "sha256": "03587c3eaca39ae1044b7fc48fc77c7b49aa681a4d178c5f28c586a8544abbb1",
       "durationSeconds": 181.0,
-      "licenseStatus": "UNRECORDED. Amy generated this track on a paid music service and downloaded the WAV. The service, its terms and the redistribution licence for a public GitHub Pages build are not known to this record and must be filled in by Amy before release. Do not infer them."
+      "license": "Amy holds the rights to this track and has stated it is fine to ship open in this public repository (2026-09-21). Recorded as her statement, not as a named licence."
     }
   ],
   "missingProductionAssets": [

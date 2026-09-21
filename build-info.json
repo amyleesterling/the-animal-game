@@ -1,7 +1,7 @@
 {
-  "purpose": "Phone: bigger savanna, compact jeep row, icon photo controls, index opens pages, opening title page",
+  "purpose": "Tap the ground to walk, discoveries only for animals in view, photo opens its page",
   "sourceBranch": "claude/field-notebook-design",
-  "sourceCommit": "338c19dfc271414d52805ed9661a130b454dfca0",
-  "builtAt": "2026-09-21T19:22:03.859589+00:00",
-  "publishedAt": "2026-09-21T19:22:03.859589+00:00"
+  "sourceCommit": "385035fffcc195e9a8b29e705bdee5cde03aaeda",
+  "builtAt": "2026-09-21T19:44:24.766972+00:00",
+  "publishedAt": "2026-09-21T19:44:24.766972+00:00"
 }

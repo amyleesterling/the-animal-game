@@ -538,21 +538,33 @@
   color: var(--nb-ink-soft);
 }
 
-/* A stamp, the way a specimen sheet is marked off once the record is complete. */
+/* The date the record was completed. The park stamp below carries the mark. */
 .entry-stamp {
   flex-shrink: 0;
   margin-left: auto;
   white-space: nowrap;
-  padding: 3px 8px;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--nb-margin);
-  border: 2px solid var(--nb-margin);
-  border-radius: 3px;
-  transform: rotate(-3deg);
-  opacity: 0.85;
+}
+
+/* Amy's Tarangire stamp, struck on a page once its record is complete. It sits
+   over the research block, where a real stamp would land, and is decoration
+   only: the date beside the specimen number is what actually says when. */
+#book-dialog .field-entry:has(.entry-plate img)::after {
+  content: "";
+  position: absolute;
+  right: 4px;
+  bottom: 54px;
+  width: 88px;
+  height: 88px;
+  background: url("/assets/notebook/park-stamp.webp") center / contain no-repeat;
+  opacity: 0.62;
+  transform: rotate(-13deg);
+  pointer-events: none;
+  z-index: 2;
 }
 
 /* Every printed label on the form shares one voice. */

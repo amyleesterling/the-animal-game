@@ -66,7 +66,7 @@ app.innerHTML = `
         <div class="drive-steering"><button data-drive="left" aria-label="Steer left"><span aria-hidden="true">←</span>Left</button><button data-drive="right" aria-label="Steer right"><span aria-hidden="true">→</span>Right</button></div>
         <div class="drive-pedals"><button data-drive="forward" aria-label="Accelerate"><span aria-hidden="true">↑</span>Go</button><button data-drive="backward" aria-label="Reverse"><span aria-hidden="true">↓</span>Reverse</button><button id="brake-jeep" aria-label="Brake"><span aria-hidden="true">■</span>Brake</button></div>
       </div>
-      <p id="scene-keyboard" class="scene-keyboard">Walk: W A S D or arrow keys · E: get in · Look: drag</p>
+      <p id="scene-keyboard" class="scene-keyboard">Tap the ground to walk there · W A S D or arrow keys · E: get in · Drag to look</p>
     </div>
     <section id="vehicle-card" class="vehicle-card" aria-label="Safari jeep" hidden>
       <div id="walking-vehicle"><p class="eyebrow">Your Land Cruiser</p><button id="enter-jeep" class="primary" disabled>Get in the jeep</button><button id="return-jeep" hidden>Return to the jeep</button><p id="vehicle-hint" class="secondary">Getting the jeep ready…</p></div>
@@ -286,7 +286,7 @@ function render(announce = true) {
     body = `<p class="eyebrow">Add a picture to your field book</p><h1 id="story-title" tabindex="-1">Photograph the ${animal.name.toLowerCase()}</h1><p id="photo-status" role="status">Preparing your view…</p><p class="secondary photo-help">Drag the view to choose an angle. Pinch or scroll to zoom. The frame shows what your photo will capture.</p><div class="photo-controls" role="group" aria-label="Adjust the photo view"><button data-photo-adjust="orbit-left" aria-label="Turn left"><span class="ctl-icon" aria-hidden="true">↶</span><span class="ctl-label">Turn left</span></button><button data-photo-adjust="orbit-right" aria-label="Turn right"><span class="ctl-icon" aria-hidden="true">↷</span><span class="ctl-label">Turn right</span></button><button data-photo-adjust="aim-up" aria-label="Aim up"><span class="ctl-icon" aria-hidden="true">↑</span><span class="ctl-label">Aim up</span></button><button data-photo-adjust="aim-down" aria-label="Aim down"><span class="ctl-icon" aria-hidden="true">↓</span><span class="ctl-label">Aim down</span></button><button data-photo-adjust="zoom-in" aria-label="Closer"><span class="ctl-icon" aria-hidden="true">+</span><span class="ctl-label">Closer</span></button><button data-photo-adjust="zoom-out" aria-label="Farther"><span class="ctl-icon" aria-hidden="true">−</span><span class="ctl-label">Farther</span></button></div><div class="actions">${button("frame-animal", "Reset view")}${button("take-photo", "Take photo", true)}</div>${button("leave-photo", "Back to exploring")}`;
     narration = `Photograph the ${animal.name.toLowerCase()}. Drag the scene or use the photo controls to choose your view. Choose Take photo when you like the composition.`;
   } else if (mode === "success") {
-    body = `<div class="discovery-top"><img class="photo-thumb" src="${discovery.photo!.dataUrl}" alt="Your photograph of the ${animal.name.toLowerCase()}"><div><p class="eyebrow">${clueCount} of ${safariStops.length} animals recorded</p><h1 id="story-title" tabindex="-1">${animal.clue}</h1></div></div><p>${animal.facts[0]}</p>${nextStop ? button("drive-next-stop", "Back to jeep & drive →", true) : ""}<div class="actions">${button("retake-photo", "Retake photo")}${nextStop ? button("next-stop", "Quick jump to next stop") : ""}${storyComplete ? button("finish-safari", "See our seven clues →", true) : ""}${button("discovery-book", "Explore the animal guide")}</div><p class="secondary">${nextStop ? `Suggested next stop: ${nextStop.name}. Drive there, or take a quick jump.` : "The field book is ready. Let’s bring it all together."}</p>`;
+    body = `<div class="discovery-top"><img class="photo-thumb" src="${discovery.photo!.dataUrl}" alt="Your photograph of the ${animal.name.toLowerCase()}"><div><p class="eyebrow">${clueCount} of ${safariStops.length} animals recorded</p><h1 id="story-title" tabindex="-1">${animal.clue}</h1></div></div><p>${animal.facts[0]}</p>${nextStop ? button("drive-next-stop", "Back to jeep & drive →", true) : ""}<div class="actions">${button("retake-photo", "Retake photo")}${nextStop ? button("next-stop", "Quick jump to next stop") : ""}${storyComplete ? button("finish-safari", "See our seven clues →", true) : ""}${button("discovery-book", "See its page in my field book")}</div><p class="secondary">${nextStop ? `Suggested next stop: ${nextStop.name}. Drive there, or take a quick jump.` : "The field book is ready. Let’s bring it all together."}</p>`;
     narration = `${clueCount} of ${safariStops.length} animals recorded. ${animal.clue}. ${animal.facts[0]} ${nextStop ? `Back to the jeep. Suggested next stop: ${nextStop.name}.` : "Your field book is complete. Let’s explore what we found."}`;
   } else {
     body = `<p class="eyebrow">Your sunset field book · 7 of 7</p><h1 id="story-title" tabindex="-1">One connected home.</h1><p>${safariEnding}</p><div class="clue-pills">${safariStoryStops.map((s) => `<span>${s.clue}</span>`).join("")}</div><div class="actions">${button("open-finished-book", "Open my field book", true)}${button("revisit-route", "Explore again")}</div>`;
@@ -400,7 +400,7 @@ function render(announce = true) {
     mode = "ending";
     render();
   });
-  bind("discovery-book", openBook);
+  bind("discovery-book", () => openBookAt(stop().id));
   bind("open-finished-book", openBook);
   bind("revisit-route", openBook);
   updateStatus();
@@ -502,12 +502,19 @@ function updateVehicleControls() {
       : "Move to an open spot so there is room to get out.";
   $("scene-keyboard").textContent = driving
     ? "W / ↑: go · S / ↓: reverse · A D / ← →: steer · Space: brake · E: get out"
-    : "Walk: W A S D or arrow keys · E: get in · Look: drag";
+    : "Tap the ground to walk there · W A S D or arrow keys · E: get in · Drag to look";
 }
+/**
+ * An animal you cannot see is not a discovery. Range alone offered the popup
+ * for a small animal standing ten metres away and out of frame, so the animal
+ * has to be in view as well.
+ */
 function nearbyDiscovery() {
   return status.encounters.find(
     (animal) =>
-      animal.distance <= animal.range && !progress.entries[animal.id]?.photo,
+      animal.distance <= animal.range &&
+      animal.onScreen &&
+      !progress.entries[animal.id]?.photo,
   );
 }
 // World status can arrive during render/setActive. Defer modal transitions so
@@ -911,6 +918,15 @@ function playNotebookOpening() {
     video.currentTime = 0;
     void video.play().catch(finish);
   });
+}
+/** Open the book turned to one animal's page, the one just photographed. */
+async function openBookAt(id: string) {
+  const leaf = safariStops.findIndex((animal) => animal.id === id);
+  if (leaf >= 0) {
+    browseAllProfiles = true;
+    bookLeaf = leaf;
+  }
+  await openBook();
 }
 async function openBook() {
   renderBook();

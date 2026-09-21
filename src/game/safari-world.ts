@@ -965,11 +965,36 @@ export function createSafariWorld(
       prioritizeSafariModels(options.stops, stop.id, explorer.root.position),
     );
     diagnosticState();
+    // collectSafariEncounters stays pure and distance-only; whether an animal
+    // is actually in view needs the camera, which only exists here.
+    const heights = new Map(
+      options.stops.map((animal) => [animal.id, animal.height]),
+    );
+    const places = new Map(
+      options.stops.map((animal) => [animal.id, animal.position]),
+    );
     const encounters = collectSafariEncounters(
       options.stops,
       explorer.root.position,
       animals,
-    );
+    ).map((animal) => {
+      const place = places.get(animal.id);
+      if (!place || animal.distance > animal.range)
+        return { ...animal, onScreen: false };
+      const point = new THREE.Vector3(
+        place[0],
+        place[1] + (heights.get(animal.id) ?? 1) * 0.5,
+        place[2],
+      ).project(camera);
+      return {
+        ...animal,
+        onScreen:
+          Math.abs(point.x) < 0.9 &&
+          Math.abs(point.y) < 0.9 &&
+          point.z > -1 &&
+          point.z < 1,
+      };
+    });
     // Diagnostics identify an actionable encounter, not a distant route goal.
     const nearest = encounters.find(
       (animal) => animal.distance <= animal.range,
@@ -1302,6 +1327,42 @@ export function createSafariWorld(
     if (keys[event.code]) setMovement(keys[event.code], false);
     if (event.code === "Space") setBrake(false);
   };
+  /**
+   * Tap the ground to walk there. A drag still turns the view, so a press only
+   * becomes a walk if the finger barely moved and was not held. The target is
+   * capped and collision resolved, so a tap at the horizon walks a sensible
+   * way toward it rather than across the whole map or into a tree.
+   */
+  const GROUND_PLANE = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+  const TAP_SLOP = 9;
+  const TAP_MS = 550;
+  const WALK_REACH = 30;
+  let pressStart = 0;
+  let pressX = 0;
+  let pressY = 0;
+  let pressWandered = false;
+  const walkToPointer = (event: PointerEvent) => {
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    raycaster.far = Infinity;
+    raycaster.setFromCamera(
+      new THREE.Vector2(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -((event.clientY - rect.top) / rect.height) * 2 + 1,
+      ),
+      camera,
+    );
+    const hit = new THREE.Vector3();
+    if (!raycaster.ray.intersectPlane(GROUND_PLANE, hit)) return;
+    const away = hit.clone().sub(explorer.root.position).setY(0);
+    const reach = away.length();
+    if (reach < 0.35) return;
+    if (reach > WALK_REACH) away.multiplyScalar(WALK_REACH / reach);
+    const target = explorer.root.position.clone().add(away);
+    const ground = { x: target.x, z: target.z };
+    resolveCollisions(ground);
+    guide = new THREE.Vector3(ground.x, 0, ground.z);
+  };
   const onPointerDown = (event: PointerEvent) => {
     if (
       !active ||
@@ -1312,6 +1373,10 @@ export function createSafariWorld(
     )
       return;
     if (arrival) return;
+    pressStart = performance.now();
+    pressX = event.clientX;
+    pressY = event.clientY;
+    pressWandered = false;
     if (photoMode) {
       photoPointers.set(event.pointerId, {
         x: event.clientX,
@@ -1349,6 +1414,8 @@ export function createSafariWorld(
       return;
     }
     if (!dragging) return;
+    if (Math.hypot(event.clientX - pressX, event.clientY - pressY) > TAP_SLOP)
+      pressWandered = true;
     yaw -= (event.clientX - pointerX) * 0.006;
     if (driving) yaw = THREE.MathUtils.clamp(yaw, -1.1, 1.1);
     pitch = THREE.MathUtils.clamp(
@@ -1360,10 +1427,26 @@ export function createSafariWorld(
     pointerY = event.clientY;
   };
   const onPointerUp = (event: PointerEvent) => {
+    const tapped =
+      dragging &&
+      !pressWandered &&
+      performance.now() - pressStart < TAP_MS &&
+      Math.hypot(event.clientX - pressX, event.clientY - pressY) <= TAP_SLOP;
     photoPointers.delete(event.pointerId);
     if (canvas.hasPointerCapture(event.pointerId))
       canvas.releasePointerCapture(event.pointerId);
     dragging = false;
+    if (
+      tapped &&
+      active &&
+      !disposed &&
+      !contextLost &&
+      !document.hidden &&
+      !photoMode &&
+      !driving &&
+      !arrival
+    )
+      walkToPointer(event);
   };
   const onWheel = (event: WheelEvent) => {
     if (

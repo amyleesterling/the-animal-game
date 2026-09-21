@@ -31,7 +31,16 @@ export type SafariStatus = {
   /** Ground position remains available when distant models leave the cache. */
   explorerPosition?: { x: number; z: number };
   /** Loaded animals, nearest first, independently of the chosen story stop. */
-  encounters: { id: string; distance: number; range: number }[];
+  /**
+   * onScreen means the animal is actually within the player's view, not merely
+   * within range. A 22 cm oxpecker ten metres away is in range and invisible.
+   */
+  encounters: {
+    id: string;
+    distance: number;
+    range: number;
+    onScreen: boolean;
+  }[];
   nearby: boolean;
   photoReady: boolean;
   distance: number;

@@ -29,6 +29,7 @@ import {
   loadSafariModel,
   type SafariModel,
 } from "./safari-model";
+import { createSafariWheelRig } from "./safari-wheels";
 import {
   findVehicleExit,
   SAFARI_BOUNDS,
@@ -755,6 +756,8 @@ export function createSafariWorld(
   if (companion) scene.add(companion.root);
   const jeep = new THREE.Group();
   let fallbackJeep: THREE.Group | undefined = createSafariJeepFallback();
+  let wheelRig = createSafariWheelRig("fallback");
+  fallbackJeep.add(wheelRig.root);
   jeep.add(fallbackJeep);
   scene.add(jeep);
   const controller = new AbortController();
@@ -798,6 +801,13 @@ export function createSafariWorld(
     heading: -0.12,
     speed: 0,
     steering: 0,
+  };
+  let wheelRoll = 0;
+  let wheelSteer = 0;
+  let previousWheelPosition = {
+    x: vehicle.x,
+    z: vehicle.z,
+    heading: vehicle.heading,
   };
   let contextLost = false;
   let stop = options.stops[0];
@@ -896,6 +906,8 @@ export function createSafariWorld(
     canvas.dataset.vehicleZ = String(vehicle.z);
     canvas.dataset.vehicleHeading = String(vehicle.heading);
     canvas.dataset.vehicleSpeed = String(vehicle.speed);
+    canvas.dataset.wheelRoll = String(wheelRoll);
+    canvas.dataset.wheelSteer = String(wheelSteer);
     canvas.dataset.explorerX = String(explorer.root.position.x);
     canvas.dataset.explorerZ = String(explorer.root.position.z);
     canvas.dataset.loadedAnimalCount = String(animals.size);
@@ -918,7 +930,31 @@ export function createSafariWorld(
       }
     }
   }
-  function syncVehicle() {
+  function syncVehicle(elapsed = 0, scripted = false) {
+    const headingChange = Math.atan2(
+      Math.sin(vehicle.heading - previousWheelPosition.heading),
+      Math.cos(vehicle.heading - previousWheelPosition.heading),
+    );
+    const middleHeading = previousWheelPosition.heading + headingChange / 2;
+    const distance =
+      (vehicle.x - previousWheelPosition.x) * Math.cos(middleHeading) -
+      (vehicle.z - previousWheelPosition.z) * Math.sin(middleHeading);
+    if (elapsed > 0 && Number.isFinite(distance))
+      wheelRoll = (wheelRoll + distance / 0.45) % (Math.PI * 2);
+    wheelSteer =
+      scripted && Math.abs(distance) > 0.001 && elapsed > 0
+        ? THREE.MathUtils.clamp(
+            Math.atan((headingChange * 2.9) / distance),
+            -0.5,
+            0.5,
+          )
+        : vehicle.steering;
+    wheelRig.setPose(wheelRoll, wheelSteer);
+    previousWheelPosition = {
+      x: vehicle.x,
+      z: vehicle.z,
+      heading: vehicle.heading,
+    };
     jeep.position.set(vehicle.x, 0, vehicle.z);
     jeep.rotation.y = vehicle.heading;
     if (driving) explorer.root.position.copy(jeep.position);
@@ -1414,6 +1450,9 @@ export function createSafariWorld(
         fallbackJeep = undefined;
       }
       jeepModel = model;
+      wheelRig = createSafariWheelRig("imported");
+      model.root.add(wheelRig.root);
+      wheelRig.setPose(wheelRoll, wheelSteer);
       jeep.add(model.root);
       canvas.dataset.jeepState = "loaded";
       updateStatus();
@@ -1431,7 +1470,7 @@ export function createSafariWorld(
     vehicle.heading = sample.jeep.heading;
     vehicle.speed = sample.jeep.speed;
     vehicle.steering = 0;
-    syncVehicle();
+    syncVehicle(seconds, true);
     explorer.root.position.set(sample.sophia.x, 0, sample.sophia.z);
     explorer.root.rotation.y = sample.sophia.heading;
     explorer.root.visible = active && sample.sophia.visible;
@@ -1541,7 +1580,7 @@ export function createSafariWorld(
           seconds,
           vehicleObstacles(),
         );
-        syncVehicle();
+        syncVehicle(seconds);
       } else if (guide) {
         velocity
           .copy(guide)

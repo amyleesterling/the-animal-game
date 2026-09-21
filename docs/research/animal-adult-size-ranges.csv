@@ -1,0 +1,33 @@
+species_id,common_name,male_head_min_cm,male_head_max_cm,female_head_min_cm,female_head_max_cm,male_mass_min_kg,male_mass_max_kg,female_mass_min_kg,female_mass_max_kg,source_url
+plains-zebra,Plains zebra,,,,,211.4,340.2,198,320.3,https://doi.org/10.1093/jmammal/gyag044
+african-elephant,African savanna elephant,,,,,4500,6100,2000,3500,https://animaldiversity.org/accounts/Loxodonta_africana/
+giraffe,Northern giraffe,,,,,,,,,https://www.dublinzoo.ie/animals/nubian-giraffe/
+common-warthog,Common warthog,,,,,60,150,50,75,https://animals.sandiegozoo.org/animals/warthog
+thomsons-gazelle,Thomson's gazelle,,,,,20,35,15,25,https://animaldiversity.org/accounts/Eudorcas_thomsonii/
+cheetah,Cheetah,,,,,40,55,30,45,https://www.cheetah-research.org/morphology-and-physiology
+spotted-hyena,Spotted hyena,,,,,45,64,54,84,https://milwaukeezoo.org/visit/meet-our-animals/spotted-hyena/
+lamarcks-dung-beetle,Lamarck's dung beetle,,,,,,,,,https://doi.org/10.1098/rsif.2019.0181
+mound-building-termite,Mound-building termite,,,,,,,,,https://doi.org/10.1371/journal.pone.0028571
+mopane-emperor-moth,Mopane emperor moth,,,,,,,,,https://www.1ksa.org.za/species-cards/gonimbrasia-belina
+african-monarch,African monarch,,,,,,,,,https://www.mdpi.com/2075-4450/15/2/121
+desert-locust,Desert locust,,,,,,,,,https://doi.org/10.1371/journal.pone.0244733
+cape-porcupine,Cape porcupine,,,,,14.5,19.1,13.6,24.1,https://academic.oup.com/mspecies/article/doi/10.1644/788.1/2600845
+south-african-springhare,South African springhare,,,,,,,,,https://www.mdpi.com/2304-8158/9/8/1096
+striped-grass-mouse,Striped grass mouse,,,,,,,,,https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat/44-tiskoviny?d=418-mys-paskovana&start=
+naked-mole-rat,Naked mole-rat,,,,,,,,,https://nationalzoo.si.edu/animals/naked-mole-rat
+secretarybird,Secretarybird,,,,,,,,,https://animals.sandiegozoo.org/animals/secretary-bird
+lilac-breasted-roller,Lilac-breasted roller,,,,,,,,,https://www.zooparc.nl/en/animals/lilac-breasted-roller
+southern-ground-hornbill,Southern ground hornbill,,,,,3.459,6.18,2.23,4.58,https://iucnhornbills.org/southern-ground-hornbill/
+helmeted-guineafowl,Helmeted guineafowl,,,,,,,,,https://australiazoo.com.au/wildlife/our-animals/helmeted-guineafowl/
+grey-crowned-crane,Grey crowned crane,,,,,,,,,https://zoobojnice.sk/zviera/zeriav-kralovsky/
+white-backed-vulture,White-backed vulture,,,,,,,,,https://ewt.org/wp-content/uploads/2022/09/2021_SAEP_-manual-mammal.pdf
+red-billed-oxpecker,Red-billed oxpecker,,,,,,,,,https://repository.up.ac.za/bitstream/handle/2263/94701/Stutterheim_Biology_1976.pdf?sequence=1
+marabou-stork,Marabou stork,,,,,,,,,https://www.mnhn.fr/en/marabou-stork
+aardvark,Aardvark,,,,,41.3,64.5,40.4,57.7,https://www.mpalalive.org/field_guide/view/aardvark
+bat-eared-fox,Bat-eared fox,,,,,,,,,https://animals.sandiegozoo.org/animals/bat-eared-fox
+banded-mongoose,Banded mongoose,,,,,,,,,https://nationalzoo.si.edu/animals/banded-mongoose
+meerkat,Meerkat,,,,,0.626,0.797,0.62,0.797,https://www.marwell.org.uk/animals/meerkat/
+olive-baboon,Olive baboon,,,,,,,,,https://primate.wisc.edu/primate-info-net/pin-factsheets/pin-factsheet-olive-baboon/
+vervet-monkey,Vervet monkey,,,,,3.9,8,3.4,5.3,https://www.sanbi.org/gardens/lowveld/wildlife-biodiversity-4/vervet-monkey/
+african-buffalo,African buffalo,,,,,660,849,425,467,https://mpala.org/field_guide/view/african_buffalo/
+nile-monitor,Nile monitor,,,,,,,,,https://myfwc.com/wildlifehabitats/profiles/reptiles/lizards/nile-monitor/

@@ -10,6 +10,10 @@ For the height scale bar, **do not measure pixels in these pictures**. They are 
 - [Common ostrich](common-ostrich.png)
 - [Hippopotamus](hippopotamus.png)
 
+## Story animal scale cutouts (7)
+
+Claude's requested side-view, transparent-background references are in the [story-scale folder](story-scale/README.md). These are additional illustrations for the seven playable story species, not replacements for the earlier Meshy input images. Their pixel heights are **not** calibrated to real animal heights.
+
 ## Savanna expansion (25 original references)
 
 - [Aardvark](savanna-expansion/aardvark.png)
